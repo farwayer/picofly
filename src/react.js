@@ -1,6 +1,6 @@
 import {
-  createContext, useCallback, useContext, useEffect, useRef,
-  useSyncExternalStore, useLayoutEffect,
+  createContext, useContext, useMemo, useCallback, useRef, useLayoutEffect,
+  useSyncExternalStore,
 } from 'react'
 import {onWrite, readable, protect, unprotect} from './store.js'
 
@@ -44,26 +44,12 @@ let useInc = () => {
   return [() => ref.current, () => ref.current++]
 }
 
-let useCached = (get, deps) => {
-  let ref = useRef()
-
-  if (!ref.current) {
-    ref.current = [get()]
-  }
-
-  useEffect(() => () => {
-    ref.current[0] = get()
-  }, deps)
-
-  return ref.current[0]
-}
-
 // exported for external libs
 export let useContextStore = () =>
   useContext(StoreContext)
 
 export let useReadable = (onRead, store = useContextStore()) =>
-  useCached(() => readable(store, onRead), [store])
+  useMemo(() => readable(store, onRead), [store])
 
 export let useProtectedReadable = (onRead, store) => {
   let readableStore = protect(useReadable(onRead, store))
