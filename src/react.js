@@ -9,7 +9,7 @@ export let StoreContext = /* @__PURE__ */ createContext()
 export let StoreProvider = StoreContext.Provider
 
 export let useStore = (store = useContextStore()) => {
-  let [getSnapshot, setChanged] = useToggle()
+  let [getSnapshot, updateSnapshot] = useInc()
 
   let observedRef = useRef()
   observedRef.current = new WeakMap()
@@ -30,7 +30,7 @@ export let useStore = (store = useContextStore()) => {
     let props = observed.get(wProxy)
     if (!props?.has(prop)) return
 
-    setChanged()
+    updateSnapshot()
     onChange()
   }), [store])
 
@@ -39,9 +39,9 @@ export let useStore = (store = useContextStore()) => {
   return readableStore
 }
 
-let useToggle = () => {
-  let ref = useRef()
-  return [() => ref.current, () => ref.current ^= 1]
+let useInc = () => {
+  let ref = useRef(0)
+  return [() => ref.current, () => ref.current++]
 }
 
 let useCached = (get, deps) => {
