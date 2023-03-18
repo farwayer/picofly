@@ -54,7 +54,7 @@ let proxifyWrite = (cache, subs, obj) => cached(cache, obj, () => {
 
     deleteProperty(obj, prop) {
       let has = prop in obj
-      if (has) return true
+      if (!has) return true
 
       delete obj[prop]
       notify(subs, wProxy, prop)
