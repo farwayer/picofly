@@ -1,0 +1,42 @@
+{
+  "private": true,
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": "./src/index.js",
+    "./react": "./src/react.js"
+  },
+  "devDependencies": {
+    "@size-limit/preset-small-lib": "^8.2.4",
+    "esbuild": "^0.17.12",
+    "react": "^18.2.0",
+    "size-limit": "^8.2.4"
+  },
+  "workspaces": [
+    "examples/*"
+  ],
+  "size-limit": [
+    {
+      "name": "Vanila",
+      "path": "src/store.js",
+      "import": "{readableStore, onWrite, protect, unprotect}",
+      "limit": "1Kb"
+    },
+    {
+      "name": "React",
+      "path": [
+        "src/store.js",
+        "src/react.js"
+      ],
+      "import": {
+        "src/store.js": "{store}",
+        "src/react.js": "{StoreProvider, useStore}"
+      },
+      "ignore": [
+        "react"
+      ],
+      "limit": "1Kb"
+    }
+  ],
+  "packageManager": "yarn@3.5.0"
+}
