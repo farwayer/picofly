@@ -14,7 +14,7 @@ export let useStore = (store) => {
   let observedRef = useRef()
   observedRef.current = new WeakMap()
 
-  let readableStore = useProtectedReadable((wProxy, prop) => {
+  store = useProtectedReadable((wProxy, prop) => {
     let observed = observedRef.current
     let props = observed.get(wProxy)
 
@@ -25,20 +25,18 @@ export let useStore = (store) => {
     }
   }, store)
 
-  let subscribe = useCallback(onChange =>
-    onWrite(readableStore, (wProxy, prop) => {
-      let observed = observedRef.current
-      let props = observed.get(wProxy)
-      if (!props?.has(prop)) return
+  let subscribe = useCallback(onChange => onWrite(store, (wProxy, prop) => {
+    let observed = observedRef.current
+    let props = observed.get(wProxy)
+    if (!props?.has(prop)) return
 
-      updateSnapshot()
-      onChange()
-    }
-  ), [readableStore])
+    updateSnapshot()
+    onChange()
+  }), [store])
 
   useSyncExternalStore(subscribe, getSnapshot)
 
-  return readableStore
+  return store
 }
 
 let useInc = () => {
