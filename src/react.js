@@ -65,8 +65,8 @@ export let useContextStore = () =>
 export let useReadable = (onRead, store = useContextStore()) =>
   useCached(() => readable(store, onRead), [store])
 
-export let useProtectedReadable = (onRead) => {
-  let readableStore = protect(useReadable(onRead))
+export let useProtectedReadable = (onRead, store) => {
+  let readableStore = protect(useReadable(onRead, store))
 
   useLayoutEffect(() => {
     unprotect(readableStore)
