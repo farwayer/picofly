@@ -68,7 +68,9 @@ let proxifyWrite = (cache, subs, obj) => cached(cache, obj, () => {
       }
 
       let val = ReflectGet(obj, prop, receiver)
-      return isObj(val) ? proxifyWrite(cache, subs, val) : val
+      return isObj(val)
+        ? proxifyWrite(cache, subs, val)
+        : val
     },
   })
 
@@ -88,7 +90,9 @@ let proxifyRead = (cache, onRead, protector, obj) => cached(cache, obj, () => {
         onRead(wProxy, prop)
       }
 
-      return isObj(val) ? proxifyRead(cache, onRead, protector, val) : val
+      return isObj(val)
+        ? proxifyRead(cache, onRead, protector, val)
+        : val
     },
 
     set(writeProxy, prop, val, receiver) {
