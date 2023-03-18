@@ -8,7 +8,7 @@ import {onWrite, readable, protect, unprotect} from './store.js'
 export let StoreContext = /* @__PURE__ */ createContext()
 export let StoreProvider = StoreContext.Provider
 
-export let useStore = (store = useContextStore()) => {
+export let useStore = (store) => {
   let [getSnapshot, updateSnapshot] = useInc()
 
   let observedRef = useRef()
@@ -25,14 +25,16 @@ export let useStore = (store = useContextStore()) => {
     }
   }, store)
 
-  let subscribe = useCallback(onChange => onWrite(store, (wProxy, prop) => {
-    let observed = observedRef.current
-    let props = observed.get(wProxy)
-    if (!props?.has(prop)) return
+  let subscribe = useCallback(onChange =>
+    onWrite(readableStore, (wProxy, prop) => {
+      let observed = observedRef.current
+      let props = observed.get(wProxy)
+      if (!props?.has(prop)) return
 
-    updateSnapshot()
-    onChange()
-  }), [store])
+      updateSnapshot()
+      onChange()
+    }
+  ), [readableStore])
 
   useSyncExternalStore(subscribe, getSnapshot)
 
