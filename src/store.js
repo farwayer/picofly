@@ -85,6 +85,9 @@ let proxifyRead = (cache, onRead, protector, obj) => cached(cache, obj, () => {
       }
 
       let val = ReflectGet(wProxy, prop, receiver)
+      if (prop === WriteSubsSym) {
+        return val
+      }
 
       if (onRead && protector[0]) {
         onRead(wProxy, prop)
