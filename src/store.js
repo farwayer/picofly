@@ -98,10 +98,10 @@ let proxifyRead = (cache, onRead, protector, obj) => cached(cache, obj, () => {
         : val
     },
 
-    set(writeProxy, prop, val, receiver) {
+    set(wProxy, prop, val, receiver) {
       protector[0] && "store protected!"()
 
-      return ReflectSet(writeProxy, prop, val, receiver)
+      return ReflectSet(wProxy, prop, val, receiver)
     },
   })
 })
