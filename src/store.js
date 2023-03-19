@@ -98,10 +98,15 @@ let proxifyRead = (cache, onRead, protector, obj) => cached(cache, obj, () => {
         : val
     },
 
-    set(wProxy, prop, val, receiver) {
-      protector[0] && "store protected!"()
+    defineProperty(wProxy, prop, desc) {
+      assertNotProtected(protector)
+      return ReflectDefineProperty(wProxy, prop, desc)
+    },
 
-      return ReflectSet(wProxy, prop, val, receiver)
+    deleteProperty(wProxy, prop) {
+      assertNotProtected(protector)
+      delete wProxy[prop]
+      return true
     },
   })
 })
@@ -124,8 +129,8 @@ let notify = (subs, obj, prop) => {
 let getSubs = store => store[WriteSubsSym] || "not store!"()
 let isObj = val => typeof val === 'object'
 let ReflectGet = Reflect.get
-let ReflectSet = Reflect.set
 let ReflectDefineProperty = Reflect.defineProperty
+let assertNotProtected = protector => protector[0] && "store protected!"()
 let protectSetter = enabled => readStore => {
   (readStore[ProtectorSym] || "not readable store!"())[0] = enabled
   return readStore
