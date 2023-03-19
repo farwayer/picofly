@@ -149,14 +149,14 @@ let notify = (subs, obj, prop) => {
   }
 }
 
-let getSubs = store => store[WriteSubsSym] || "not store!"()
-let getRefs = store => store[RefsSym] || "not store!"()
+let getSubs = store => store[WriteSubsSym] || "invalid store!"()
+let getRefs = store => store[RefsSym] || "invalid store!"()
 let isObj = val => val instanceof Object
 let ReflectGet = Reflect.get
 let ReflectDefineProperty = Reflect.defineProperty
 let assertNotProtected = protector => protector[0] && "store protected!"()
 let protectSetter = enabled => readStore => {
-  (readStore[ProtectorSym] || "not readable store!"())[0] = enabled
+  (readStore[ProtectorSym] || "invalid readable store!"())[0] = enabled
   return readStore
 }
 
