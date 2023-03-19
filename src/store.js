@@ -33,6 +33,17 @@ export let onWrite = (store, cb) => {
 
 let proxifyWrite = (cache, subs, obj) => cached(cache, obj, () => {
   let wProxy = new Proxy(obj, {
+    get(obj, prop, receiver) {
+      if (prop === WriteSubsSym) {
+        return subs
+      }
+
+      let val = ReflectGet(obj, prop, receiver)
+      return isObj(val)
+        ? proxifyWrite(cache, subs, val)
+        : val
+    },
+
     defineProperty(obj, prop, desc) {
       // in theory prop getter (prev or next) can modify object
       // so we need to use Reflect with wProxy as receiver
@@ -60,17 +71,6 @@ let proxifyWrite = (cache, subs, obj) => cached(cache, obj, () => {
       notify(subs, wProxy, prop)
 
       return true
-    },
-
-    get(obj, prop, receiver) {
-      if (prop === WriteSubsSym) {
-        return subs
-      }
-
-      let val = ReflectGet(obj, prop, receiver)
-      return isObj(val)
-        ? proxifyWrite(cache, subs, val)
-        : val
     },
   })
 
