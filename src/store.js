@@ -112,7 +112,7 @@ let proxifyRead = (cache, onRead, protector, obj) => cached(cache, obj, () => {
         onRead(wProxy, prop)
       }
 
-      let needProxify = isObj(val) && !getRefs(wProxy).has(val)
+      let needProxify = isObj(val) && !wProxy[RefsSym].has(val)
 
       return needProxify
         ? proxifyRead(cache, onRead, protector, val)
