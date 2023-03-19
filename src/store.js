@@ -2,12 +2,15 @@
 
 let WriteSubsSym = Symbol()
 let ProtectorSym = Symbol()
+let RefsSym = Symbol()
+
 
 export let store = (obj) => {
   let subs = new Set()
+  let refs = new Set()
   let cache = new WeakMap()
 
-  return proxifyWrite(cache, subs, obj)
+  return proxifyWrite(cache, subs, refs, obj)
 }
 
 export let readableStore = (obj, onRead) => {
@@ -31,16 +34,32 @@ export let onWrite = (store, cb) => {
   }
 }
 
-let proxifyWrite = (cache, subs, obj) => cached(cache, obj, () => {
+export let ref = (store, obj) => {
+  let refs = getRefs(store)
+
+  if (isObj(obj)) {
+    refs.add(obj)
+  }
+
+  return obj
+}
+
+
+let proxifyWrite = (cache, subs, refs, obj) => cached(cache, obj, () => {
   let wProxy = new Proxy(obj, {
     get(obj, prop, receiver) {
       if (prop === WriteSubsSym) {
         return subs
       }
+      if (prop === RefsSym) {
+        return refs
+      }
 
       let val = ReflectGet(obj, prop, receiver)
-      return isObj(val)
-        ? proxifyWrite(cache, subs, val)
+      let needProxify = isObj(val) && !refs.has(val)
+
+      return needProxify
+        ? proxifyWrite(cache, subs, refs, val)
         : val
     },
 
@@ -85,7 +104,7 @@ let proxifyRead = (cache, onRead, protector, obj) => cached(cache, obj, () => {
       }
 
       let val = ReflectGet(wProxy, prop, receiver)
-      if (prop === WriteSubsSym) {
+      if (prop === WriteSubsSym || prop === RefsSym) {
         return val
       }
 
@@ -93,7 +112,9 @@ let proxifyRead = (cache, onRead, protector, obj) => cached(cache, obj, () => {
         onRead(wProxy, prop)
       }
 
-      return isObj(val)
+      let needProxify = isObj(val) && !getRefs(wProxy).has(val)
+
+      return needProxify
         ? proxifyRead(cache, onRead, protector, val)
         : val
     },
@@ -129,6 +150,7 @@ let notify = (subs, obj, prop) => {
 }
 
 let getSubs = store => store[WriteSubsSym] || "not store!"()
+let getRefs = store => store[RefsSym] || "not store!"()
 let isObj = val => typeof val === 'object'
 let ReflectGet = Reflect.get
 let ReflectDefineProperty = Reflect.defineProperty
