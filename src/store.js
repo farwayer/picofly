@@ -100,11 +100,13 @@ let proxifyRead = (cache, onRead, protector, obj) => cached(cache, obj, () => {
 
     defineProperty(wProxy, prop, desc) {
       assertNotProtected(protector)
+
       return ReflectDefineProperty(wProxy, prop, desc)
     },
 
     deleteProperty(wProxy, prop) {
       assertNotProtected(protector)
+
       delete wProxy[prop]
       return true
     },
