@@ -12,6 +12,14 @@
     "react": "^18.2.0",
     "size-limit": "^8.2.4"
   },
+  "peerDependencies": {
+    "react": ">=18"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    }
+  },
   "workspaces": [
     "examples/*"
   ],
