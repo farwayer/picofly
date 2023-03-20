@@ -1,6 +1,6 @@
 import {
   createContext, useContext, useMemo, useCallback, useRef, useLayoutEffect,
-  useSyncExternalStore,
+  useSyncExternalStore, useTransition,
 } from 'react'
 import {onWrite, readable, protect, unprotect} from './store.js'
 
@@ -36,9 +36,34 @@ export let useStore = (store = useContextStore()) => {
   return store
 }
 
-let useInc = () => {
-  let ref = useRef(0)
-  return [() => ref.current, () => ref.current++]
+export let usePostRenderCallback = (fn, deps) => {
+  let inRenderRef = useRef()
+  let argsRef = useRef()
+  let [,startTransition] = useTransition()
+
+  inRenderRef.current = 1
+
+  useLayoutEffect(() => {
+    inRenderRef.current = 0
+
+    let args = argsRef.current
+    if (!args) return
+
+    fn(...args)
+    argsRef.current = 0
+  })
+
+  return useCallback((...args) => {
+    let inRender = inRenderRef.current
+
+    if (inRender) {
+      startTransition(() => {
+        argsRef.current = args
+      })
+    } else {
+      fn(...args)
+    }
+  }, deps)
 }
 
 // exported for external libs
@@ -56,6 +81,12 @@ export let useProtectedReadable = (onRead, store) => {
   })
 
   return readableStore
+}
+
+
+let useInc = () => {
+  let ref = useRef(0)
+  return [() => ref.current, () => ref.current++]
 }
 
 let useNewWeakMap = () => {
