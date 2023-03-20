@@ -9,7 +9,7 @@ export let StoreContext = /* @__PURE__ */ createContext()
 export let StoreProvider = StoreContext.Provider
 
 export let useStore = (store = useContextStore()) => {
-  let getTracked = useReinitRef(() => new WeakMap())
+  let getTracked = useReinit(() => new WeakMap())
   let [getUpdateId, incUpdateId] = useInc()
 
   store = useProtectedReadable((wProxy, prop) => {
@@ -58,7 +58,7 @@ export let useProtectedReadable = (onRead, store) => {
   return readableStore
 }
 
-let useReinitRef = (get) => {
+let useReinit = (get) => {
   let ref = useRef()
   ref.current = get()
   return () => ref.current
