@@ -9,26 +9,23 @@ export let StoreContext = /* @__PURE__ */ createContext()
 export let StoreProvider = StoreContext.Provider
 
 export let useStore = (store = useContextStore()) => {
+  let getTracked = useReinitRef(() => new WeakMap())
   let [getUpdateId, incUpdateId] = useInc()
-  let observedRef = useRef()
-
-  observedRef.current = new WeakMap()
 
   store = useProtectedReadable((wProxy, prop) => {
-    let observed = observedRef.current
-    let props = observed.get(wProxy)
+    let tracked = getTracked()
+    let objTrackedProps = tracked.get(wProxy)
 
-    if (props) {
-      props.add(prop)
+    if (objTrackedProps) {
+      objTrackedProps.add(prop)
     } else {
-      observed.set(wProxy, new Set([prop]))
+      tracked.set(wProxy, new Set([prop]))
     }
   }, store)
 
   let subscribe = useCallback(onChange => onWrite(store, (wProxy, prop) => {
-    let observed = observedRef.current
-    let props = observed.get(wProxy)
-    if (!props?.has(prop)) return
+    let objTrackedProps = getTracked().get(wProxy)
+    if (!objTrackedProps?.has(prop)) return
 
     incUpdateId()
     onChange()
@@ -59,4 +56,10 @@ export let useProtectedReadable = (onRead, store) => {
   })
 
   return readableStore
+}
+
+let useReinitRef = (get) => {
+  let ref = useRef()
+  ref.current = get()
+  return () => ref.current
 }
