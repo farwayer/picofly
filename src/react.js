@@ -9,9 +9,9 @@ export let StoreContext = /* @__PURE__ */ createContext()
 export let StoreProvider = StoreContext.Provider
 
 export let useStore = (store) => {
-  let [getSnapshot, updateSnapshot] = useInc()
-
+  let [getUpdateId, incUpdateId] = useInc()
   let observedRef = useRef()
+
   observedRef.current = new WeakMap()
 
   store = useProtectedReadable((wProxy, prop) => {
@@ -30,11 +30,11 @@ export let useStore = (store) => {
     let props = observed.get(wProxy)
     if (!props?.has(prop)) return
 
-    updateSnapshot()
+    incUpdateId()
     onChange()
   }), [store])
 
-  useSyncExternalStore(subscribe, getSnapshot)
+  useSyncExternalStore(subscribe, getUpdateId)
 
   return store
 }
