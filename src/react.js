@@ -8,7 +8,7 @@ import {onWrite, readable, protect, unprotect} from './store.js'
 export let StoreContext = /* @__PURE__ */ createContext()
 export let StoreProvider = StoreContext.Provider
 
-export let useStore = (store) => {
+export let useStore = (store = useContextStore()) => {
   let [getUpdateId, incUpdateId] = useInc()
   let observedRef = useRef()
 
@@ -48,7 +48,7 @@ let useInc = () => {
 export let useContextStore = () =>
   useContext(StoreContext)
 
-export let useReadable = (onRead, store = useContextStore()) =>
+export let useReadable = (onRead, store) =>
   useMemo(() => readable(store, onRead), [store])
 
 export let useProtectedReadable = (onRead, store) => {
