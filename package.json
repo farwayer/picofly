@@ -6,11 +6,8 @@
     ".": "./src/index.js",
     "./react": "./src/react.js"
   },
-  "devDependencies": {
-    "@size-limit/preset-small-lib": "^8.2.4",
-    "esbuild": "^0.17.12",
-    "react": "^18.2.0",
-    "size-limit": "^8.2.4"
+  "scripts": {
+    "test": "uvu"
   },
   "peerDependencies": {
     "react": ">=18"
@@ -19,6 +16,13 @@
     "react": {
       "optional": true
     }
+  },
+  "devDependencies": {
+    "@size-limit/preset-small-lib": "^8.2.4",
+    "esbuild": "^0.17.12",
+    "react": "^18.2.0",
+    "size-limit": "^8.2.4",
+    "uvu": "^0.5.6"
   },
   "workspaces": [
     "examples/*"
