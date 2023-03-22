@@ -1,35 +1,42 @@
 import {
-  createContext, useContext, useMemo, useCallback, useRef, useLayoutEffect,
+  createContext, useContext, useCallback, useRef, useLayoutEffect,
   useSyncExternalStore, useTransition,
 } from 'react'
-import {onWrite, readable, protect, unprotect} from './store.js'
+import {onWrite, lock, unlock} from './store.js'
 
 
 export let StoreContext = /* @__PURE__ */ createContext()
 export let StoreProvider = StoreContext.Provider
 
 export let useStore = (store = useContextStore()) => {
-  let getTracked = useNewWeakMap()
-  let [getUpdateId, incUpdateId] = useInc()
+  let trackedRef = useRef()
+  let updateIdRef = useRef(0)
 
-  store = useProtectedReadable((wProxy, prop) => {
-    let tracked = getTracked()
-    let objTrackedProps = tracked.get(wProxy)
+  trackedRef.current = new WeakMap()
+
+  useReadonly(store, (obj, prop) => {
+    let tracked = trackedRef.current
+    let objTrackedProps = tracked.get(obj)
 
     if (objTrackedProps) {
       objTrackedProps.add(prop)
     } else {
-      tracked.set(wProxy, new Set([prop]))
+      tracked.set(obj, new Set([prop]))
     }
-  }, store)
+  })
 
-  let subscribe = useCallback(onChange => onWrite(store, (wProxy, prop) => {
-    let objTrackedProps = getTracked().get(wProxy)
-    if (!objTrackedProps?.has(prop)) return
+  let subscribe = useCallback(onChange => onWrite(store, (obj, prop) => {
+    let objTrackedProps = trackedRef.current.get(obj)
+    if (!objTrackedProps) return
+    if (!objTrackedProps.has(prop)) return
 
-    incUpdateId()
+    updateIdRef.current++
     onChange()
   }), [store])
+
+  let getUpdateId = () => (
+    updateIdRef.current
+  )
 
   useSyncExternalStore(subscribe, getUpdateId)
 
@@ -39,7 +46,7 @@ export let useStore = (store = useContextStore()) => {
 export let usePostRenderCallback = (fn, deps) => {
   let inRenderRef = useRef()
   let argsRef = useRef()
-  let [,startTransition] = useTransition()
+  let startTransition = useTransition()[1]
 
   inRenderRef.current = 1
 
@@ -66,31 +73,18 @@ export let usePostRenderCallback = (fn, deps) => {
   }, deps)
 }
 
-// exported for external libs
+
+// for external libs
 export let useContextStore = () =>
   useContext(StoreContext)
 
-export let useReadable = (onRead, store) =>
-  useMemo(() => readable(store, onRead), [store])
-
-export let useProtectedReadable = (onRead, store) => {
-  let readableStore = protect(useReadable(onRead, store))
-
-  useLayoutEffect(() => {
-    unprotect(readableStore)
-  })
-
-  return readableStore
-}
-
-
-let useInc = () => {
-  let ref = useRef(0)
-  return [() => ref.current, () => ref.current++]
-}
-
-let useNewWeakMap = () => {
-  let ref = useRef()
-  ref.current = new WeakMap()
-  return () => ref.current
+// store will be write-protected immediately after the call
+// and unprotected at component commit stage
+// keep in mind that store can be unlocked early
+// or re-locked by another component (!)
+// during the lock any modifications to the store
+// will result in a call to onRead
+export let useReadonly = (store, onRead) => {
+  lock(store, onRead)
+  useLayoutEffect(unlock)
 }

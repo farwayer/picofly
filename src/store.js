@@ -1,164 +1,108 @@
 // noinspection JSAnnotator,JSValidateTypes
 
-let WriteSubsSym = Symbol()
-let ProtectorSym = Symbol()
-let RefsSym = Symbol()
+let $Sym = Symbol()
 
 
-export let store = (obj) => {
-  let subs = new Set()
-  let refs = new Set()
-  let cache = new WeakMap()
+export let store = (obj, proxify = basicProxify) => {
+  let $ = [         // internal store data
+    proxify,        // 0 = proxify fn
+    new WeakMap(),  // 1 = proxy cache
+    new Set(),      // 2 = write subs
+                    // 3 = onRead (store is locked if set)
+  ]
 
-  return proxifyWrite(cache, subs, refs, obj)
-}
-
-export let readableStore = (obj, onRead) => {
-  return readable(store(obj), onRead)
-}
-
-export let readable = (store, onRead) => {
-  getSubs(store) // check if store is valid
-
-  let cache = new WeakMap()
-  let protector = [1]
-
-  return proxifyRead(cache, onRead, protector, store)
+  return proxify($, obj)
 }
 
 export let onWrite = (store, cb) => {
-  let subs = getSubs(store).add(cb)
+  let subs = get$(store)[2].add(cb)
 
   return () => {
     subs.delete(cb)
   }
 }
 
-export let ref = (store, obj) => {
-  let refs = getRefs(store)
+export let lock = (store, onRead) => {
+  get$(store)[3] = onRead
+}
 
-  if (isObj(obj)) {
-    refs.add(obj)
-  }
-
-  return obj
+export let unlock = (store) => {
+  get$(store)[3] = 0
 }
 
 
-let proxifyWrite = (cache, subs, refs, obj) => cached(cache, obj, () => {
-  let wProxy = new Proxy(obj, {
+// for external libs
+export let get$ = store => store[$Sym] || "invalid store!"()
+
+export let basicProxify = ($, val) => {
+  return typeof val === 'object' && val !== null
+    ? proxifyObj($, val)
+    : val
+}
+
+export let proxifyObj = ($, obj) => {
+  let [proxify, cache, writeSubs] = $
+
+  let proxy = cache.get(obj)
+  if (proxy) return proxy
+
+  proxy = new Proxy(obj, {
     get(obj, prop, receiver) {
-      if (prop === WriteSubsSym) {
-        return subs
-      }
-      if (prop === RefsSym) {
-        return refs
+      if (prop === $Sym) {
+        return $
       }
 
       let val = ReflectGet(obj, prop, receiver)
-      let needProxify = isObj(val) && !refs.has(val)
 
-      return needProxify
-        ? proxifyWrite(cache, subs, refs, val)
-        : val
+      let onRead = $[3]
+      onRead && onRead(obj, prop)
+
+      return proxify($, val)
     },
 
     defineProperty(obj, prop, desc) {
+      $[3] && "store locked!"()
+
       // in theory prop getter (prev or next) can modify object
-      // so we need to use Reflect with wProxy as receiver
+      // so we need to use Reflect with the proxy as receiver
       // to catch this changes
 
       let has = prop in obj
-      let prev = has && ReflectGet(obj, prop, wProxy)
+      let prev = has && ReflectGet(obj, prop, proxy)
 
       ReflectDefineProperty(obj, prop, desc)
 
-      let next = has && ReflectGet(obj, prop, wProxy)
+      let next = has && ReflectGet(obj, prop, proxy)
 
       if (!has || next !== prev) {
-        notify(subs, wProxy, prop)
+        for (let cb of writeSubs) {
+          cb(obj, prop)
+        }
       }
 
       return true
     },
 
     deleteProperty(obj, prop) {
+      $[3] && "store locked!"()
+
       let has = prop in obj
       if (!has) return true
 
       delete obj[prop]
-      notify(subs, wProxy, prop)
+
+      for (let cb of writeSubs) {
+        cb(obj, prop)
+      }
 
       return true
     },
   })
 
-  return wProxy
-})
+  cache.set(obj, proxy)
 
-let proxifyRead = (cache, onRead, protector, obj) => cached(cache, obj, () => {
-  return new Proxy(obj, {
-    get(wProxy, prop, receiver) {
-      if (prop === ProtectorSym) {
-        return protector
-      }
-
-      let val = ReflectGet(wProxy, prop, receiver)
-      if (prop === WriteSubsSym || prop === RefsSym) {
-        return val
-      }
-
-      if (onRead && protector[0]) {
-        onRead(wProxy, prop)
-      }
-
-      let needProxify = isObj(val) && !wProxy[RefsSym].has(val)
-
-      return needProxify
-        ? proxifyRead(cache, onRead, protector, val)
-        : val
-    },
-
-    defineProperty(wProxy, prop, desc) {
-      assertNotProtected(protector)
-
-      return ReflectDefineProperty(wProxy, prop, desc)
-    },
-
-    deleteProperty(wProxy, prop) {
-      assertNotProtected(protector)
-
-      delete wProxy[prop]
-      return true
-    },
-  })
-})
-
-let cached = (cache, key, init) => {
-  let val = cache.get(key)
-  if (val) return val
-
-  val = init()
-  cache.set(key, val)
-  return val
+  return proxy
 }
 
-let notify = (subs, obj, prop) => {
-  for (let cb of subs) {
-    cb(obj, prop)
-  }
-}
-
-let getSubs = store => store[WriteSubsSym] || "invalid store!"()
-let getRefs = store => store[RefsSym] || "invalid store!"()
-let isObj = val => typeof val === 'object' && val !== null
 let ReflectGet = Reflect.get
 let ReflectDefineProperty = Reflect.defineProperty
-let assertNotProtected = protector => protector[0] && "store protected!"()
-let protectSetter = enabled => readStore => {
-  (readStore[ProtectorSym] || "invalid readable store!"())[0] = enabled
-  return readStore
-}
-
-export let protect = /* @__PURE__ */ protectSetter(1)
-export let unprotect = /* @__PURE__ */ protectSetter(0)
