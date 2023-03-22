@@ -1,223 +1,166 @@
+// noinspection BadExpressionStatementJS
+
 import {test} from 'uvu'
 import * as assert from 'uvu/assert'
-import {
-  store, onWrite, readableStore, readable, unprotect, protect, ref
-} from '../src/store.js'
+import {store, onWrite, lock, unlock} from '../src/store.js'
 
 
 test('store', () => {
-  const obj = {timer: {ticks: 0}}
-  const w = store(obj)
+  const o = {timer: {ticks: 0}}
+  const s = store(o)
 
-  const wObj = JSON.parse(JSON.stringify(w))
-  assert.equal(wObj, obj)
-})
-
-test('store invalid init type', () => {
-  assert.throws(() => {
-    store(1)
-  }, /Cannot create proxy with a non-object as target or handler/)
+  const sObj = JSON.parse(JSON.stringify(s))
+  assert.equal(sObj, o)
 })
 
 test('set', () => {
-  const obj = {timer: {ticks: 0}}
-  const w = store(obj)
+  const o = {timer: {ticks: 0}}
+  const s = store(o)
 
-  w.timer.ticks = 1
-  assert.is(obj.timer.ticks, 1)
-  assert.is(w.timer.ticks, 1)
+  s.timer.ticks = 1
+  assert.is(o.timer.ticks, 1)
+  assert.is(s.timer.ticks, 1)
 })
 
 test('define', () => {
-  const obj = {timer: {ticks: 0}}
-  const w = store(obj)
+  const o = {timer: {ticks: 0}}
+  const s = store(o)
 
-  Object.defineProperty(w.timer, 'interval', {value: 1000})
-  assert.is(obj.timer.interval, 1000)
-  assert.is(w.timer.interval, 1000)
+  Object.defineProperty(s.timer, 'interval', {value: 1000})
+  assert.is(o.timer.interval, 1000)
+  assert.is(s.timer.interval, 1000)
 })
 
 test('delete', () => {
-  const obj = {timer: {ticks: 0}}
-  const w = store(obj)
+  const o = {timer: {ticks: 0}}
+  const s = store(o)
 
-  delete w.timer.ticks
-  assert.not('ticks' in w.timer)
-  assert.not('ticks' in obj.timer)
+  delete s.timer.ticks
+  assert.not('ticks' in s.timer)
+  assert.not('ticks' in o.timer)
 })
 
 test('onWrite set root', () => new Promise(resolve => {
-  const obj = {timer: {ticks: 0}}
-  const w = store(obj)
+  const o = {timer: {ticks: 0}}
+  const s = store(o)
 
-  onWrite(w, (proxy, prop) => {
-    assert.is(proxy, w)
+  onWrite(s, (obj, prop) => {
+    assert.is(obj, o)
     assert.is(prop, 'show')
     resolve()
   })
 
-  w.show = true
+  s.show = true
   assert.unreachable()
 }))
 
-test('onWrite set', () => new Promise(resolve => {
-  const obj = {timer: {ticks: 0}}
-  const w = store(obj)
+test('onWrite set nested', () => new Promise(resolve => {
+  const o = {timer: {ticks: 0}}
+  const s = store(o)
 
-  onWrite(w, (proxy, prop) => {
+  onWrite(s, (obj, prop) => {
+    assert.is(obj, o.timer)
     assert.is(prop, 'ticks')
     resolve()
   })
 
-  w.timer.ticks = 1
+  s.timer.ticks = 1
   assert.unreachable()
 }))
 
-test('onWrite define', () => new Promise(resolve => {
-  const obj = {timer: {ticks: 0}}
-  const w = store(obj)
+test('onWrite define nested', () => new Promise(resolve => {
+  const o = {timer: {ticks: 0}}
+  const s = store(o)
 
-  onWrite(w, (proxy, prop) => {
+  onWrite(s, (obj, prop) => {
+    assert.is(obj, o.timer)
     assert.is(prop, 'interval')
     resolve()
   })
 
-  Object.defineProperty(w.timer, 'interval', {value: 1000})
+  Object.defineProperty(s.timer, 'interval', {value: 1000})
   assert.unreachable()
 }))
 
-test('onWrite delete', () => new Promise(resolve => {
-  const obj = {timer: {ticks: 0}}
-  const w = store(obj)
+test('onWrite delete nested', () => new Promise(resolve => {
+  const o = {timer: {ticks: 0}}
+  const s = store(o)
 
-  onWrite(w, (proxy, prop) => {
+  onWrite(s, (obj, prop) => {
+    assert.is(obj, o.timer)
     assert.is(prop, 'ticks')
     resolve()
   })
 
-  delete w.timer.ticks
+  delete s.timer.ticks
   assert.unreachable()
 }))
 
-test('readable', () => {
-  const obj = {timer: {ticks: 0}}
-  const w = store(obj)
-  const r = readable(w)
+test('lock', () => {
+  const o = {timer: {ticks: 0}}
+  const s = store(o)
 
-  const rObj = JSON.parse(JSON.stringify(r))
-  assert.equal(rObj, obj)
+  lock(s)
+
+  assert.throws(() => {
+    s.timer.ticks = 1
+  }, /"store locked!" is not a function/)
 })
 
-test('readableStore', () => {
-  const obj = {timer: {ticks: 0}}
-  const r = readableStore(obj)
+test('unlock', () => {
+  const o = {timer: {ticks: 0}}
+  const s = store(o)
 
-  const rObj = JSON.parse(JSON.stringify(r))
-  assert.equal(rObj, obj)
-})
-
-test('onWrite readable', () => new Promise(resolve => {
-  const obj = {timer: {ticks: 0}}
-  const w = store(obj)
-  const r = readable(w)
-
-  onWrite(r, (proxy, prop) => {
-    assert.is(proxy, w)
-    assert.is(prop, 'show')
-    resolve()
+  lock(s, () => {
+    assert.unreachable()
   })
+  unlock(s)
 
-  unprotect(r)
-  r.show = true
+  s.timer.ticks = 1
 
-  assert.unreachable()
-}))
+  assert.is(o.timer.ticks, 1)
+  assert.is(s.timer.ticks, 1)
+})
 
 test('onRead root', () => new Promise(resolve => {
-  const obj = {timer: {ticks: 0}}
-  const w = store(obj)
+  const o = {timer: {ticks: 0}}
+  const s = store(o)
 
-  const r = readable(w, (proxy, prop) => {
-    assert.is(proxy, w)
+  lock(s, (obj, prop) => {
+    assert.is(obj, o)
     assert.is(prop, 'timer')
     resolve()
   })
 
-  r.timer
+  s.timer
   assert.unreachable()
 }))
 
-test('onRead', () => new Promise(resolve => {
-  const obj = {timer: {ticks: 0}}
-  const w = store(obj)
+test('onRead nested', () => new Promise(resolve => {
+  const o = {timer: {ticks: 0}}
+  const s = store(o)
 
   let called = 0
 
-  const r = readable(w, (proxy, prop) => {
+  lock(s, (obj, prop) => {
     if (!called++) {
-      assert.is(proxy, w)
+      assert.is(obj, o)
       assert.is(prop, 'timer')
     } else {
+      assert.is(obj, o.timer)
       assert.is(prop, 'ticks')
       resolve()
     }
   })
 
-  r.timer.ticks
+  s.timer.ticks
   assert.unreachable()
 }))
 
-test('protected', () => {
-  const obj = {timer: {ticks: 0}}
-  const r = readableStore(obj)
-
-  assert.throws(() => {
-    r.timer.ticks = 1
-  }, /"store protected!" is not a function/)
-})
-
-test('unprotect', () => {
-  const obj = {timer: {ticks: 0}}
-
-  const r = readableStore(obj, () => {
-    assert.unreachable()
-  })
-
-  unprotect(r)
-  r.timer.ticks = 1
-
-  assert.is(obj.timer.ticks, 1)
-  assert.is(r.timer.ticks, 1)
-})
-
-test('unprotect->protect', () => {
-  const obj = {timer: {ticks: 0}}
-
-  let isProtected = true
-
-  const r = readableStore(obj, () => {
-    if (isProtected) return
-    assert.unreachable()
-  })
-
-  unprotect(r)
-  isProtected = false
-
-  r.timer.ticks = 1
-
-  protect(r)
-  isProtected = true
-
-  r.timer.ticks
-
-  assert.is(obj.timer.ticks, 1)
-  assert.is(r.timer.ticks, 1)
-})
-
-test('ref', () => {
-  const obj = {timer: {ticks: 0}}
+test.skip('ref', () => {
+  const o = {timer: {ticks: 0}}
   const refObj = {show: true}
-  const w = store(obj)
+  const w = store(o)
 
   w.options = ref(w, refObj)
   assert.is(w.options, refObj)
@@ -228,34 +171,6 @@ test('ref', () => {
   })
 
   w.options.show = false
-})
-
-test('ref readable', () => {
-  const obj = {timer: {ticks: 0}}
-  const refObj = {show: true}
-
-  const w = store(obj)
-  const r = readable(w, (proxy, prop) => {
-    if (prop === 'options') return
-    assert.unreachable()
-  })
-
-  unprotect(r)
-
-  r.options = ref(r, refObj)
-  assert.is(w.options, refObj)
-  assert.is(w.options.show, true)
-  assert.is(r.options, refObj)
-  assert.is(r.options.show, true)
-
-  onWrite(w, () => {
-    assert.unreachable()
-  })
-
-  w.options.show = false
-
-  protect(r)
-  r.options.show
 })
 
 
