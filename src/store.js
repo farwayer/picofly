@@ -22,7 +22,7 @@ export let onWrite = (store, cb) => {
   }
 }
 
-export let lock = (store, onRead) => {
+export let lock = (store, onRead = () => {}) => {
   get$(store)[3] = onRead
 }
 
