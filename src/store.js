@@ -22,7 +22,7 @@ export let onWrite = (store, cb) => {
   }
 }
 
-export let lock = (store, onRead = () => {}) => {
+export let lock = (store, onRead = noop) => {
   get$(store)[3] = onRead
 }
 
@@ -104,5 +104,6 @@ export let proxifyObj = ($, obj) => {
   return proxy
 }
 
+let noop = () => {}
 let ReflectGet = Reflect.get
 let ReflectDefineProperty = Reflect.defineProperty
