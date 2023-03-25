@@ -3,7 +3,7 @@
 let $Sym = Symbol()
 
 
-export let store = (obj, proxify = basicProxify) => {
+export let store = (initValue, proxify = basicProxify) => {
   let $ = [         // internal store data
     proxify,        // 0 = proxify fn
     new WeakMap(),  // 1 = proxy cache
@@ -11,7 +11,7 @@ export let store = (obj, proxify = basicProxify) => {
                     // 3 = onRead (store is locked if set)
   ]
 
-  return proxify($, obj)
+  return proxify($, initValue)
 }
 
 export let onWrite = (store, cb) => {
