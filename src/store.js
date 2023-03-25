@@ -32,7 +32,7 @@ export let unlock = (store) => {
 
 
 // for external libs
-export let get$ = store => store[$Sym] || "invalid store!"()
+export let get$ = store => store && store[$Sym] || "invalid store!"()
 
 export let basicProxify = ($, val) => {
   return typeof val === 'object' && val !== null
