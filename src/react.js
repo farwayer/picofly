@@ -86,5 +86,5 @@ export let useContextStore = () =>
 // will result in a call to onRead
 export let useReadonly = (store, onRead) => {
   lock(store, onRead)
-  useLayoutEffect(unlock)
+  useLayoutEffect(() => unlock(store))
 }
