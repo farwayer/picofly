@@ -2,16 +2,17 @@
 
 import {test} from 'uvu'
 import * as assert from 'uvu/assert'
-import {store, onWrite, lock, unlock} from '../src/store.js'
+import {createStore, onWrite, lock, unlock, onRead} from '../src/store.js'
+import {obj} from '../src/proxify.js'
 
 
 const timerStore = () => {
   const o = {timer: {ticks: 0}}
-  const s = store(o)
+  const s = createStore(o, obj)
   return [o, s]
 }
 
-test('store', () => {
+test('create', () => {
   const [o, s] = timerStore()
 
   const sObj = JSON.parse(JSON.stringify(s))
@@ -45,9 +46,9 @@ test('delete', () => {
 test('onWrite set root', () => new Promise(resolve => {
   const [o, s] = timerStore()
 
-  onWrite(s, (obj, prop) => {
+  onWrite(s, (obj, key) => {
     assert.is(obj, o)
-    assert.is(prop, 'show')
+    assert.is(key, 'show')
     resolve()
   })
 
@@ -58,9 +59,9 @@ test('onWrite set root', () => new Promise(resolve => {
 test('onWrite set nested', () => new Promise(resolve => {
   const [o, s] = timerStore()
 
-  onWrite(s, (obj, prop) => {
+  onWrite(s, (obj, key) => {
     assert.is(obj, o.timer)
-    assert.is(prop, 'ticks')
+    assert.is(key, 'ticks')
     resolve()
   })
 
@@ -68,12 +69,22 @@ test('onWrite set nested', () => new Promise(resolve => {
   assert.unreachable()
 }))
 
+test('onWrite set same', () => {
+  const [_, s] = timerStore()
+
+  onWrite(s, () => {
+    assert.unreachable()
+  })
+
+  s.timer.ticks = 0
+})
+
 test('onWrite define nested', () => new Promise(resolve => {
   const [o, s] = timerStore()
 
-  onWrite(s, (obj, prop) => {
+  onWrite(s, (obj, key) => {
     assert.is(obj, o.timer)
-    assert.is(prop, 'interval')
+    assert.is(key, 'interval')
     resolve()
   })
 
@@ -84,9 +95,9 @@ test('onWrite define nested', () => new Promise(resolve => {
 test('onWrite delete nested', () => new Promise(resolve => {
   const [o, s] = timerStore()
 
-  onWrite(s, (obj, prop) => {
+  onWrite(s, (obj, key) => {
     assert.is(obj, o.timer)
-    assert.is(prop, 'ticks')
+    assert.is(key, 'ticks')
     resolve()
   })
 
@@ -95,21 +106,27 @@ test('onWrite delete nested', () => new Promise(resolve => {
 }))
 
 test('lock', () => {
-  const [o, s] = timerStore()
+  const [_, s] = timerStore()
 
   lock(s)
 
   assert.throws(() => {
     s.timer.ticks = 1
   }, /"store locked!" is not a function/)
+
+  assert.throws(() => {
+    Object.defineProperty(s.timer, 'interval', {value: 1000})
+  }, /"store locked!" is not a function/)
+
+  assert.throws(() => {
+    delete s.timer.ticks
+  }, /"store locked!" is not a function/)
 })
 
 test('unlock', () => {
   const [o, s] = timerStore()
 
-  lock(s, () => {
-    assert.unreachable()
-  })
+  lock(s)
   unlock(s)
 
   s.timer.ticks = 1
@@ -121,9 +138,9 @@ test('unlock', () => {
 test('onRead root', () => new Promise(resolve => {
   const [o, s] = timerStore()
 
-  lock(s, (obj, prop) => {
+  onRead(s, (obj, key) => {
     assert.is(obj, o)
-    assert.is(prop, 'timer')
+    assert.is(key, 'timer')
     resolve()
   })
 
@@ -136,13 +153,13 @@ test('onRead nested', () => new Promise(resolve => {
 
   let called = 0
 
-  lock(s, (obj, prop) => {
+  onRead(s, (obj, key) => {
     if (!called++) {
       assert.is(obj, o)
-      assert.is(prop, 'timer')
+      assert.is(key, 'timer')
     } else {
       assert.is(obj, o.timer)
-      assert.is(prop, 'ticks')
+      assert.is(key, 'ticks')
       resolve()
     }
   })

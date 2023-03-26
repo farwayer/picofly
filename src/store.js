@@ -1,109 +1,46 @@
-// noinspection JSAnnotator,JSValidateTypes
+// noinspection JSValidateTypes,JSAnnotator
 
-let $Sym = Symbol()
+import {objIgnoreSpecials} from './proxify.js'
 
 
-export let store = (initValue, proxify = basicProxify) => {
+export let store = initValue => (
+  createStore(initValue, objIgnoreSpecials)
+)
+
+export let createStore = (initValue, proxify) => {
   let $ = [         // internal store data
     proxify,        // 0 = proxify fn
     new WeakMap(),  // 1 = proxy cache
     new Set(),      // 2 = write subs
-                    // 3 = onRead (store is locked if set)
+    new Set(),      // 3 = read subs
+                    // 4 = locked
+                    // 5-20 = reserved
+                    // 21-... can be used by libs
+                    // but it's better to use symbols (or str keys)
+                    // to prevent overlaps
   ]
 
   return proxify($, initValue)
 }
 
-export let onWrite = (store, cb) => {
-  let subs = get$(store)[2].add(cb)
+let subscriber = subsIndex => (store, cb) => {
+  let subs = get$(store)[subsIndex].add(cb)
 
   return () => {
     subs.delete(cb)
   }
 }
 
-export let lock = (store, onRead = noop) => {
-  get$(store)[3] = onRead
+let locker = locked => store => {
+  get$(store)[4] = locked
 }
 
-export let unlock = (store) => {
-  get$(store)[3] = 0
-}
+export let onWrite = /* @__PURE__ */ subscriber(2)
+export let onRead = /* @__PURE__ */ subscriber(3)
+export let lock = /* @__PURE__ */ locker(1)
+export let unlock = /* @__PURE__ */ locker(0)
 
 
-// for external libs
+// private
+export let $Sym = Symbol()
 export let get$ = store => store && store[$Sym] || "invalid store!"()
-
-export let basicProxify = ($, val) => {
-  return typeof val === 'object' && val !== null
-    ? proxifyObj($, val)
-    : val
-}
-
-export let proxifyObj = ($, obj) => {
-  let [proxify, cache, writeSubs] = $
-
-  let proxy = cache.get(obj)
-  if (proxy) return proxy
-
-  proxy = new Proxy(obj, {
-    get(obj, prop, receiver) {
-      if (prop === $Sym) {
-        return $
-      }
-
-      let val = ReflectGet(obj, prop, receiver)
-
-      let onRead = $[3]
-      onRead && onRead(obj, prop)
-
-      return proxify($, val)
-    },
-
-    defineProperty(obj, prop, desc) {
-      $[3] && "store locked!"()
-
-      // in theory prop getter (prev or next) can modify object
-      // so we need to use Reflect with the proxy as receiver
-      // to catch this changes
-
-      let has = prop in obj
-      let prev = has && ReflectGet(obj, prop, proxy)
-
-      ReflectDefineProperty(obj, prop, desc)
-
-      let next = has && ReflectGet(obj, prop, proxy)
-
-      if (!has || next !== prev) {
-        for (let cb of writeSubs) {
-          cb(obj, prop)
-        }
-      }
-
-      return true
-    },
-
-    deleteProperty(obj, prop) {
-      $[3] && "store locked!"()
-
-      let has = prop in obj
-      if (!has) return true
-
-      delete obj[prop]
-
-      for (let cb of writeSubs) {
-        cb(obj, prop)
-      }
-
-      return true
-    },
-  })
-
-  cache.set(obj, proxy)
-
-  return proxy
-}
-
-let noop = () => {}
-let ReflectGet = Reflect.get
-let ReflectDefineProperty = Reflect.defineProperty
