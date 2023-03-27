@@ -113,6 +113,7 @@ export let proxifyMap = ($, map) => {
           target.delete(key)
 
           for (let cb of writeSubs) {
+            cb(map, '@@map.size')
             cb(map, KeysSym)
             cb(map, ValuesSym)
             cb(map, EntriesSym)
@@ -140,6 +141,7 @@ export let proxifyMap = ($, map) => {
           target.clear()
 
           for (let cb of writeSubs) {
+            cb(map, '@@map.size')
             cb(map, KeysSym)
             cb(map, ValuesSym)
             cb(map, EntriesSym)
@@ -166,6 +168,7 @@ export let proxifyMap = ($, map) => {
           target.set(key, val)
 
           for (let cb of writeSubs) {
+            !has && cb(map, '@@map.size')
             !has && cb(map, KeysSym)
             cb(map, ValuesSym)
             cb(map, EntriesSym)
@@ -183,7 +186,7 @@ export let proxifyMap = ($, map) => {
         }
       }
 
-      // to distinguish map keys (if string) and map object props
+      // to distinguish map keys (if strings) and map object props
       let key = '@@map.' + (prop === SymIterator ? '@@iterator' : prop)
 
       for (let cb of readSubs) {

@@ -288,11 +288,12 @@ test('delete onRead', () => new Promise(resolve => {
 test('delete onWrite', () => {
   const [_, s] = booksStore()
 
-  let c, cKeys, cValues, cEntries, cForEach
+  let c, cSize, cKeys, cValues, cEntries, cForEach
 
   onWrite(s, (obj, key) => {
     switch (key) {
       case '1': return c = true
+      case '@@map.size': return cSize = true
       case KeysSym: return cKeys = true
       case ValuesSym: return cValues = true
       case EntriesSym: return cEntries = true
@@ -303,6 +304,7 @@ test('delete onWrite', () => {
   s.delete('1')
 
   assert.ok(c, 'c')
+  assert.ok(cSize, 'size')
   assert.ok(cKeys, 'keys')
   assert.ok(cValues, 'values')
   assert.ok(cEntries, 'entries')
@@ -345,12 +347,13 @@ test('clear onWrite', () => {
   const [m, s] = booksStore()
   m.set('2', {})
 
-  let c1, c2, cKeys, cValues, cEntries, cForEach
+  let c1, c2, cSize, cKeys, cValues, cEntries, cForEach
 
   onWrite(s, (obj, key) => {
     switch (key) {
       case '1': return c1 = true
       case '2': return c2 = true
+      case '@@map.size': return cSize = true
       case KeysSym: return cKeys = true
       case ValuesSym: return cValues = true
       case EntriesSym: return cEntries = true
@@ -362,6 +365,7 @@ test('clear onWrite', () => {
 
   assert.ok(c1, 'c1')
   assert.ok(c2, 'c2')
+  assert.ok(cSize, 'size')
   assert.ok(cKeys, 'keys')
   assert.ok(cValues, 'values')
   assert.ok(cEntries, 'entries')
@@ -409,11 +413,12 @@ test('set onWrite new', () => {
   const [_, s] = booksStore()
   const book2 = {}
 
-  let c, cKeys, cValues, cEntries, cForEach
+  let c, cSize, cKeys, cValues, cEntries, cForEach
 
   onWrite(s, (obj, key) => {
     switch (key) {
       case '2': return c = true
+      case '@@map.size': return cSize = true
       case KeysSym: return cKeys = true
       case ValuesSym: return cValues = true
       case EntriesSym: return cEntries = true
@@ -424,6 +429,7 @@ test('set onWrite new', () => {
   s.set('2', book2)
 
   assert.ok(c, 'c')
+  assert.ok(cSize, 'size')
   assert.ok(cKeys, 'keys')
   assert.ok(cValues, 'values')
   assert.ok(cEntries, 'entries')
@@ -439,6 +445,7 @@ test('set onWrite replace', () => {
   onWrite(s, (obj, key) => {
     switch (key) {
       case '1': return c = true
+      case '@@map.size': return assert.unreachable()
       case KeysSym: return assert.unreachable()
       case ValuesSym: return cValues = true
       case EntriesSym: return cEntries = true
