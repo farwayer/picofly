@@ -2,7 +2,7 @@ import {
   createContext, useContext, useCallback, useRef, useLayoutEffect,
   useSyncExternalStore, useTransition,
 } from 'react'
-import {onWrite, lock, unlock} from './store.js'
+import {onWrite, onRead, lock, unlock, get$} from './store.js'
 
 
 export let StoreContext = /* @__PURE__ */ createContext()
@@ -14,7 +14,7 @@ export let useStore = (store = useContextStore()) => {
 
   trackedRef.current = new WeakMap()
 
-  useReadonly(store, (obj, prop) => {
+  useRenderRead(store, (obj, prop) => {
     let tracked = trackedRef.current
     let objTrackedProps = tracked.get(obj)
 
@@ -78,13 +78,26 @@ export let usePostRenderCallback = (fn, deps) => {
 export let useContextStore = () =>
   useContext(StoreContext)
 
+export let RenderReadUnsubSym = Symbol()
+
 // store will be write-protected immediately after the call
-// and unprotected at component commit stage
-// keep in mind that store can be unlocked early
-// or re-locked by another component (!)
-// during the lock any modifications to the store
-// will result in a call to onRead
-export let useReadonly = (store, onRead) => {
-  lock(store, onRead)
-  useLayoutEffect(() => unlock(store))
+// and unprotected at any (!) component commit stage
+// keep in mind that next rendered component
+// overrides onRead callback
+export let useRenderRead = (store, cb) => {
+  lock(store)
+
+  let $ = get$(store)
+
+  let prevUnsub = $[RenderReadUnsubSym]
+  prevUnsub && prevUnsub()
+
+  let unsub = onRead(store, cb)
+  $[RenderReadUnsubSym] = unsub
+
+  useLayoutEffect(() => {
+    unsub()
+    $[RenderReadUnsubSym] = 0
+    unlock(store)
+  })
 }
