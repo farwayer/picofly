@@ -17,13 +17,15 @@ export let createStore = (initValue, proxify) => {
                     // 5-20 = reserved
                     // 21-... can be used by libs
                     // but it's better to use symbols (or str keys)
-                    // to prevent overlaps
+                    // to prevent overlaps (see react)
   ]
 
   return proxify($, initValue)
 }
 
 let subscriber = subsIndex => (store, cb) => {
+  typeof cb === 'function' || "invalid cb!"()
+
   let subs = get$(store)[subsIndex].add(cb)
 
   return () => {
@@ -43,4 +45,4 @@ export let unlock = /* @__PURE__ */ locker(0)
 
 // private
 export let $Sym = Symbol()
-export let get$ = store => store && store[$Sym] || "invalid store!"()
+export let get$ = val => val && val[$Sym] || "invalid store!"()
