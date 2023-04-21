@@ -61,7 +61,15 @@ export let proxifyMap = ($, map) => {
             cb(map, KeysSym)
           }
 
-          return keysIt
+          return {
+            [SymIterator]() {
+              return this
+            },
+            next() {
+              let key = keysIt.next()
+              return proxify($, key)
+            },
+          }
         }
         break
 
@@ -73,7 +81,15 @@ export let proxifyMap = ($, map) => {
             cb(map, ValuesSym)
           }
 
-          return valuesIt
+          return {
+            [SymIterator]() {
+              return this
+            },
+            next() {
+              let val = valuesIt.next()
+              return proxify($, val)
+            },
+          }
         }
         break
 
@@ -86,7 +102,15 @@ export let proxifyMap = ($, map) => {
             cb(map, EntriesSym)
           }
 
-          return entriesIt
+          return {
+            [SymIterator]() {
+              return this
+            },
+            next() {
+              let [key, val] = entriesIt.next()
+              return [proxify($, key), proxify($, val)]
+            }
+          }
         }
         break
 
