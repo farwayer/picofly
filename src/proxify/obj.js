@@ -61,6 +61,9 @@ export let proxifyObj = ($, obj) => {
 
       return true
     },
+
+    // https://github.com/facebook/hermes/issues/1025
+    set: ReflectSet,
   })
 
   cache.set(obj, proxy)
@@ -69,4 +72,5 @@ export let proxifyObj = ($, obj) => {
 }
 
 let ReflectGet = Reflect.get
+let ReflectSet = Reflect.set
 let ReflectDefineProperty = Reflect.defineProperty
