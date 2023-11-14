@@ -1,4 +1,5 @@
 {
+  "name": "picofly",
   "type": "module",
   "license": "WTFPL",
   "author": "farwayer <farwayer@gmail.com>",
@@ -31,16 +32,13 @@
   "size-limit": [
     {
       "name": "Store objIgnoreSpecials (default)",
-      "path": "src/store.js",
-      "import": "{store, onWrite, onRead, lock, unlock}",
+      "import": {
+        "src/store.js": "{store, onWrite, onRead, lock, unlock}"
+      },
       "limit": "1Kb"
     },
     {
       "name": "Store obj",
-      "path": [
-        "src/store.js",
-        "src/proxify/index.js"
-      ],
       "import": {
         "src/store.js": "{createStore, onWrite, onRead, lock, unlock}",
         "src/proxify/index.js": "{obj}"
@@ -49,10 +47,6 @@
     },
     {
       "name": "Store objMap",
-      "path": [
-        "src/store.js",
-        "src/proxify/index.js"
-      ],
       "import": {
         "src/store.js": "{createStore, onWrite, onRead, lock, unlock}",
         "src/proxify/index.js": "{objMap}"
@@ -61,10 +55,6 @@
     },
     {
       "name": "React",
-      "path": [
-        "src/store.js",
-        "src/react.js"
-      ],
       "import": {
         "src/store.js": "{store}",
         "src/react/use-store.js": "{StoreProvider, useStore}"
@@ -73,6 +63,18 @@
         "react"
       ],
       "limit": "1Kb"
+    },
+    {
+      "name": "React objMapIgnoreSpecialsRef",
+      "import": {
+        "src/store.js": "{createStore}",
+        "src/proxify/index.js": "{objMapIgnoreSpecialsRef}",
+        "src/react/use-store.js": "{StoreProvider, useStore}"
+      },
+      "ignore": [
+        "react"
+      ],
+      "limit": "2Kb"
     }
   ],
   "packageManager": "yarn@4.0.2"

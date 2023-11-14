@@ -4976,6 +4976,25 @@ __metadata:
   languageName: node
   linkType: hard
 
+"picofly@workspace:.":
+  version: 0.0.0-use.local
+  resolution: "picofly@workspace:."
+  dependencies:
+    "@size-limit/preset-small-lib": "npm:^11.0.0"
+    benchmark: "npm:^2.1.4"
+    esbuild: "npm:^0.19.5"
+    microtime: "npm:^3.1.1"
+    mobx: "npm:^6.10.0"
+    nanoid: "npm:^5.0.3"
+    picocolors: "npm:^1.0.0"
+    react: "npm:^18.2.0"
+    size-limit: "npm:^11.0.0"
+    tinybench: "npm:^2.4.0"
+    uvu: "npm:^0.5.6"
+    valtio: "npm:^1.11.1"
+  languageName: unknown
+  linkType: soft
+
 "picomatch@npm:^2.0.4, picomatch@npm:^2.2.1, picomatch@npm:^2.3.1":
   version: 2.3.1
   resolution: "picomatch@npm:2.3.1"
@@ -5366,25 +5385,6 @@ __metadata:
   checksum: 9cb7757acb489bd83757ba1a274ab545eafd75598a9d817e0c3f8b164238dd90eba50d6b848bd4dcc5f3040912e882dc7ba71653e35af660d77b25c381d402e8
   languageName: node
   linkType: hard
-
-"root-workspace-0b6124@workspace:.":
-  version: 0.0.0-use.local
-  resolution: "root-workspace-0b6124@workspace:."
-  dependencies:
-    "@size-limit/preset-small-lib": "npm:^11.0.0"
-    benchmark: "npm:^2.1.4"
-    esbuild: "npm:^0.19.5"
-    microtime: "npm:^3.1.1"
-    mobx: "npm:^6.10.0"
-    nanoid: "npm:^5.0.3"
-    picocolors: "npm:^1.0.0"
-    react: "npm:^18.2.0"
-    size-limit: "npm:^11.0.0"
-    tinybench: "npm:^2.4.0"
-    uvu: "npm:^0.5.6"
-    valtio: "npm:^1.11.1"
-  languageName: unknown
-  linkType: soft
 
 "run-parallel@npm:^1.1.9":
   version: 1.2.0
