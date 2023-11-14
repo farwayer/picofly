@@ -3,7 +3,7 @@
 import {test} from 'uvu'
 import * as assert from 'uvu/assert'
 import {createStore, onWrite, lock, unlock, onRead} from '../src/store.js'
-import {obj} from '../src/proxify.js'
+import {obj} from '../src/proxify/index.js'
 
 
 const timerStore = () => {

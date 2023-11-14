@@ -1,11 +1,10 @@
-// noinspection BadExpressionStatementJS
-
 import {test} from 'uvu'
 import * as assert from 'uvu/assert'
 import {onWrite, createStore, onRead, lock} from '../src/store.js'
-import {objMap} from '../src/proxify.js'
-import {EntriesSym, ForEachSym, KeysSym, ValuesSym} from '../src/map.js'
+import {objMap} from '../src/proxify/index.js'
+import {EntriesSym, ForEachSym, KeysSym, ValuesSym, SizeSym} from '../src/proxify/map.js'
 
+// TODO: test iterators key/val proxify
 
 const booksMap = () => {
   return new Map().set('1', {
@@ -54,7 +53,7 @@ test('size onRead', () => new Promise(resolve => {
 
   onRead(s, (obj, key) => {
     assert.is(obj, m)
-    assert.is(key, '@@map.size')
+    assert.is(key, SizeSym)
     resolve()
   })
 
@@ -79,7 +78,7 @@ test('get onRead', () => new Promise(resolve => {
   onRead(s, (obj, key) => {
     if (!called++) {
       assert.is(obj, m)
-      assert.is(key, '@@map.get')
+      assert.is(key, Symbol.for('get'))
     } else {
       assert.is(obj, m)
       assert.is(key, '1')
@@ -108,7 +107,7 @@ test('has onRead', () => new Promise(resolve => {
   onRead(s, (obj, key) => {
     if (!called++) {
       assert.is(obj, m)
-      assert.is(key, '@@map.has')
+      assert.is(key, Symbol.for('has'))
     } else {
       assert.is(obj, m)
       assert.is(key, '1')
@@ -123,8 +122,8 @@ test('has onRead', () => new Promise(resolve => {
 test('keys', () => {
   const [m, s] = booksStore()
 
-  const sKeys = s.keys()
-  const mKeys = m.keys()
+  const sKeys = Array.from(s.keys())
+  const mKeys = Array.from(m.keys())
 
   assert.equal(sKeys, mKeys)
 })
@@ -137,7 +136,7 @@ test('keys onRead', () => new Promise(resolve => {
   onRead(s, (obj, key) => {
     if (!called++) {
       assert.is(obj, m)
-      assert.is(key, '@@map.keys')
+      assert.is(key, Symbol.for('keys'))
     } else {
       assert.is(obj, m)
       assert.is(key, KeysSym)
@@ -152,8 +151,8 @@ test('keys onRead', () => new Promise(resolve => {
 test('values', () => {
   const [m, s] = booksStore()
 
-  const sValues = s.values()
-  const mValues = m.values()
+  const sValues = Array.from(s.values())
+  const mValues = Array.from(m.values())
 
   assert.equal(sValues, mValues)
 })
@@ -166,7 +165,7 @@ test('values onRead', () => new Promise(resolve => {
   onRead(s, (obj, key) => {
     if (!called++) {
       assert.is(obj, m)
-      assert.is(key, '@@map.values')
+      assert.is(key, Symbol.for('values'))
     } else {
       assert.is(obj, m)
       assert.is(key, ValuesSym)
@@ -181,8 +180,8 @@ test('values onRead', () => new Promise(resolve => {
 test('entries', () => {
   const [m, s] = booksStore()
 
-  const sEntries = s.entries()
-  const mEntries = m.entries()
+  const sEntries = Array.from(s.entries())
+  const mEntries = Array.from(m.entries())
 
   assert.equal(sEntries, mEntries)
 })
@@ -195,7 +194,7 @@ test('entries onRead', () => new Promise(resolve => {
   onRead(s, (obj, key) => {
     if (!called++) {
       assert.is(obj, m)
-      assert.is(key, '@@map.entries')
+      assert.is(key, Symbol.for('entries'))
     } else {
       assert.is(obj, m)
       assert.is(key, EntriesSym)
@@ -213,8 +212,8 @@ test('forEach', () => new Promise(resolve => {
   const mBook = m.get('1')
 
   s.forEach((val, key, proxy) => {
-    assert.is(key, '1')
-    assert.is(val, mBook)
+    assert.equal(key, '1')
+    assert.equal(val, mBook)
     assert.is(proxy, s)
     resolve()
   })
@@ -230,7 +229,7 @@ test('forEach onRead', () => new Promise(resolve => {
   onRead(s, (obj, key) => {
     if (!called++) {
       assert.is(obj, m)
-      assert.is(key, '@@map.forEach')
+      assert.is(key, Symbol.for('forEach'))
     } else {
       assert.is(obj, m)
       assert.is(key, ForEachSym)
@@ -249,7 +248,7 @@ test('for..of', () => {
 
   for (const entry of s) {
     assert.is(entry[0], '1')
-    assert.is(entry[1], mBook)
+    assert.equal(entry[1], mBook)
   }
 })
 
@@ -276,7 +275,7 @@ test('delete onRead', () => new Promise(resolve => {
 
   onRead(s, (obj, key) => {
     assert.is(obj, m)
-    assert.is(key, '@@map.delete')
+    assert.is(key, Symbol.for('delete'))
     resolve()
   })
 
@@ -293,7 +292,7 @@ test('delete onWrite', () => {
   onWrite(s, (obj, key) => {
     switch (key) {
       case '1': return c = true
-      case '@@map.size': return cSize = true
+      case SizeSym: return cSize = true
       case KeysSym: return cKeys = true
       case ValuesSym: return cValues = true
       case EntriesSym: return cEntries = true
@@ -334,7 +333,7 @@ test('clear onRead', () => new Promise(resolve => {
 
   onRead(s, (obj, key) => {
     assert.is(obj, m)
-    assert.is(key, '@@map.clear')
+    assert.is(key, Symbol.for('clear'))
     resolve()
   })
 
@@ -353,7 +352,7 @@ test('clear onWrite', () => {
     switch (key) {
       case '1': return c1 = true
       case '2': return c2 = true
-      case '@@map.size': return cSize = true
+      case SizeSym: return cSize = true
       case KeysSym: return cKeys = true
       case ValuesSym: return cValues = true
       case EntriesSym: return cEntries = true
@@ -400,7 +399,7 @@ test('set onRead', () => new Promise(resolve => {
 
   onRead(s, (obj, key) => {
     assert.is(obj, m)
-    assert.is(key, '@@map.set')
+    assert.is(key, Symbol.for('set'))
     resolve()
   })
 
@@ -418,7 +417,7 @@ test('set onWrite new', () => {
   onWrite(s, (obj, key) => {
     switch (key) {
       case '2': return c = true
-      case '@@map.size': return cSize = true
+      case SizeSym: return cSize = true
       case KeysSym: return cKeys = true
       case ValuesSym: return cValues = true
       case EntriesSym: return cEntries = true
@@ -445,7 +444,7 @@ test('set onWrite replace', () => {
   onWrite(s, (obj, key) => {
     switch (key) {
       case '1': return c = true
-      case '@@map.size': return assert.unreachable()
+      case SizeSym: return assert.unreachable()
       case KeysSym: return assert.unreachable()
       case ValuesSym: return cValues = true
       case EntriesSym: return cEntries = true
@@ -486,7 +485,7 @@ test('set obj prop onWrite', () => new Promise(resolve => {
 
   onWrite(s, (obj, key) => {
     assert.is(obj, m)
-    assert.is(key, '@@map.test')
+    assert.is(key, Symbol.for('test'))
     resolve()
   })
 
@@ -507,7 +506,7 @@ test('define obj prop onWrite', () => new Promise(resolve => {
 
   onWrite(s, (obj, key) => {
     assert.is(obj, m)
-    assert.is(key, '@@map.test')
+    assert.is(key, Symbol.for('test'))
     resolve()
   })
 
@@ -534,7 +533,7 @@ test('delete obj prop onWrite', () => new Promise(resolve => {
 
   onWrite(s, (obj, key) => {
     assert.is(obj, m)
-    assert.is(key, '@@map.test')
+    assert.is(key, Symbol.for('test'))
     resolve()
   })
 
