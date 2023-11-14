@@ -72,8 +72,13 @@ export let proxifyMap = ($, map) => {
               return this
             },
             next() {
-              let key = keysIt.next()
-              return proxify($, key)
+              let next = keysIt.next()
+
+              if (!next.done) {
+                next.value = proxify($, next.value)
+              }
+
+              return next
             },
           }
         }
@@ -92,8 +97,13 @@ export let proxifyMap = ($, map) => {
               return this
             },
             next() {
-              let val = valuesIt.next()
-              return proxify($, val)
+              let next = valuesIt.next()
+
+              if (!next.done) {
+                next.value = proxify($, next.value)
+              }
+
+              return next
             },
           }
         }
@@ -113,11 +123,17 @@ export let proxifyMap = ($, map) => {
               return this
             },
             next() {
-              let [key, val] = entriesIt.next()
-              return [
-                proxify($, key),
-                proxify($, val),
-              ]
+              let next = entriesIt.next()
+
+              if (!next.done) {
+                let [key, val] = next.value
+                next.value = [
+                  proxify($, key),
+                  proxify($, val),
+                ]
+              }
+
+              return next
             }
           }
         }
@@ -173,6 +189,7 @@ export let proxifyMap = ($, map) => {
           // so we need to save all keys first
           // maybe slow and takes memory (depending on map size and keys)
           // but anyway clear() should not be often operation
+          // TODO: check delete one-by-one performance without saving keys
           let keys = ArrayFrom(target.keys())
 
           target.clear()
