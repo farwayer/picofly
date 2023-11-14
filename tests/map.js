@@ -6,7 +6,7 @@ import {EntriesSym, ForEachSym, KeysSym, ValuesSym, SizeSym} from '../src/proxif
 
 // TODO: test iterators key/val proxify
 
-const booksMap = () => {
+let booksMap = () => {
   return new Map().set('1', {
     id: '1',
     name: "Alice in Wonderland",
@@ -14,42 +14,42 @@ const booksMap = () => {
   })
 }
 
-const booksStore = () => {
-  const m = booksMap()
-  const s = createStore(m, objMap)
+let booksStore = () => {
+  let m = booksMap()
+  let s = createStore(m, objMap)
 
   return [m, s]
 }
 
 
 test('create', () => {
-  const [m, s] = booksStore()
+  let [m, s] = booksStore()
 
-  const mBook = m.get('1')
-  const sBook = s.get('1')
+  let mBook = m.get('1')
+  let sBook = s.get('1')
 
   assert.equal(sBook, mBook)
 })
 
 test('create nested', () => {
-  const o = {books: booksMap()}
-  const s = createStore(o, objMap)
+  let o = {books: booksMap()}
+  let s = createStore(o, objMap)
 
-  const oBook = o.books.get('1')
-  const sBook = s.books.get('1')
+  let oBook = o.books.get('1')
+  let sBook = s.books.get('1')
 
   assert.equal(sBook, oBook)
 })
 
 test('size', () => {
-  const [m, s] = booksStore()
+  let [m, s] = booksStore()
 
-  const sSize = s.size
+  let sSize = s.size
   assert.is(sSize, m.size)
 })
 
 test('size onRead', () => new Promise(resolve => {
-  const [m, s] = booksStore()
+  let [m, s] = booksStore()
 
   onRead(s, (obj, key) => {
     assert.is(obj, m)
@@ -62,16 +62,16 @@ test('size onRead', () => new Promise(resolve => {
 }))
 
 test('get', () => {
-  const [m, s] = booksStore()
+  let [m, s] = booksStore()
 
-  const mBook = m.get('1')
-  const sBook = s.get('1')
+  let mBook = m.get('1')
+  let sBook = s.get('1')
 
   assert.equal(sBook, mBook)
 })
 
 test('get onRead', () => new Promise(resolve => {
-  const [m, s] = booksStore()
+  let [m, s] = booksStore()
 
   let called = 0
 
@@ -91,16 +91,16 @@ test('get onRead', () => new Promise(resolve => {
 }))
 
 test('has', () => {
-  const [m, s] = booksStore()
+  let [m, s] = booksStore()
 
-  const sHas = s.has('1')
-  const mHas = m.has('1')
+  let sHas = s.has('1')
+  let mHas = m.has('1')
 
   assert.is(sHas, mHas)
 })
 
 test('has onRead', () => new Promise(resolve => {
-  const [m, s] = booksStore()
+  let [m, s] = booksStore()
 
   let called = 0
 
@@ -120,16 +120,16 @@ test('has onRead', () => new Promise(resolve => {
 }))
 
 test('keys', () => {
-  const [m, s] = booksStore()
+  let [m, s] = booksStore()
 
-  const sKeys = Array.from(s.keys())
-  const mKeys = Array.from(m.keys())
+  let sKeys = Array.from(s.keys())
+  let mKeys = Array.from(m.keys())
 
   assert.equal(sKeys, mKeys)
 })
 
 test('keys onRead', () => new Promise(resolve => {
-  const [m, s] = booksStore()
+  let [m, s] = booksStore()
 
   let called = 0
 
@@ -149,16 +149,16 @@ test('keys onRead', () => new Promise(resolve => {
 }))
 
 test('values', () => {
-  const [m, s] = booksStore()
+  let [m, s] = booksStore()
 
-  const sValues = Array.from(s.values())
-  const mValues = Array.from(m.values())
+  let sValues = Array.from(s.values())
+  let mValues = Array.from(m.values())
 
   assert.equal(sValues, mValues)
 })
 
 test('values onRead', () => new Promise(resolve => {
-  const [m, s] = booksStore()
+  let [m, s] = booksStore()
 
   let called = 0
 
@@ -178,16 +178,16 @@ test('values onRead', () => new Promise(resolve => {
 }))
 
 test('entries', () => {
-  const [m, s] = booksStore()
+  let [m, s] = booksStore()
 
-  const sEntries = Array.from(s.entries())
-  const mEntries = Array.from(m.entries())
+  let sEntries = Array.from(s.entries())
+  let mEntries = Array.from(m.entries())
 
   assert.equal(sEntries, mEntries)
 })
 
 test('entries onRead', () => new Promise(resolve => {
-  const [m, s] = booksStore()
+  let [m, s] = booksStore()
 
   let called = 0
 
@@ -207,9 +207,9 @@ test('entries onRead', () => new Promise(resolve => {
 }))
 
 test('forEach', () => new Promise(resolve => {
-  const [m, s] = booksStore()
+  let [m, s] = booksStore()
 
-  const mBook = m.get('1')
+  let mBook = m.get('1')
 
   s.forEach((val, key, proxy) => {
     assert.equal(key, '1')
@@ -222,7 +222,7 @@ test('forEach', () => new Promise(resolve => {
 }))
 
 test('forEach onRead', () => new Promise(resolve => {
-  const [m, s] = booksStore()
+  let [m, s] = booksStore()
 
   let called = 0
 
@@ -242,36 +242,36 @@ test('forEach onRead', () => new Promise(resolve => {
 }))
 
 test('for..of', () => {
-  const [m, s] = booksStore()
+  let [m, s] = booksStore()
 
-  const mBook = m.get('1')
+  let mBook = m.get('1')
 
-  for (const entry of s) {
+  for (let entry of s) {
     assert.is(entry[0], '1')
     assert.equal(entry[1], mBook)
   }
 })
 
 test('delete', () => {
-  const [m, s] = booksStore()
+  let [m, s] = booksStore()
 
-  const res = s.delete('1')
+  let res = s.delete('1')
 
   assert.ok(res)
   assert.not(m.has('1'))
 })
 
 test('delete non-exist', () => {
-  const [m, s] = booksStore()
+  let [m, s] = booksStore()
 
-  const res = s.delete('2')
+  let res = s.delete('2')
 
   assert.not.ok(res)
   assert.ok(m.has('1'))
 })
 
 test('delete onRead', () => new Promise(resolve => {
-  const [m, s] = booksStore()
+  let [m, s] = booksStore()
 
   onRead(s, (obj, key) => {
     assert.is(obj, m)
@@ -285,7 +285,7 @@ test('delete onRead', () => new Promise(resolve => {
 }))
 
 test('delete onWrite', () => {
-  const [_, s] = booksStore()
+  let [_, s] = booksStore()
 
   let c, cSize, cKeys, cValues, cEntries, cForEach
 
@@ -311,7 +311,7 @@ test('delete onWrite', () => {
 })
 
 test('delete onWrite non-exist', () => {
-  const [_, s] = booksStore()
+  let [_, s] = booksStore()
 
   onWrite(s, () => {
     assert.unreachable()
@@ -321,7 +321,7 @@ test('delete onWrite non-exist', () => {
 })
 
 test('clear', () => {
-  const [m, s] = booksStore()
+  let [m, s] = booksStore()
 
   s.clear()
 
@@ -329,7 +329,7 @@ test('clear', () => {
 })
 
 test('clear onRead', () => new Promise(resolve => {
-  const [m, s] = booksStore()
+  let [m, s] = booksStore()
 
   onRead(s, (obj, key) => {
     assert.is(obj, m)
@@ -343,7 +343,7 @@ test('clear onRead', () => new Promise(resolve => {
 }))
 
 test('clear onWrite', () => {
-  const [m, s] = booksStore()
+  let [m, s] = booksStore()
   m.set('2', {})
 
   let c1, c2, cSize, cKeys, cValues, cEntries, cForEach
@@ -372,7 +372,7 @@ test('clear onWrite', () => {
 })
 
 test('clear onWrite empty', () => {
-  const [m, s] = booksStore()
+  let [m, s] = booksStore()
   m.delete('1')
 
   onWrite(s, () => {
@@ -383,19 +383,19 @@ test('clear onWrite empty', () => {
 })
 
 test('set', () => {
-  const [m, s] = booksStore()
-  const book2 = {}
+  let [m, s] = booksStore()
+  let book2 = {}
 
-  const resS = s.set('2', book2)
-  const mBook2 = m.get('2')
+  let resS = s.set('2', book2)
+  let mBook2 = m.get('2')
 
   assert.is(resS, s)
   assert.is(mBook2, book2)
 })
 
 test('set onRead', () => new Promise(resolve => {
-  const [m, s] = booksStore()
-  const book2 = {}
+  let [m, s] = booksStore()
+  let book2 = {}
 
   onRead(s, (obj, key) => {
     assert.is(obj, m)
@@ -409,8 +409,8 @@ test('set onRead', () => new Promise(resolve => {
 }))
 
 test('set onWrite new', () => {
-  const [_, s] = booksStore()
-  const book2 = {}
+  let [_, s] = booksStore()
+  let book2 = {}
 
   let c, cSize, cKeys, cValues, cEntries, cForEach
 
@@ -436,8 +436,8 @@ test('set onWrite new', () => {
 })
 
 test('set onWrite replace', () => {
-  const [_, s] = booksStore()
-  const book2 = {}
+  let [_, s] = booksStore()
+  let book2 = {}
 
   let c, cValues, cEntries, cForEach
 
@@ -461,8 +461,8 @@ test('set onWrite replace', () => {
 })
 
 test('set onWrite same', () => {
-  const [m, s] = booksStore()
-  const mBook = m.get('1')
+  let [m, s] = booksStore()
+  let mBook = m.get('1')
 
   onWrite(s, () => {
     assert.unreachable()
@@ -472,7 +472,7 @@ test('set onWrite same', () => {
 })
 
 test('set obj prop', () => {
-  const [m, s] = booksStore()
+  let [m, s] = booksStore()
 
   s.test = 1
 
@@ -481,7 +481,7 @@ test('set obj prop', () => {
 })
 
 test('set obj prop onWrite', () => new Promise(resolve => {
-  const [m, s] = booksStore()
+  let [m, s] = booksStore()
 
   onWrite(s, (obj, key) => {
     assert.is(obj, m)
@@ -494,7 +494,7 @@ test('set obj prop onWrite', () => new Promise(resolve => {
 }))
 
 test('define obj prop', () => {
-  const [m, s] = booksStore()
+  let [m, s] = booksStore()
 
   Object.defineProperty(s, 'test', {value: 1})
   assert.is(m.test, 1)
@@ -502,7 +502,7 @@ test('define obj prop', () => {
 })
 
 test('define obj prop onWrite', () => new Promise(resolve => {
-  const [m, s] = booksStore()
+  let [m, s] = booksStore()
 
   onWrite(s, (obj, key) => {
     assert.is(obj, m)
@@ -516,7 +516,7 @@ test('define obj prop onWrite', () => new Promise(resolve => {
 
 
 test('delete obj prop', () => {
-  const [m, s] = booksStore()
+  let [m, s] = booksStore()
 
   m.test = 1
   assert.is(m.test, 1)
@@ -528,7 +528,7 @@ test('delete obj prop', () => {
 })
 
 test('delete obj prop onWrite', () => new Promise(resolve => {
-  const [m, s] = booksStore()
+  let [m, s] = booksStore()
   m.test = 1
 
   onWrite(s, (obj, key) => {
@@ -542,7 +542,7 @@ test('delete obj prop onWrite', () => new Promise(resolve => {
 }))
 
 test('lock', () => {
-  const [_, s] = booksStore()
+  let [_, s] = booksStore()
   s.test = 1
 
   lock(s)
