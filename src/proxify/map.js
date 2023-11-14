@@ -1,4 +1,4 @@
-import {$Sym} from '../store.js'
+import {$Sym, NakedSym} from '../store.js'
 
 
 let ReflectGet = Reflect.get
@@ -28,6 +28,10 @@ export let proxifyMap = ($, map) => {
       switch (prop) {
         case $Sym: {
           return $
+        }
+
+        case NakedSym: {
+          return map
         }
 
         case 'size': {
@@ -265,6 +269,12 @@ export let proxifyMap = ($, map) => {
 
       let has = prop in map
       let prev = has && ReflectGet(map, prop, proxy)
+
+      // unwrap value if it was proxied with current $
+      let value = desc.value
+      if (value != null && value[$Sym] === $) {
+        desc.value = value[NakedSym]
+      }
 
       ReflectDefineProperty(map, prop, desc)
 

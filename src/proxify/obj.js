@@ -1,4 +1,4 @@
-import {$Sym} from '../store.js'
+import {$Sym, NakedSym} from '../store.js'
 
 
 let ReflectGet = Reflect.get
@@ -16,6 +16,10 @@ export let proxifyObj = ($, obj) => {
     get(obj, prop, receiver) {
       if (prop === $Sym) {
         return $
+      }
+
+      if (prop === NakedSym) {
+        return obj
       }
 
       let val = ReflectGet(obj, prop, receiver)
@@ -36,6 +40,12 @@ export let proxifyObj = ($, obj) => {
 
       let has = prop in obj
       let prev = has && ReflectGet(obj, prop, proxy)
+
+      // unwrap value if it was proxied with current $
+      let value = desc.value
+      if (value != null && value[$Sym] === $) {
+        desc.value = value[NakedSym]
+      }
 
       ReflectDefineProperty(obj, prop, desc)
 

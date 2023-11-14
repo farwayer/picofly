@@ -45,5 +45,6 @@ export let isLocked = store => !!get$(store)[4]
 
 
 // private
-export let $Sym = Symbol()
+export let $Sym = /* @__PURE__ */ Symbol()
+export let NakedSym = /* @__PURE__ */ Symbol()
 export let get$ = val => val && val[$Sym] || "invalid store!"()
