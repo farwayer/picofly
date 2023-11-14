@@ -1,37 +1,62 @@
 {
-  "private": true,
   "type": "module",
+  "license": "WTFPL",
+  "author": "farwayer <farwayer@gmail.com>",
   "sideEffects": false,
   "exports": {
     ".": "./src/index.js",
     "./react": "./src/react.js"
   },
   "scripts": {
+    "size": "size-limit",
     "test": "uvu"
   },
-  "peerDependencies": {
-    "react": ">=18"
-  },
-  "peerDependenciesMeta": {
-    "react": {
-      "optional": true
-    }
-  },
   "devDependencies": {
-    "@size-limit/preset-small-lib": "^8.2.4",
-    "esbuild": "^0.17.12",
+    "@size-limit/preset-small-lib": "^11.0.0",
+    "benchmark": "^2.1.4",
+    "esbuild": "^0.19.5",
+    "microtime": "^3.1.1",
+    "mobx": "^6.10.0",
+    "nanoid": "^5.0.3",
+    "picocolors": "^1.0.0",
     "react": "^18.2.0",
-    "size-limit": "^8.2.4",
-    "uvu": "^0.5.6"
+    "size-limit": "^11.0.0",
+    "tinybench": "^2.4.0",
+    "uvu": "^0.5.6",
+    "valtio": "^1.11.1"
   },
   "workspaces": [
     "examples/*"
   ],
   "size-limit": [
     {
-      "name": "Vanila",
+      "name": "Store objIgnoreSpecials (default)",
       "path": "src/store.js",
-      "import": "{readableStore, onWrite, protect, unprotect}",
+      "import": "{store, onWrite, onRead, lock, unlock}",
+      "limit": "1Kb"
+    },
+    {
+      "name": "Store obj",
+      "path": [
+        "src/store.js",
+        "src/proxify/index.js"
+      ],
+      "import": {
+        "src/store.js": "{createStore, onWrite, onRead, lock, unlock}",
+        "src/proxify/index.js": "{obj}"
+      },
+      "limit": "1Kb"
+    },
+    {
+      "name": "Store objMap",
+      "path": [
+        "src/store.js",
+        "src/proxify/index.js"
+      ],
+      "import": {
+        "src/store.js": "{createStore, onWrite, onRead, lock, unlock}",
+        "src/proxify/index.js": "{objMap}"
+      },
       "limit": "1Kb"
     },
     {
@@ -42,7 +67,7 @@
       ],
       "import": {
         "src/store.js": "{store}",
-        "src/react.js": "{StoreProvider, useStore}"
+        "src/react/use-store.js": "{StoreProvider, useStore}"
       },
       "ignore": [
         "react"
@@ -50,5 +75,5 @@
       "limit": "1Kb"
     }
   ],
-  "packageManager": "yarn@3.5.0"
+  "packageManager": "yarn@4.0.2"
 }
