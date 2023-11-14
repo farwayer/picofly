@@ -1,4 +1,4 @@
-// noinspection BadExpressionStatementJS
+// noinspection BadExpressionStatementJS,SillyAssignmentJS
 
 import {test} from 'uvu'
 import * as assert from 'uvu/assert'
@@ -77,6 +77,16 @@ test('onWrite set same', () => {
   })
 
   s.timer.ticks = 0
+})
+
+test('onWrite set same obj', () => {
+  const [_, s] = timerStore()
+
+  onWrite(s, () => {
+    assert.unreachable()
+  })
+
+  s.timer = s.timer
 })
 
 test('onWrite define nested', () => new Promise(resolve => {
