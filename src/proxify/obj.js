@@ -1,6 +1,9 @@
-// noinspection JSAnnotator,JSValidateTypes
+import {$Sym} from '../store.js'
 
-import {$Sym} from './store.js'
+
+let ReflectGet = Reflect.get
+let ReflectSet = Reflect.set
+let ReflectDefineProperty = Reflect.defineProperty
 
 
 export let proxifyObj = ($, obj) => {
@@ -70,7 +73,3 @@ export let proxifyObj = ($, obj) => {
 
   return proxy
 }
-
-let ReflectGet = Reflect.get
-let ReflectSet = Reflect.set
-let ReflectDefineProperty = Reflect.defineProperty

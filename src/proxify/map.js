@@ -1,13 +1,19 @@
-// noinspection JSAnnotator,JSValidateTypes
-
-import {$Sym} from './store.js'
+import {$Sym} from '../store.js'
 
 
+let ReflectGet = Reflect.get
+let ReflectSet = Reflect.set
+let ReflectDefineProperty = Reflect.defineProperty
+let SymbolIterator = Symbol.iterator
+let SymbolFor = Symbol.for
+let ArrayFrom = Array.from
+
+
+export let SizeSym = SymbolFor('size')
 export let KeysSym = Symbol('keys')
 export let ValuesSym = Symbol('values')
 export let EntriesSym = Symbol('entries')
 export let ForEachSym = Symbol('forEach')
-
 
 export let proxifyMap = ($, map) => {
   let [proxify, cache, writeSubs, readSubs] = $
@@ -62,7 +68,7 @@ export let proxifyMap = ($, map) => {
           }
 
           return {
-            [SymIterator]() {
+            [SymbolIterator]() {
               return this
             },
             next() {
@@ -82,7 +88,7 @@ export let proxifyMap = ($, map) => {
           }
 
           return {
-            [SymIterator]() {
+            [SymbolIterator]() {
               return this
             },
             next() {
@@ -94,7 +100,7 @@ export let proxifyMap = ($, map) => {
         break
 
         case 'entries':
-        case SymIterator: val = function () {
+        case SymbolIterator: val = function () {
           let target = this === receiver ? map : this
           let entriesIt = target.entries()
 
@@ -103,12 +109,15 @@ export let proxifyMap = ($, map) => {
           }
 
           return {
-            [SymIterator]() {
+            [SymbolIterator]() {
               return this
             },
             next() {
               let [key, val] = entriesIt.next()
-              return [proxify($, key), proxify($, val)]
+              return [
+                proxify($, key),
+                proxify($, val),
+              ]
             }
           }
         }
@@ -117,13 +126,17 @@ export let proxifyMap = ($, map) => {
         case 'forEach': val = function (cb, thisArg) {
           let target = this === receiver ? map : this
 
-          target.forEach((val, key) => {
-            cb(val, key, this)
-          }, thisArg)
-
           for (let cb of readSubs) {
             cb(map, ForEachSym)
           }
+
+          target.forEach((val, key) => {
+            cb(
+              proxify($, val),
+              proxify($, key),
+              this,
+            )
+          }, thisArg)
         }
         break
 
@@ -137,7 +150,7 @@ export let proxifyMap = ($, map) => {
           target.delete(key)
 
           for (let cb of writeSubs) {
-            cb(map, '@@map.size')
+            cb(map, SizeSym)
             cb(map, KeysSym)
             cb(map, ValuesSym)
             cb(map, EntriesSym)
@@ -160,12 +173,12 @@ export let proxifyMap = ($, map) => {
           // so we need to save all keys first
           // maybe slow and takes memory (depending on map size and keys)
           // but anyway clear() should not be often operation
-          let keys = Array.from(target.keys())
+          let keys = ArrayFrom(target.keys())
 
           target.clear()
 
           for (let cb of writeSubs) {
-            cb(map, '@@map.size')
+            cb(map, SizeSym)
             cb(map, KeysSym)
             cb(map, ValuesSym)
             cb(map, EntriesSym)
@@ -192,8 +205,10 @@ export let proxifyMap = ($, map) => {
           target.set(key, val)
 
           for (let cb of writeSubs) {
-            !has && cb(map, '@@map.size')
-            !has && cb(map, KeysSym)
+            if (!has) {
+              cb(map, SizeSym)
+              cb(map, KeysSym)
+            }
             cb(map, ValuesSym)
             cb(map, EntriesSym)
             cb(map, ForEachSym)
@@ -204,17 +219,18 @@ export let proxifyMap = ($, map) => {
         }
         break
 
+        // Map is js object so it's possible to get some props
         default: {
           val = ReflectGet(map, prop, receiver)
           objProp = true
         }
       }
 
-      // to distinguish map keys (if strings) and map object props
-      let key = '@@map.' + (prop === SymIterator ? '@@iterator' : prop)
+      // to differ map keys and map object props (map.get('x') vs map.x)
+      prop = prop instanceof Symbol ? prop : SymbolFor(prop)
 
       for (let cb of readSubs) {
-        cb(map, key)
+        cb(map, prop)
       }
 
       return objProp
@@ -222,8 +238,7 @@ export let proxifyMap = ($, map) => {
         : val
     },
 
-    // Map is js object so it's possible to define
-    // and then delete some props
+    // Map is js object so it's possible to define some props
     defineProperty(map, prop, desc) {
       $[4] && "store locked!"()
 
@@ -239,16 +254,18 @@ export let proxifyMap = ($, map) => {
       let next = has && ReflectGet(map, prop, proxy)
 
       if (!has || next !== prev) {
-        let key = '@@map.' + prop
+        // to differ map keys and map object props (map.get('x') vs map.x)
+        prop = prop instanceof Symbol ? prop : SymbolFor(prop)
 
         for (let cb of writeSubs) {
-          cb(map, key)
+          cb(map, prop)
         }
       }
 
       return true
     },
 
+    // Map is js object so it's possible to delete some props
     deleteProperty(map, prop) {
       $[4] && "store locked!"()
 
@@ -257,21 +274,21 @@ export let proxifyMap = ($, map) => {
 
       delete map[prop]
 
-      let key = '@@map.' + prop
+      // to differ map keys and map object props (map.get('x') vs map.x)
+      prop = prop instanceof Symbol ? prop : SymbolFor(prop)
 
       for (let cb of writeSubs) {
-        cb(map, key)
+        cb(map, prop)
       }
 
       return true
     },
+
+    // https://github.com/facebook/hermes/issues/1025
+    set: ReflectSet,
   })
 
   cache.set(map, proxy)
 
   return proxy
 }
-
-let ReflectGet = Reflect.get
-let ReflectDefineProperty = Reflect.defineProperty
-let SymIterator = Symbol.iterator

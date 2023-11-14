@@ -1,6 +1,6 @@
 // noinspection JSValidateTypes,JSAnnotator
 
-import {objIgnoreSpecials} from './proxify.js'
+import {objIgnoreSpecials} from './proxify/index.js'
 
 
 export let store = initValue => (

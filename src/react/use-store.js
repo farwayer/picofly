@@ -2,11 +2,12 @@ import {
   createContext, useContext, useCallback, useRef, useLayoutEffect,
   useSyncExternalStore, useTransition,
 } from 'react'
-import {onWrite, onRead, lock, unlock, get$} from './store.js'
+import {onWrite, onRead, lock, unlock, get$} from '../store.js'
 
 
 export let StoreContext = /* @__PURE__ */ createContext()
 export let StoreProvider = StoreContext.Provider
+export let useContextStore = () => useContext(StoreContext)
 
 export let useStore = (store = useContextStore()) => {
   let trackedRef = useRef()
@@ -73,18 +74,14 @@ export let usePostRenderCallback = (fn, deps) => {
   }, deps)
 }
 
-
-// for external libs
-export let useContextStore = () =>
-  useContext(StoreContext)
-
-export let RenderReadUnsubSym = Symbol()
+// private
+let RenderReadUnsubSym = Symbol()
 
 // store will be write-protected immediately after the call
 // and unprotected at any (!) component commit stage
 // keep in mind that next rendered component
-// overrides onRead callback
-export let useRenderRead = (store, cb) => {
+// will override previous onRead callback
+let useRenderRead = (store, cb) => {
   lock(store)
 
   let $ = get$(store)
