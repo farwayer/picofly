@@ -6,21 +6,21 @@ import {createStore, onWrite, lock, unlock, onRead} from '../src/store.js'
 import {obj} from '../src/proxify/index.js'
 
 
-const timerStore = () => {
-  const o = {timer: {ticks: 0}}
-  const s = createStore(o, obj)
+let timerStore = () => {
+  let o = {timer: {ticks: 0}}
+  let s = createStore(o, obj)
   return [o, s]
 }
 
 test('create', () => {
-  const [o, s] = timerStore()
+  let [o, s] = timerStore()
 
-  const sObj = JSON.parse(JSON.stringify(s))
+  let sObj = JSON.parse(JSON.stringify(s))
   assert.equal(sObj, o)
 })
 
 test('set', () => {
-  const [o, s] = timerStore()
+  let [o, s] = timerStore()
 
   s.timer.ticks = 1
   assert.is(o.timer.ticks, 1)
@@ -28,7 +28,7 @@ test('set', () => {
 })
 
 test('define', () => {
-  const [o, s] = timerStore()
+  let [o, s] = timerStore()
 
   Object.defineProperty(s.timer, 'interval', {value: 1000})
   assert.is(o.timer.interval, 1000)
@@ -36,7 +36,7 @@ test('define', () => {
 })
 
 test('delete', () => {
-  const [o, s] = timerStore()
+  let [o, s] = timerStore()
 
   delete s.timer.ticks
   assert.not('ticks' in s.timer)
@@ -44,7 +44,7 @@ test('delete', () => {
 })
 
 test('onWrite set root', () => new Promise(resolve => {
-  const [o, s] = timerStore()
+  let [o, s] = timerStore()
 
   onWrite(s, (obj, key) => {
     assert.is(obj, o)
@@ -57,7 +57,7 @@ test('onWrite set root', () => new Promise(resolve => {
 }))
 
 test('onWrite set nested', () => new Promise(resolve => {
-  const [o, s] = timerStore()
+  let [o, s] = timerStore()
 
   onWrite(s, (obj, key) => {
     assert.is(obj, o.timer)
@@ -70,7 +70,7 @@ test('onWrite set nested', () => new Promise(resolve => {
 }))
 
 test('onWrite set same', () => {
-  const [_, s] = timerStore()
+  let [_, s] = timerStore()
 
   onWrite(s, () => {
     assert.unreachable()
@@ -80,7 +80,7 @@ test('onWrite set same', () => {
 })
 
 test('onWrite set same obj', () => {
-  const [_, s] = timerStore()
+  let [_, s] = timerStore()
 
   onWrite(s, () => {
     assert.unreachable()
@@ -90,7 +90,7 @@ test('onWrite set same obj', () => {
 })
 
 test('onWrite define nested', () => new Promise(resolve => {
-  const [o, s] = timerStore()
+  let [o, s] = timerStore()
 
   onWrite(s, (obj, key) => {
     assert.is(obj, o.timer)
@@ -103,7 +103,7 @@ test('onWrite define nested', () => new Promise(resolve => {
 }))
 
 test('onWrite delete nested', () => new Promise(resolve => {
-  const [o, s] = timerStore()
+  let [o, s] = timerStore()
 
   onWrite(s, (obj, key) => {
     assert.is(obj, o.timer)
@@ -116,7 +116,7 @@ test('onWrite delete nested', () => new Promise(resolve => {
 }))
 
 test('lock', () => {
-  const [_, s] = timerStore()
+  let [_, s] = timerStore()
 
   lock(s)
 
@@ -134,7 +134,7 @@ test('lock', () => {
 })
 
 test('unlock', () => {
-  const [o, s] = timerStore()
+  let [o, s] = timerStore()
 
   lock(s)
   unlock(s)
@@ -146,7 +146,7 @@ test('unlock', () => {
 })
 
 test('onRead root', () => new Promise(resolve => {
-  const [o, s] = timerStore()
+  let [o, s] = timerStore()
 
   onRead(s, (obj, key) => {
     assert.is(obj, o)
@@ -159,7 +159,7 @@ test('onRead root', () => new Promise(resolve => {
 }))
 
 test('onRead nested', () => new Promise(resolve => {
-  const [o, s] = timerStore()
+  let [o, s] = timerStore()
 
   let called = 0
 
@@ -179,8 +179,8 @@ test('onRead nested', () => new Promise(resolve => {
 }))
 
 test.skip('ref', () => {
-  const [o, s] = timerStore()
-  const refObj = {show: true}
+  let [o, s] = timerStore()
+  let refObj = {show: true}
 
   s.options = ref(s, refObj)
   assert.is(s.options, refObj)
