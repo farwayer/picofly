@@ -41,6 +41,7 @@ export let onWrite = /* @__PURE__ */ subscriber(2)
 export let onRead = /* @__PURE__ */ subscriber(3)
 export let lock = /* @__PURE__ */ locker(1)
 export let unlock = /* @__PURE__ */ locker(0)
+export let isLocked = store => !!get$(store)[4]
 
 
 // private
