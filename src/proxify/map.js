@@ -1,3 +1,5 @@
+// noinspection JSAnnotator,JSValidateTypes
+
 import {$Sym, NakedSym} from '../store.js'
 
 
@@ -269,6 +271,13 @@ export let proxifyMap = ($, map) => {
 
       let has = prop in map
       let prev = has && ReflectGet(map, prop, proxy)
+
+      // https://github.com/facebook/hermes/issues/1065
+      if (has && !desc.writable && !desc.enumerable && !desc.configurable) {
+        delete desc.writable
+        delete desc.enumerable
+        delete desc.configurable
+      }
 
       // unwrap value if it was proxied with current $
       let value = desc.value
