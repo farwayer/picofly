@@ -1,4 +1,4 @@
-import React, {memo, forwardRef} from 'react'
+import {memo, forwardRef} from 'react'
 import {useStore} from './use-store.js'
 
 
@@ -23,7 +23,12 @@ export let select = (...selectors) => (Component, options = {}) => {
     return render(props, ref)
   }
 
-  let name = Component.displayName || Component.name || 'Unknown'
+  let name = (
+    Component.displayName ||
+    Component.render?.name ||
+    Component.name ||
+    'Unknown'
+  )
   Selector.displayName = `select(${name})`
 
   if (withRef) {
