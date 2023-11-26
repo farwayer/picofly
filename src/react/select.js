@@ -23,13 +23,13 @@ export let select = (...selectors) => (Component, options = {}) => {
     return render(props, ref)
   }
 
+  let name = Component.displayName || Component.name || 'Unknown'
+  Selector.displayName = `select(${name})`
+
   if (withRef) {
     Selector = forwardRef(Selector)
   }
   Selector = memo(Selector)
-
-  let name = Component.displayName || Component.name || 'Unknown'
-  Selector.displayName = `select(${name})`
 
   return Selector
 }
