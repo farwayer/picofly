@@ -2,6 +2,7 @@ import {$Sym, NakedSym} from '../store.js'
 
 
 let ReflectGet = Reflect.get
+let ReflectSet = Reflect.set
 let ReflectDefineProperty = Reflect.defineProperty
 let SymbolIterator = Symbol.iterator
 let SymbolFor = Symbol.for
@@ -14,6 +15,7 @@ export let ValuesSym = Symbol('values')
 export let EntriesSym = Symbol('entries')
 export let ForEachSym = Symbol('forEach')
 
+// version with Hermes engine bug workarounds
 export let proxifyMap = ($, map) => {
   let [proxify, cache, writeSubs, readSubs] = $
 
@@ -269,6 +271,13 @@ export let proxifyMap = ($, map) => {
       let has = prop in map
       let prev = has && ReflectGet(map, prop, proxy)
 
+      // https://github.com/facebook/hermes/issues/1065
+      if (has && !desc.writable && !desc.enumerable && !desc.configurable) {
+        delete desc.writable
+        delete desc.enumerable
+        delete desc.configurable
+      }
+
       // unwrap value if it was proxied with current $
       let value = desc.value
       if (value != null && value[$Sym] === $) {
@@ -309,6 +318,9 @@ export let proxifyMap = ($, map) => {
 
       return true
     },
+
+    // https://github.com/facebook/hermes/issues/1025
+    set: ReflectSet,
   })
 
   cache.set(map, proxy)

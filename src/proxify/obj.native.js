@@ -2,9 +2,11 @@ import {$Sym, NakedSym} from '../store.js'
 
 
 let ReflectGet = Reflect.get
+let ReflectSet = Reflect.set
 let ReflectDefineProperty = Reflect.defineProperty
 
 
+// version with Hermes engine bug workarounds
 export let proxifyObj = ($, obj) => {
   let [proxify, cache, writeSubs, readSubs] = $
 
@@ -40,6 +42,13 @@ export let proxifyObj = ($, obj) => {
       let has = prop in obj
       let prev = has && ReflectGet(obj, prop, proxy)
 
+      // https://github.com/facebook/hermes/issues/1065
+      if (has && !desc.writable && !desc.enumerable && !desc.configurable) {
+        delete desc.writable
+        delete desc.enumerable
+        delete desc.configurable
+      }
+
       // unwrap value if it was proxied with the current $
       let value = desc.value
       if (value != null && value[$Sym] === $) {
@@ -73,6 +82,9 @@ export let proxifyObj = ($, obj) => {
 
       return true
     },
+
+    // https://github.com/facebook/hermes/issues/1025
+    set: ReflectSet,
   })
 
   cache.set(obj, proxy)
