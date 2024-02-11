@@ -23,7 +23,7 @@ _Lightweight state manager based on **Proxy**'s_
   - simple API: just modify data, magic will take care of the rest!
   - unified state: no _state-for-writing_ and _state-for-reading_
 
-⚛ **React support**
+⚛️ **React support**
   - with hooks and selectors
   - modern React 18 `useSyncExternalStore` to improve performance with concurrent rendering  
   - state is locked during rendering to avoid subtle errors 
