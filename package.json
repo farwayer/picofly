@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "license": "MIT",
   "author": "farwayer <farwayer@gmail.com>",
+  "repository": "https://github.com/farwayer/picofly",
   "type": "module",
   "sideEffects": false,
   "exports": {
@@ -16,7 +17,6 @@
   "devDependencies": {
     "@size-limit/preset-small-lib": "^11.0.2",
     "benchmark": "^2.1.4",
-    "esbuild": "^0.20.0",
     "microtime": "^3.1.1",
     "mobx": "^6.12.0",
     "nanoid": "^5.0.5",
