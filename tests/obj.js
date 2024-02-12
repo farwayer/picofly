@@ -1,7 +1,6 @@
 import {test} from 'uvu'
 import * as assert from 'uvu/assert'
-import {create, onWrite, onRead, lock, unlock} from '../src/store.js'
-import {obj} from '../src/proxify/index.js'
+import {create, obj, onWrite, onRead, lock, unlock} from 'picofly'
 
 
 let timerStore = () => {
@@ -175,21 +174,5 @@ test('onRead nested', () => new Promise(resolve => {
   s.timer.ticks
   assert.unreachable()
 }))
-
-test.skip('ref', () => {
-  let [o, s] = timerStore()
-  let refObj = {show: true}
-
-  s.options = ref(s, refObj)
-  assert.is(s.options, refObj)
-  assert.is(s.options.show, true)
-
-  onWrite(s, () => {
-    assert.unreachable()
-  })
-
-  s.options.show = false
-})
-
 
 test.run()
