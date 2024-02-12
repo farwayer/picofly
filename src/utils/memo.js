@@ -1,7 +1,7 @@
-import {onRead, onWrite} from './store.js'
+import {onRead, onWrite} from '../store.js'
 
 
-let memo = (store, calc) => {
+export let memo = (store, calc) => {
   let cached = false
   let cachedResult
   let deps = new WeakMap()

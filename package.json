@@ -11,7 +11,8 @@
       "react-native": "./src/index.native.js",
       "default": "./src/index.js"
     },
-    "./react": "./src/react/index.js"
+    "./react": "./src/react/index.js",
+    "./utils": "./src/utils/index.js"
   },
   "scripts": {
     "size": "size-limit",
@@ -76,6 +77,13 @@
         "react"
       ],
       "limit": "2Kb"
+    },
+    {
+      "name": "Utils",
+      "import": {
+        "src/utils/index.js": "{memo}"
+      },
+      "limit": "1Kb"
     }
   ],
   "packageManager": "yarn@4.1.0"
