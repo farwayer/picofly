@@ -36,28 +36,35 @@
   ],
   "size-limit": [
     {
-      "name": "Store objIgnoreSpecials",
+      "name": "Store obj minimal",
       "import": {
-        "src/index.js": "{create, onWrite, onRead, lock, unlock, objIgnoreSpecials}"
+        "src/index.js": "{create, onWrite, obj}"
       },
       "limit": "1Kb"
     },
     {
-      "name": "Store obj",
+      "name": "Store obj full",
       "import": {
-        "src/index.js": "{create, onWrite, onRead, lock, unlock, obj}"
+        "src/index.js": "{create, obj, onWrite, onRead, lock, unlock}"
       },
       "limit": "1Kb"
     },
     {
-      "name": "Store objMap",
+      "name": "Store objIgnoreSpecials full",
       "import": {
-        "src/index.js": "{create, onWrite, onRead, lock, unlock, objMap}"
+        "src/index.js": "{create, objIgnoreSpecials, onWrite, onRead, lock, unlock}"
       },
       "limit": "1Kb"
     },
     {
-      "name": "React",
+      "name": "Store full objMap",
+      "import": {
+        "src/index.js": "{create, objMap, onWrite, onRead, lock, unlock}"
+      },
+      "limit": "1Kb"
+    },
+    {
+      "name": "React objIgnoreSpecials",
       "import": {
         "src/index.js": "{create, objIgnoreSpecials}",
         "src/react/index.js": "{StoreProvider, useStore}"
