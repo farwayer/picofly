@@ -1,5 +1,3 @@
-// noinspection JSValidateTypes,JSAnnotator
-
 import {objIgnoreSpecials} from './proxify/index.js'
 
 
