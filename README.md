@@ -11,26 +11,28 @@ _Lightweight **Proxy**-based state manager built with ❤️_
   - perf tests included (soon)  
 
 🤏 **Tiny**
-  - **423 bytes** basic version (minified and brotlied)
-  - **670 bytes** with React support  
+  - **393 bytes** in minimal config, minified and brotlied
+  - **677 bytes** in base config with React support  
 
 🥧 **Simple**
   - ~130 lines of sparse code
-  - ~70 lines for React support (with hook)
+  - ~70 lines extra for React support (with hook)
 
 🍳 **Easy to use**
   - simple API: just modify data, magic will take care of the rest!
-  - unified state: no _state-for-writing_ and _state-for-reading_
+  - unified state: no _state-for-reading_ and _state-for-writing_
 
 ⚛️ **React**
-  - with **hooks** and **selectors**
+  - **hooks** and **selectors**
   - modern React 18 `useSyncExternalStore` to improve performance with concurrent rendering  
   - state is locked during rendering to avoid subtle errors 
 
 🔋 **Charged**
   - **Map** support (**Set** in plans)
   - **Typescript** definitions
-  - can be used with classes
+  - can be used with **classes** (avoid method bindings!), even with getters and setters
+  - `ref` allows to attach any object to state without proxying (API, etc.)  
+  - well tested
   - architecture agnostic
   - extendable
 
