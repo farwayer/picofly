@@ -1,12 +1,10 @@
-import {$Sym, NakedSym} from '../store.js'
+import {$Sym, NakedSym} from '../../store.js'
 
 
 let ReflectGet = Reflect.get
 let ReflectSet = Reflect.set
 let ReflectDefineProperty = Reflect.defineProperty
 
-
-// version with Hermes engine bug workarounds
 export let proxifyObj = ($, obj) => {
   let [proxify, cache, writeSubs, readSubs] = $
 

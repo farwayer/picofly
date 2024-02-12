@@ -1,4 +1,4 @@
-import {$Sym, NakedSym} from '../store.js'
+import {$Sym, NakedSym} from '../../store.js'
 
 
 let ReflectGet = Reflect.get
@@ -15,7 +15,6 @@ export let ValuesSym = Symbol('values')
 export let EntriesSym = Symbol('entries')
 export let ForEachSym = Symbol('forEach')
 
-// version with Hermes engine bug workarounds
 export let proxifyMap = ($, map) => {
   let [proxify, cache, writeSubs, readSubs] = $
 
