@@ -31,7 +31,7 @@ _Lightweight **Proxy**-based state manager built with ❤️_
   - **Map** support (**Set** in plans)
   - **Typescript** definitions
   - can be used with **classes** (avoid method bindings!), even with getters and setters
-  - `ref` allows to attach any object to state without proxying (API, etc.)  
+  - `ref` allows to attach any object to the state without proxying (API, etc.)  
   - well tested
   - architecture agnostic
   - extendable
