@@ -3,7 +3,9 @@ examples
 tests
 perf
 tmp
+docs
 .yarn
 .yarnrc.yml
 .pnp*
 TODO.md
+README.md
