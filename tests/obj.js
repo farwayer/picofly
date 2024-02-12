@@ -1,14 +1,12 @@
-// noinspection BadExpressionStatementJS,SillyAssignmentJS
-
 import {test} from 'uvu'
 import * as assert from 'uvu/assert'
-import {createStore, onWrite, lock, unlock, onRead} from '../src/store.js'
+import {create, onWrite, onRead, lock, unlock} from '../src/store.js'
 import {obj} from '../src/proxify/index.js'
 
 
 let timerStore = () => {
   let o = {timer: {ticks: 0}}
-  let s = createStore(o, obj)
+  let s = create(o, obj)
   return [o, s]
 }
 

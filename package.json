@@ -35,33 +35,31 @@
   ],
   "size-limit": [
     {
-      "name": "Store objIgnoreSpecials (default)",
+      "name": "Store objIgnoreSpecials",
       "import": {
-        "src/store.js": "{store, onWrite, onRead, lock, unlock}"
+        "src/index.js": "{create, onWrite, onRead, lock, unlock, objIgnoreSpecials}"
       },
       "limit": "1Kb"
     },
     {
       "name": "Store obj",
       "import": {
-        "src/store.js": "{createStore, onWrite, onRead, lock, unlock}",
-        "src/proxify/index.js": "{obj}"
+        "src/index.js": "{create, onWrite, onRead, lock, unlock, obj}"
       },
       "limit": "1Kb"
     },
     {
       "name": "Store objMap",
       "import": {
-        "src/store.js": "{createStore, onWrite, onRead, lock, unlock}",
-        "src/proxify/index.js": "{objMap}"
+        "src/index.js": "{create, onWrite, onRead, lock, unlock, objMap}"
       },
       "limit": "1Kb"
     },
     {
       "name": "React",
       "import": {
-        "src/store.js": "{store}",
-        "src/react/use-store.js": "{StoreProvider, useStore}"
+        "src/index.js": "{create, objIgnoreSpecials}",
+        "src/react/index.js": "{StoreProvider, useStore}"
       },
       "ignore": [
         "react"
@@ -71,9 +69,8 @@
     {
       "name": "React objMapIgnoreSpecialsRef",
       "import": {
-        "src/store.js": "{createStore}",
-        "src/proxify/index.js": "{objMapIgnoreSpecialsRef}",
-        "src/react/use-store.js": "{StoreProvider, useStore}"
+        "src/index.js": "{create, objMapIgnoreSpecialsRef}",
+        "src/react/index.js": "{StoreProvider, useStore}"
       },
       "ignore": [
         "react"

@@ -11,14 +11,13 @@ export type $<S> = [
 ]
 export type Proxify<S> = ($: $<S>, val: S) => S
 
-export function createStore<S>(initValue: S, proxify: Proxify<unknown>): S
-export function store<S>(initValue: S): S
+export function create<S>(initValue: S, proxify: Proxify<any>): S
 export function ref<S, V>(store: S, val: V): V
 export function isRef<S, V>(store: S, val: V): V
 
-export const obj: Proxify<unknown>
-export const objIgnoreSpecials: Proxify<unknown>
-export const map: Proxify<unknown>
-export const objMap: Proxify<unknown>
-export const objMapIgnoreSpecials: Proxify<unknown>
-export const objMapIgnoreSpecialsRef: Proxify<unknown>
+export const obj: Proxify<any>
+export const objIgnoreSpecials: Proxify<any>
+export const map: Proxify<any>
+export const objMap: Proxify<any>
+export const objMapIgnoreSpecials: Proxify<any>
+export const objMapIgnoreSpecialsRef: Proxify<any>

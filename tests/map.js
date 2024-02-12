@@ -1,6 +1,6 @@
 import {test} from 'uvu'
 import * as assert from 'uvu/assert'
-import {onWrite, createStore, onRead, lock} from '../src/store.js'
+import {create, onWrite, onRead, lock} from '../src/store.js'
 import {objMap} from '../src/proxify/index.js'
 import {EntriesSym, ForEachSym, KeysSym, ValuesSym, SizeSym} from '../src/proxify/map.js'
 
@@ -16,7 +16,7 @@ let booksMap = () => {
 
 let booksStore = () => {
   let m = booksMap()
-  let s = createStore(m, objMap)
+  let s = create(m, objMap)
 
   return [m, s]
 }
@@ -33,7 +33,7 @@ test('create', () => {
 
 test('create nested', () => {
   let o = {books: booksMap()}
-  let s = createStore(o, objMap)
+  let s = create(o, objMap)
 
   let oBook = o.books.get('1')
   let sBook = s.books.get('1')

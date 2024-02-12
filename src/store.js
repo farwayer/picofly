@@ -1,11 +1,4 @@
-import {objIgnoreSpecials} from './proxify/index.js'
-
-
-export let store = initValue => (
-  createStore(initValue, objIgnoreSpecials)
-)
-
-export let createStore = (initValue, proxify) => {
+export let create = (initValue, proxify) => {
   let $ = [         // internal store data
     proxify,        // 0 = proxify fn
     new WeakMap(),  // 1 = proxy cache
