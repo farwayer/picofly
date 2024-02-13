@@ -1,5 +1,5 @@
 export let create = (initValue, proxify) => {
-  let $ = [         // internal store data
+  let $ = [         // internal store state
     proxify,        // 0 = proxify fn
     new WeakMap(),  // 1 = proxy cache
     new Set(),      // 2 = write subs
