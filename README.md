@@ -11,8 +11,8 @@ _Lightweight **Proxy**-based state manager built with ❤️_
   - perf tests included (soon)  
 
 🤏 **Tiny**
-  - **393 bytes** in minimal config, minified and brotlied
-  - **677 bytes** in base config with React support  
+  - **403 bytes** in minimal config, minified and brotlied
+  - **685 bytes** in base config with React support  
 
 🥧 **Simple**
   - ~130 lines of sparse code
@@ -36,4 +36,10 @@ _Lightweight **Proxy**-based state manager built with ❤️_
   - architecture agnostic
   - extendable
 
-## Why another one?
+🪟 **Transparency**
+  - source object not modified at all (no Symbol's or \_\_SECRET\_\_ properties added)
+  - supports all operations that can be done on the original object
+(defineProperty, getters, setters, Map iterators, etc.)
+  - even observable modification Map as an ordinary object!
+
+## Why the hell another one?!
