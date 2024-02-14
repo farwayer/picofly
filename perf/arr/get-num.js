@@ -5,7 +5,7 @@ import {bench} from '../utils.js'
 
 
 let arr, i
-let test = () => arr[0]
+let test = () => arr[i]
 let beforeAll = () => i = 0
 
 await bench(
@@ -15,21 +15,24 @@ await bench(
   .picofly(test, {
     beforeAll,
     beforeEach() {
-      arr = create([i++], obj)
+      ++i
+      arr = create([i], obj)
     },
   })
 
   .valtio(test, {
     beforeAll,
     beforeEach() {
-      arr = proxy([i++])
+      ++i
+      arr = proxy([i])
     },
   })
 
   .mobx(test, {
     beforeAll,
     beforeEach() {
-      arr = observable.array([i++])
+      ++i
+      arr = observable.array([i])
     },
   })
 

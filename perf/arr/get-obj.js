@@ -15,21 +15,24 @@ await bench(
   .picofly(test, {
     beforeAll,
     beforeEach() {
-      arr = create([{[i]: i++}], obj)
+      ++i
+      arr = create([{[i]: i}], obj)
     },
   })
 
   .valtio(test, {
     beforeAll,
     beforeEach() {
-      arr = proxy([{[i]: i++}])
+      ++i
+      arr = proxy([{[i]: i}])
     },
   })
 
   .mobx(test, {
     beforeAll,
     beforeEach() {
-      arr = observable.array([{[i]: i++}])
+      ++i
+      arr = observable.array([{[i]: i}])
     }
   })
 

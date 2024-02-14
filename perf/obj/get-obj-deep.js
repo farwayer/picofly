@@ -15,24 +15,24 @@ await bench(
   .picofly(test, {
     beforeAll,
     beforeEach() {
-      key = i.toString()
-      s = create({[key]: {x: {y: {z: 0}}}}, obj)
+      key = (++i).toString()
+      s = create({[key]: {x: {y: {z: i}}}}, obj)
     },
   })
 
   .valtio(test, {
     beforeAll,
     beforeEach() {
-      key = i.toString()
-      s = proxy({[key]: {x: {y: {z: 0}}}})
+      key = (++i).toString()
+      s = proxy({[key]: {x: {y: {z: i}}}})
     },
   })
 
   .mobx(test, {
     beforeAll,
     beforeEach() {
-      key = i.toString()
-      s = observable.object({[key]: {x: {y: {z: 0}}}})
+      key = (++i).toString()
+      s = observable.object({[key]: {x: {y: {z: i}}}})
     },
   })
 

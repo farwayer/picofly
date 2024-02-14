@@ -4,28 +4,35 @@ import {create, obj} from 'picofly'
 import {bench} from '../utils.js'
 
 
-let arr
+let arr, i
 let test = () => {
-  arr.push(0)
+  arr.push(i)
 }
+let beforeAll = () => i = 0
 
 await bench(
   'Push number to array',
 )
   .picofly(test, {
+    beforeAll,
     beforeEach() {
+      ++i
       arr = create([], obj)
     },
   })
 
   .valtio(test, {
+    beforeAll,
     beforeEach() {
+      ++i
       arr = proxy([])
     },
   })
 
   .mobx(test, {
+    beforeAll,
     beforeEach() {
+      ++i
       arr = observable.array([])
     },
   })

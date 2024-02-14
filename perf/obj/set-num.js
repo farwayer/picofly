@@ -6,7 +6,7 @@ import {bench} from '../utils.js'
 
 let s, key, i
 let test = () => {
-  s[key] = 0
+  s[key] = i
 }
 let beforeAll = () => i = 0
 
@@ -16,7 +16,7 @@ await bench(
   .picofly(test, {
     beforeAll,
     beforeEach() {
-      key = i.toString()
+      key = (++i).toString()
       s = create({}, obj)
     },
   })
@@ -24,7 +24,7 @@ await bench(
   .valtio(test, {
     beforeAll,
     beforeEach() {
-      key = i.toString()
+      key = (++i).toString()
       s = proxy({})
     },
   })
@@ -32,7 +32,7 @@ await bench(
   .mobx(test, {
     beforeAll,
     beforeEach() {
-      key = i.toString()
+      key = (++i).toString()
       s = observable.object({})
     },
   })

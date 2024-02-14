@@ -6,7 +6,7 @@ import {bench} from '../utils.js'
 
 let m, i
 let test = () => {
-  m.set(0, {i})
+  m.set(i, {i})
 }
 let beforeAll = () => i = 0
 

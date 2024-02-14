@@ -15,7 +15,7 @@ await bench(
   .picofly(test, {
     beforeAll,
     beforeEach() {
-      key = i.toString()
+      key = (++i).toString()
       s = create({[key]: {}}, obj)
     },
   })
@@ -23,7 +23,7 @@ await bench(
   .valtio(test, {
     beforeAll,
     beforeEach() {
-      key = i.toString()
+      key = (++i).toString()
       s = proxy({[key]: {}})
     },
   })
@@ -31,7 +31,7 @@ await bench(
   .mobx(test, {
     beforeAll,
     beforeEach() {
-      key = i.toString()
+      key = (++i).toString()
       s = observable.object({[key]: {}})
     },
   })

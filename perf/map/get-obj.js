@@ -15,7 +15,7 @@ await bench(
   .picofly(test, {
     beforeAll,
     beforeEach() {
-      i++
+      ++i
       m = create(new Map([[i, {i}]]), map)
     },
   })
@@ -23,7 +23,7 @@ await bench(
   .valtio(test, {
     beforeAll,
     beforeEach() {
-      i++
+      ++i
       m = proxyMap([[i, {i}]])
     },
   })
@@ -31,7 +31,7 @@ await bench(
   .mobx(test, {
     beforeAll,
     beforeEach() {
-      i++
+      ++i
       m = observable.map(new Map([[i, i]]))
     },
   })
