@@ -27,4 +27,5 @@ await bench(
   .mobx(() => {
     observable.array(arr)
   }, {beforeEach})
+
   .run()

@@ -5,7 +5,7 @@ import {bench} from '../utils.js'
 
 
 let arr, i
-let test = () => arr[0]
+let test = () => arr[i]
 let beforeAll = () => i = 0
 
 await bench(
