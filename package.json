@@ -12,7 +12,8 @@
       "default": "./src/index.js"
     },
     "./react": "./src/react/index.js",
-    "./utils": "./src/utils/index.js"
+    "./utils": "./src/utils/index.js",
+    "./package.json": "./package.json"
   },
   "scripts": {
     "size": "size-limit",
@@ -57,9 +58,16 @@
       "limit": "1Kb"
     },
     {
-      "name": "Store full objMap",
+      "name": "Store objMap full",
       "import": {
         "src/index.js": "{create, objMap, onWrite, onRead, lock, unlock}"
+      },
+      "limit": "1Kb"
+    },
+    {
+      "name": "Store objMapIgnoreSpecialsRef zero",
+      "import": {
+        "src/index.js": "{create, objMapIgnoreSpecialsRef}"
       },
       "limit": "1Kb"
     },
