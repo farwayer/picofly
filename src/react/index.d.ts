@@ -1,7 +1,7 @@
 import {Context, Provider, FunctionComponent, ComponentType} from 'react'
 
-export const StoreContext: Context<unknown>
-export const StoreProvider: Provider<unknown>
+export let StoreContext: Context<unknown>
+export let StoreProvider: Provider<unknown>
 
 export function useContextStore<S>(): S
 
