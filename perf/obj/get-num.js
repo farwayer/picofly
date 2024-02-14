@@ -10,6 +10,7 @@ let beforeAll = () => i = 0
 
 await bench(
   'Get number value from obj',
+  ['valtioNoGet'],
 )
   .picofly(test, {
     beforeAll,

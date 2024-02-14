@@ -9,7 +9,7 @@ let test = () => s[key].x.y.z
 let beforeAll = () => i = 0
 
 await bench(
-  'Get object value from object again',
+  'Get deep object value from object again',
   ['valtioNoGet'],
 )
   .picofly(test, {
