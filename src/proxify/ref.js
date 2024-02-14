@@ -4,7 +4,7 @@ import {get$} from '../store.js'
 export let RefSym = Symbol()
 
 export let ref = (store, val) => {
-  if (typeof val !== 'object' || val === null) {
+  if (typeof val !== 'object' || !val) {
     return val
   }
 

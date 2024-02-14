@@ -4,13 +4,13 @@ import {RefSym} from './ref.js'
 
 
 export let obj = ($, val) =>
-  typeof val === 'object' && val !== null
+  typeof val === 'object' && val
     ? proxifyObj($, val)
     : val
 
 export let objIgnoreSpecials = ($, val) =>
   typeof val !== 'object' ||
-  val === null ||
+  !val ||
   val instanceof Date ||
   val instanceof Error ||
   val instanceof RegExp ||
@@ -32,21 +32,19 @@ export let map = ($, val) =>
     : val
 
 export let objMap = ($, val) => {
-  if (typeof val !== 'object' || val === null) {
+  if (typeof val !== 'object' || !val) {
     return val
   }
 
-  if (val instanceof Map) {
-    return proxifyMap($, val)
-  }
-
-  return proxifyObj($, val)
+  return val instanceof Map
+    ? proxifyMap($, val)
+    : proxifyObj($, val)
 }
 
 export let objMapIgnoreSpecials = ($, val) => {
   if (
     typeof val !== 'object' ||
-    val === null ||
+    !val ||
     val instanceof Date ||
     val instanceof Error ||
     val instanceof RegExp ||
@@ -62,17 +60,15 @@ export let objMapIgnoreSpecials = ($, val) => {
     return val
   }
 
-  if (val instanceof Map) {
-    return proxifyMap($, val)
-  }
-
-  return proxifyObj($, val)
+  return val instanceof Map
+    ? proxifyMap($, val)
+    : proxifyObj($, val)
 }
 
 export let objMapIgnoreSpecialsRef = ($, val) => {
   if (
     typeof val !== 'object' ||
-    val === null ||
+    !val ||
     val instanceof Date ||
     val instanceof Error ||
     val instanceof RegExp ||
@@ -93,9 +89,7 @@ export let objMapIgnoreSpecialsRef = ($, val) => {
     return val
   }
 
-  if (val instanceof Map) {
-    return proxifyMap($, val)
-  }
-
-  return proxifyObj($, val)
+  return val instanceof Map
+    ? proxifyMap($, val)
+    : proxifyObj($, val)
 }
