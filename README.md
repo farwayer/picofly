@@ -41,6 +41,6 @@ _Lightweight **Proxy**-based state manager built with ❤️_
   - source object not modified at all (no Symbol's or \_\_SECRET\_\_ properties added)
   - supports all operations that can be done on the original object
 (defineProperty, getters, setters, Map iterators, etc.)
-  - even observable modification Map as an ordinary object!
+  - even observable modification of Map as an ordinary object!
 
 ## Why the hell another one?!
