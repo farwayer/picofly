@@ -20,7 +20,7 @@ _Lightweight **Proxy**-based state manager built with ❤️_
 
 🍳 **Easy to use**
   - simple API: just modify data, magic will take care of the rest!
-  - unified state: no _state-for-reading_ and _state-for-writing_
+  - no _state-for-reading_ and _state-for-writing_, snapshots: just one proxy
 
 ⚛️ **React & React Native**
   - **hooks** and **selectors**
