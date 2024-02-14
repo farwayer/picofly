@@ -190,9 +190,8 @@ export let proxifyMap = ($, map) => {
           // because keys() returns iterator
           // it will be empty after clear
           // so we need to save all keys first
-          // maybe slow and takes memory (depending on map size and keys)
+          // may be slow and takes memory (depending on map size and keys)
           // but anyway clear() should not be often operation
-          // TODO: check delete one-by-one performance without saving keys
           let keys = ArrayFrom(target.keys())
 
           target.clear()
