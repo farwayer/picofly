@@ -28,6 +28,6 @@ await bench(
 
   .mobx(() => {
     observable.map(m)
-  }, beforeAll, beforeEach)
+  }, {beforeAll, beforeEach})
 
   .run()

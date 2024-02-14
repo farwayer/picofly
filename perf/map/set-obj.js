@@ -17,24 +17,24 @@ await bench(
   .picofly(test, {
     beforeAll,
     beforeEach() {
+      ++i
       m = create(new Map(), map)
-      i++
     },
   })
 
   .valtio(test, {
     beforeAll,
     beforeEach() {
+      ++i
       m = proxyMap()
-      i++
     },
   })
 
   .mobx(test, {
     beforeAll,
     beforeEach() {
+      ++i
       m = observable.map()
-      i++
     },
   })
 
