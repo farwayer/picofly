@@ -22,9 +22,10 @@ _Lightweight **Proxy**-based state manager built with ❤️_
   - simple API: just modify data, magic will take care of the rest!
   - unified state: no _state-for-reading_ and _state-for-writing_
 
-⚛️ **React**
+⚛️ **React & React Native**
   - **hooks** and **selectors**
-  - modern React 18 `useSyncExternalStore` to improve performance with concurrent rendering  
+  - modern React 18 `useSyncExternalStore` to improve performance with concurrent rendering
+  - plays amazing with React Native's New Architecture and Fabric Renderer (highly recommended)
   - state is locked during rendering to avoid subtle errors 
 
 🔋 **Charged**
