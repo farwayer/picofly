@@ -51,6 +51,13 @@
       "limit": "1Kb"
     },
     {
+      "name": "Store map full",
+      "import": {
+        "src/index.js": "{create, map, onWrite, onRead, lock, unlock}"
+      },
+      "limit": "1Kb"
+    },
+    {
       "name": "Store objIgnoreSpecials full",
       "import": {
         "src/index.js": "{create, objIgnoreSpecials, onWrite, onRead, lock, unlock}"
