@@ -10,6 +10,7 @@ let Notes = {
   firstRead: 'Picofly creates a proxy on the first read, so the first access will be a bit slower than subsequent',
   valtioNoGet: "Valtio doesn't attach `get` Proxy hook to the underlying proxy but does it later in the React adapter",
   valtioMap: "Valtio has no real Map support, only very slow polyfill",
+  mobxMap: "MobX uses polyfill too, but fast enough and with real Map's for data storage",
 }
 
 export let bench = (name, notes = []) => {

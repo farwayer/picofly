@@ -4,35 +4,41 @@ import {create, map} from 'picofly'
 import {bench} from '../utils.js'
 
 
-let m, i
-let test = () => m.get(i)
-let beforeAll = () => i = 0
+let arr, s
+let test = () => {
+  s.clear()
+}
+let beforeAll = () => {
+  arr = []
+  for (let i = 0; i < 100; i++) {
+    arr.push([i, {i}])
+  }
+}
 
 await bench(
-  'First get object value from Map',
+  'Clear Map with number keys and 100 objects',
   ['valtioMap', 'mobxMap'],
 )
   .picofly(test, {
     beforeAll,
     beforeEach() {
-      ++i
-      m = create(new Map([[i, {i}]]), map)
+      let m = new Map(arr)
+      s = create(m, map)
     },
   })
 
   .valtio(test, {
     beforeAll,
     beforeEach() {
-      ++i
-      m = proxyMap([[i, {i}]])
+      s = proxyMap(arr)
     },
   })
 
   .mobx(test, {
     beforeAll,
     beforeEach() {
-      ++i
-      m = observable.map(new Map([[i, i]]))
+      let m = new Map(arr)
+      s = observable.map(m)
     },
   })
 

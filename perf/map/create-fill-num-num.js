@@ -16,7 +16,7 @@ let beforeEach = () => {
 
 await bench(
   'Create with Map filled with 100 numbers',
-  'valtioMap'
+  ['valtioMap', 'mobxMap'],
 )
   .picofly(() => {
     create(m, map)

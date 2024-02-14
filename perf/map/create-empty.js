@@ -6,7 +6,7 @@ import {bench} from '../utils.js'
 
 await bench(
   'Create with empty Map',
-  'valtioMap',
+  ['valtioMap', 'mobxMap'],
 )
   .picofly(() => {
     create(new Map(), map)

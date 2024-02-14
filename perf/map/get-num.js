@@ -10,7 +10,7 @@ let beforeAll = () => i = 0
 
 await bench(
   'Get number value from Map',
-  'valtioMap'
+  ['valtioMap', 'mobxMap'],
 )
   .picofly(test, {
     beforeAll,
