@@ -1,4 +1,6 @@
 export let create = (initValue, proxify) => {
+  proxify || 'pass proxifier!'()
+
   let $ = [         // internal store state
     proxify,        // 0 = proxify fn
     new WeakMap(),  // 1 = proxy cache
@@ -15,7 +17,7 @@ export let create = (initValue, proxify) => {
 }
 
 let subscriber = subsIndex => (store, cb) => {
-  typeof cb === 'function' || "invalid cb!"()
+  typeof cb === 'function' || 'invalid cb!'()
 
   let subs = get$(store)[subsIndex].add(cb)
 
@@ -38,4 +40,4 @@ export let isLocked = store => !!get$(store)[4]
 // private
 export let $Sym = /* @__PURE__ */ Symbol()
 export let NakedSym = /* @__PURE__ */ Symbol()
-export let get$ = val => val && val[$Sym] || "invalid store!"()
+export let get$ = val => val && val[$Sym] || 'invalid store!'()
