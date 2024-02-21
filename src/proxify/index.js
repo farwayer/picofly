@@ -21,6 +21,7 @@ export let objIgnoreSpecials = ($, val) =>
   val instanceof ArrayBuffer ||
   val instanceof Number ||
   val instanceof String ||
+  isTypedArray(val) ||
   (typeof WeakRef !== 'undefined' && val instanceof WeakRef) ||
   (typeof Node !== 'undefined' && val instanceof Node)
     ? val
@@ -54,6 +55,7 @@ export let objMapIgnoreSpecials = ($, val) => {
     val instanceof ArrayBuffer ||
     val instanceof Number ||
     val instanceof String ||
+    isTypedArray(val) ||
     (typeof WeakRef !== 'undefined' && val instanceof WeakRef) ||
     (typeof Node !== 'undefined' && val instanceof Node)
   ) {
@@ -78,6 +80,7 @@ export let objMapIgnoreSpecialsRef = ($, val) => {
     val instanceof ArrayBuffer ||
     val instanceof Number ||
     val instanceof String ||
+    isTypedArray(val) ||
     (typeof WeakRef !== 'undefined' && val instanceof WeakRef) ||
     (typeof Node !== 'undefined' && val instanceof Node)
   ) {
@@ -93,3 +96,5 @@ export let objMapIgnoreSpecialsRef = ($, val) => {
     ? proxifyMap($, val)
     : proxifyObj($, val)
 }
+
+let isTypedArray = ArrayBuffer.isView
