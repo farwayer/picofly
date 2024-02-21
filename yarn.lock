@@ -512,14 +512,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react@npm:^18":
-  version: 18.2.55
-  resolution: "@types/react@npm:18.2.55"
+"@types/react@npm:^18.2.57":
+  version: 18.2.57
+  resolution: "@types/react@npm:18.2.57"
   dependencies:
     "@types/prop-types": "npm:*"
     "@types/scheduler": "npm:*"
     csstype: "npm:^3.0.2"
-  checksum: 10c0/6b1c73beafbbc582dc54ffd92b3779f6d850e8f6b5ce5d04b31e9498a3d77bfc416bb08f0d8d63ab4f4649ccd6639996472416871c01c74a528b16a55faeaf38
+  checksum: 10c0/d5ed2f04c069c591e41ef1bea5b70f89dc7a4edff2254c4df801ddaa21b43b2aa70c106c049b9b6736f98f5afe66576d0e75a9e47c7044f2660b1744ff64f535
   languageName: node
   linkType: hard
 
@@ -1403,7 +1403,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"nanoid@npm:^5.0.4, nanoid@npm:^5.0.5":
+"nanoid@npm:^5.0.4":
   version: 5.0.5
   resolution: "nanoid@npm:5.0.5"
   bin:
@@ -1534,7 +1534,6 @@ __metadata:
     benchmark: "npm:^2.1.4"
     microtime: "npm:^3.1.1"
     mobx: "npm:^6.12.0"
-    nanoid: "npm:^5.0.5"
     picocolors: "npm:^1.0.0"
     react: "npm:^18.2.0"
     size-limit: "npm:^11.0.2"
@@ -1620,7 +1619,7 @@ __metadata:
     picofly: "workspace:*"
     react: "npm:^18.2.0"
     react-dom: "npm:^18.2.0"
-    vite: "npm:^5.1.1"
+    vite: "npm:^5.1.4"
   languageName: unknown
   linkType: soft
 
@@ -1919,7 +1918,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "ts-4cebff@workspace:examples/ts"
   dependencies:
-    "@types/react": "npm:^18"
+    "@types/react": "npm:^18.2.57"
     react: "npm:^18.2.0"
     typescript: "npm:^5.2.2"
   languageName: unknown
@@ -2012,9 +2011,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vite@npm:^5.1.1":
-  version: 5.1.1
-  resolution: "vite@npm:5.1.1"
+"vite@npm:^5.1.4":
+  version: 5.1.4
+  resolution: "vite@npm:5.1.4"
   dependencies:
     esbuild: "npm:^0.19.3"
     fsevents: "npm:~2.3.3"
@@ -2048,7 +2047,7 @@ __metadata:
       optional: true
   bin:
     vite: bin/vite.js
-  checksum: 10c0/d7c23284aeb3a8333e0ea208fab7da4dd4f69134f22ff959d865f56d48c3afd04fbc548368c15a5fbc0c6453ee950db42bd3532aa0dd50b85464eabefaa51396
+  checksum: 10c0/8f04c8bed33f266bde27f432412456a3b893b51fe1857f0b8cd259100b376c1393a7927db1dd6344a4376baed72ed179ec5b0428aef2ae8508f1f28f95acb908
   languageName: node
   linkType: hard
 
