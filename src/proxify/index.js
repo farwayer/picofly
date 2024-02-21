@@ -21,6 +21,7 @@ export let objIgnoreSpecials = ($, val) =>
   val instanceof ArrayBuffer ||
   val instanceof Number ||
   val instanceof String ||
+  val instanceof Promise ||
   isTypedArray(val) ||
   (typeof WeakRef !== 'undefined' && val instanceof WeakRef) ||
   (typeof Node !== 'undefined' && val instanceof Node)
@@ -55,6 +56,7 @@ export let objMapIgnoreSpecials = ($, val) => {
     val instanceof ArrayBuffer ||
     val instanceof Number ||
     val instanceof String ||
+    val instanceof Promise ||
     isTypedArray(val) ||
     (typeof WeakRef !== 'undefined' && val instanceof WeakRef) ||
     (typeof Node !== 'undefined' && val instanceof Node)
@@ -80,6 +82,7 @@ export let objMapIgnoreSpecialsRef = ($, val) => {
     val instanceof ArrayBuffer ||
     val instanceof Number ||
     val instanceof String ||
+    val instanceof Promise ||
     isTypedArray(val) ||
     (typeof WeakRef !== 'undefined' && val instanceof WeakRef) ||
     (typeof Node !== 'undefined' && val instanceof Node)
