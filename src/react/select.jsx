@@ -1,4 +1,4 @@
-import {memo, forwardRef} from 'react'
+import React, {memo, forwardRef} from 'react'
 import {useStore} from './use-store.js'
 
 
