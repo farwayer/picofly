@@ -2,6 +2,7 @@
   "name": "picofly",
   "version": "0.0.8",
   "license": "MIT",
+  "description": "Lightweight state manager, simple, fast and built with ❤",
   "author": "farwayer <farwayer@gmail.com>",
   "repository": "https://github.com/farwayer/picofly",
   "type": "module",
@@ -15,6 +16,15 @@
     "./utils": "./src/utils/index.js",
     "./package.json": "./package.json"
   },
+  "keywords": [
+    "react",
+    "react-native",
+    "state",
+    "state manager",
+    "pico",
+    "proxy",
+    "store"
+  ],
   "scripts": {
     "size": "size-limit",
     "test": "uvu",
@@ -113,8 +123,7 @@
     "fields": [
       "packageManager",
       "workspaces"
-    ],
-    "packageManager": "yarn"
+    ]
   },
   "packageManager": "yarn@4.1.1"
 }
