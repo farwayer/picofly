@@ -710,6 +710,21 @@ __metadata:
   languageName: node
   linkType: hard
 
+"clean-publish@npm:^4.3.0":
+  version: 4.3.0
+  resolution: "clean-publish@npm:4.3.0"
+  dependencies:
+    cross-spawn: "npm:^7.0.3"
+    fast-glob: "npm:^3.3.2"
+    lilconfig: "npm:^3.1.1"
+    micromatch: "npm:^4.0.5"
+  bin:
+    clean-publish: clean-publish.js
+    clear-package-json: clear-package-json.js
+  checksum: 10c0/c8b1c1f18fb217c794d82c3375eebfdc3782965ed4ad405d4ee6e379065e6af043d15dd7dc8f311371adea199c886d19ec178404d43885cb51b25ac2f3ad08f5
+  languageName: node
+  linkType: hard
+
 "clean-stack@npm:^2.0.0":
   version: 2.2.0
   resolution: "clean-stack@npm:2.2.0"
@@ -733,7 +748,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"cross-spawn@npm:^7.0.0":
+"cross-spawn@npm:^7.0.0, cross-spawn@npm:^7.0.3":
   version: 7.0.3
   resolution: "cross-spawn@npm:7.0.3"
   dependencies:
@@ -1277,7 +1292,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"micromatch@npm:^4.0.4":
+"micromatch@npm:^4.0.4, micromatch@npm:^4.0.5":
   version: 4.0.5
   resolution: "micromatch@npm:4.0.5"
   dependencies:
@@ -1559,6 +1574,7 @@ __metadata:
   dependencies:
     "@size-limit/preset-small-lib": "npm:^11.1.2"
     benchmark: "npm:^2.1.4"
+    clean-publish: "npm:^4.3.0"
     microtime: "npm:^3.1.1"
     mobx: "npm:^6.12.3"
     picocolors: "npm:^1.0.0"

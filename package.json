@@ -17,11 +17,13 @@
   },
   "scripts": {
     "size": "size-limit",
-    "test": "uvu"
+    "test": "uvu",
+    "publish": "clean-publish"
   },
   "devDependencies": {
     "@size-limit/preset-small-lib": "^11.1.2",
     "benchmark": "^2.1.4",
+    "clean-publish": "^4.3.0",
     "microtime": "^3.1.1",
     "mobx": "^6.12.3",
     "picocolors": "^1.0.0",
@@ -107,5 +109,9 @@
       "limit": "1Kb"
     }
   ],
+  "clean-publish": {
+    "fields": ["packageManager", "workspaces"],
+    "packageManager": "yarn"
+  },
   "packageManager": "yarn@4.1.1"
 }
