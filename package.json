@@ -1,6 +1,6 @@
 {
   "name": "picofly",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "license": "MIT",
   "author": "farwayer <farwayer@gmail.com>",
   "repository": "https://github.com/farwayer/picofly",
@@ -110,7 +110,10 @@
     }
   ],
   "clean-publish": {
-    "fields": ["packageManager", "workspaces"],
+    "fields": [
+      "packageManager",
+      "workspaces"
+    ],
     "packageManager": "yarn"
   },
   "packageManager": "yarn@4.1.1"
