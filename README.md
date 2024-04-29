@@ -12,7 +12,7 @@ _Lightweight proxy-based state manager built with ❤️_
 🍳 **Easy to use**: just modify data, magic will take care of the rest!  
 ⚛️ **React & React Native**: **hooks** and **selectors**, uses modern React 18 API  
 🔋 **Charged**: **Map** support (**Set** in plans), **TypeScript** definitions and more  
-🪟 **Transparent**: original objects is not modified
+🪟 **Transparent**: original objects are not modified
 
 ## Why the hell another one?!
 
