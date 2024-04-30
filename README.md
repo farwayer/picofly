@@ -1,6 +1,6 @@
 # Picofly
 
-_Lightweight proxy-based state manager built with ❤️_
+_Lightweight proxy-based state manager, simple, fast and built with ❤️_
 
 [![NPM version](https://img.shields.io/npm/v/picofly.svg)](https://www.npmjs.com/package/picofly)
 
