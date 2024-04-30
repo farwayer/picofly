@@ -7,7 +7,7 @@ _Lightweight proxy-based state manager built with ❤️_
 <img src="docs/logo.webp" height="192" align="right">
 
 ⚡ **Fast**: hand-crafted and optimized to be as fast as possible  
-🤏 **Tiny**: **419 bytes** in minimal config, **710 bytes** with React support  
+🤏 **Tiny**: *419 bytes* in minimal config, **710 bytes** with React support  
 🥧 **Simple**: **~130 lines** of sparse code + **~70 lines** for React support  
 🍳 **Easy to use**: just modify data, magic will take care of the rest!  
 ⚛️ **React & React Native**: **hooks** and **selectors**, uses modern React 18 API  
@@ -70,6 +70,7 @@ let App = () => {
 ```javascript
 // use with hook
 
+import {memo} from 'react'
 import {useStore} from 'picofly/react'
 import Video from './video'
 
@@ -99,7 +100,7 @@ function VideoList() {
 ```javascript
 // use with selectors
 
-import {memo} from 'react'
+import {useCallback} from 'react'
 import {select} from 'picofly/react'
 
 // normally is in business logic
