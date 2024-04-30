@@ -121,7 +121,7 @@ let video = (app, props) => ({
 export default select(
   video,
   (app, props) => ({
-    // selectors are called in component context so you can use any hooks inside
+    // selectors are called in render context so you can use any hooks inside
     onWatched: useCallback(() => watchVideo(app, props.id), [props.id]),
   }),
 )(Video)
