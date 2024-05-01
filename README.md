@@ -76,6 +76,7 @@ import Video from './video'
 export default memo(VideoList)
 
 // will be re-rendered only when video added or removed
+// because it uses video ids only but not videos data
 function VideoList() {
   let app = useStore()
 
@@ -126,6 +127,7 @@ export default select(
 )(Video)
 
 // will be re-rendered only if the video name changed
+// because it only depends on it
 function Video({
   video = {},
   onWatched,
