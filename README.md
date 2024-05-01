@@ -27,13 +27,12 @@ import {create, objMapIgnoreSpecialsRef, ref} from 'picofly'
 // may be not a class but a simple object
 class State {
   api = null
-  
-  auth = {
-    signedIn: false,
-    token: null,
-  }
-  
+  authToken = null
   videos = new Map()
+
+  get signedIn() {
+    return !!this.authToken
+  }
 }
 
 export let createStore = () => {
