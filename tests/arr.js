@@ -52,6 +52,27 @@ test('onWrite push', () => new Promise(resolve => {
   assert.unreachable()
 }))
 
+test('onWrite push to empty', () => new Promise(resolve => {
+  let a = []
+  let s = create(a, obj)
+
+  let called = 0
+
+  onWrite(s, (arr, key) => {
+    if (!called++) {
+      assert.is(arr, a)
+      assert.is(key, '0')
+    } else {
+      assert.is(arr, a)
+      assert.is(key, 'length')
+      resolve()
+    }
+  })
+
+  s.push(5)
+  assert.unreachable()
+}))
+
 test('onWrite set new length', () => new Promise(resolve => {
   let [a, s] = arrStore()
 
