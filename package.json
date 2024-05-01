@@ -52,14 +52,14 @@
       "import": {
         "src/index.js": "{create, onWrite, obj}"
       },
-      "limit": "490b"
+      "limit": "514b"
     },
     {
       "name": "Store obj full",
       "import": {
         "src/index.js": "{create, obj, onWrite, onRead, lock, unlock}"
       },
-      "limit": "550b"
+      "limit": "534b"
     },
     {
       "name": "Store map full",
@@ -73,21 +73,21 @@
       "import": {
         "src/index.js": "{create, objIgnoreSpecials, onWrite, onRead, lock, unlock}"
       },
-      "limit": "623b"
+      "limit": "626b"
     },
     {
       "name": "Store objMap full",
       "import": {
         "src/index.js": "{create, objMap, onWrite, onRead, lock, unlock}"
       },
-      "limit": "1125b"
+      "limit": "1127b"
     },
     {
       "name": "Store objMapIgnoreSpecialsRef zero",
       "import": {
         "src/index.js": "{create, objMapIgnoreSpecialsRef}"
       },
-      "limit": "1114b"
+      "limit": "1124b"
     },
     {
       "name": "React obj",
@@ -98,7 +98,7 @@
       "ignore": [
         "react"
       ],
-      "limit": "695b"
+      "limit": "706b"
     },
     {
       "name": "React objIgnoreSpecials",
@@ -109,7 +109,7 @@
       "ignore": [
         "react"
       ],
-      "limit": "787b"
+      "limit": "799b"
     },
     {
       "name": "React objMapIgnoreSpecialsRef",
@@ -120,7 +120,7 @@
       "ignore": [
         "react"
       ],
-      "limit": "1388b"
+      "limit": "1396b"
     },
     {
       "name": "Utils",

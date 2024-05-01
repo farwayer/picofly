@@ -7,7 +7,7 @@ _Lightweight proxy-based state manager, simple, fast and built with ❤️_
 <img src="docs/logo.webp" height="192" align="right">
 
 ⚡ **Fast**: hand-crafted and optimized to be as fast as possible  
-🤏 **Tiny**: *490 bytes* in minimal config, *695 bytes* with React support  
+🤏 **Tiny**: *514 bytes* in minimal config, *706 bytes* with React support  
 🥧 **Simple**: *~140 lines* of sparse code + *~70 lines* for React support  
 🍳 **Easy to use**: just modify data, magic will take care of the rest!  
 ⚛️ **React & React Native**: *hooks* and *selectors*, uses modern React 18 API  
