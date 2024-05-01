@@ -65,7 +65,7 @@ export let proxifyObj = ($, obj) => {
         let arrLenChanged = (
           isArr && !has
           && prop === '0'
-          && ~~prop[0] // starts with digit except 0 ('04' is not an array index)
+          || ~~prop[0] // starts with digit except 0 ('04' is not an array index)
           && prop < 4294967295 // max array index check
           && prop >= prevArrLen
         )
