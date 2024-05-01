@@ -11,7 +11,7 @@ _Lightweight proxy-based state manager, simple, fast and built with ❤️_
 🥧 **Simple**: *~140 lines* of sparse code + *~70 lines* for React support  
 🍳 **Easy to use**: just modify data, magic will take care of the rest!  
 ⚛️ **React & React Native**: *hooks* and *selectors*, uses modern React 18 API  
-🔋 **Charged**: *Map* support (*Set* in plans), *TypeScript* definitions and more  
+🔋 **Charged**: *Map* support (*Set* in plans), *TypeScript* defs and more  
 🪟 **Transparent**: original objects are not modified
 
 ## Why the hell another one?!
