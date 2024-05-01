@@ -3,13 +3,15 @@ import {$Sym, NakedSym} from '../store.js'
 
 let ReflectGet = Reflect.get
 let ReflectDefineProperty = Reflect.defineProperty
-
+let isArray = Array.isArray
 
 export let proxifyObj = ($, obj) => {
   let [proxify, cache, writeSubs, readSubs] = $
 
   let proxy = cache.get(obj)
   if (proxy) return proxy
+
+  let isArr = isArray(obj)
 
   proxy = new Proxy(obj, {
     get(obj, prop, receiver) {
@@ -39,6 +41,7 @@ export let proxifyObj = ($, obj) => {
 
       let has = prop in obj
       let prev = has && ReflectGet(obj, prop, proxy)
+      let prevArrLen = isArr && !has && ReflectGet(obj, 'length', proxy)
 
       // unwrap value if it was proxied with the current $
       let value = desc.value
@@ -51,8 +54,19 @@ export let proxifyObj = ($, obj) => {
       let next = has && ReflectGet(obj, prop, proxy)
 
       if (!has || next !== prev) {
+        let arrLenChanged = (
+          isArr && !has
+          && ~~prop[0] // starts with digit except 0 ('04' is not an array index)
+          && prop < 4294967295 // max array index check
+          && prop >= prevArrLen
+        )
+
         for (let cb of writeSubs) {
           cb(obj, prop)
+
+          if (arrLenChanged) {
+            cb(obj, 'length')
+          }
         }
       }
 
