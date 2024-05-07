@@ -98,7 +98,7 @@
       "ignore": [
         "react"
       ],
-      "limit": "706b"
+      "limit": "670b"
     },
     {
       "name": "React objIgnoreSpecials",
@@ -109,7 +109,7 @@
       "ignore": [
         "react"
       ],
-      "limit": "799b"
+      "limit": "764b"
     },
     {
       "name": "React objMapIgnoreSpecialsRef",
@@ -120,7 +120,7 @@
       "ignore": [
         "react"
       ],
-      "limit": "1396b"
+      "limit": "1371b"
     },
     {
       "name": "Utils",
