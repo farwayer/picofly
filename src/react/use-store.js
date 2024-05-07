@@ -75,8 +75,8 @@ export let usePostRenderCallback = (fn, deps) => {
 // private
 let RenderReadUnsubSym = Symbol()
 
-// store will be write-protected immediately after the call
-// and unprotected at any (!) component commit stage
+// store will be locked to change immediately after the call
+// and unlocked at any (!) component commit stage
 // keep in mind that next rendered component
 // will override previous onRead callback
 let useRenderRead = (store, cb) => {
@@ -84,15 +84,22 @@ let useRenderRead = (store, cb) => {
 
   let $ = get$(store)
 
-  let prevUnsub = $[RenderReadUnsubSym]
-  prevUnsub && prevUnsub()
+  $[RenderReadUnsubSym]?.()
+  $[RenderReadUnsubSym] = onRead(store, cb)
 
-  let unsub = onRead(store, cb)
-  $[RenderReadUnsubSym] = unsub
+  let cleanup = () => {
+    if (!$[RenderReadUnsubSym]) return
 
-  useLayoutEffect(() => {
-    unsub()
-    $[RenderReadUnsubSym] = 0
+    $[RenderReadUnsubSym]()
+    $[RenderReadUnsubSym] = null
     unlock(store)
-  })
+  }
+
+  useLayoutEffect(cleanup)
+
+  // due to the asynchronous nature of rendering
+  // useLayoutEffect may not always be called after each render
+  // (for ex. when the data was updated between the render and commit stages)
+  // we will schedule cleanup so as not to miss such a situation
+  queueMicrotask(cleanup)
 }
