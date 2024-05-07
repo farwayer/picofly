@@ -10,13 +10,13 @@ export function useStore<S>(store?: S): S
 export type Selector<S, P, EP> = (store: S, props: P) => EP
 
 export type SelectOptions<S> = {
-  getStore?: () => S,
-  withRef?: boolean,
+  getStore?: () => S
+  withRef?: boolean
 }
 
 export type Select<S, PE> = <FP>(
   Component: ComponentType<FP>,
-  options?: SelectOptions<S>
+  options?: SelectOptions<S>,
 ) => FunctionComponent<Optional<FP, keyof PE>>
 
 export function select<S, P>(
