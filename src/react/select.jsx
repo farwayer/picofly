@@ -9,8 +9,8 @@ export let select = (...selectors) => (Component, options = {}) => {
     ? Component
     : (
       withRef
-        ? forwardRef((props, ref) => <Component {...props} ref={ref}/>)
-        : props => <Component {...props}/>
+        ? (props, ref) => <Component {...props} ref={ref}/>
+        : (props) => <Component {...props}/>
     )
 
   let Selector = (props, ref) => {
@@ -34,9 +34,8 @@ export let select = (...selectors) => (Component, options = {}) => {
   if (withRef) {
     Selector = forwardRef(Selector)
   }
-  Selector = memo(Selector)
 
-  return Selector
+  return memo(Selector)
 }
 
 let isFunctional = Component => (
