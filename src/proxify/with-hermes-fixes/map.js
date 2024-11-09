@@ -216,7 +216,7 @@ export let proxifyMap = ($, map) => {
           $[4] && "store locked!"()
 
           let target = this === receiver ? map : this
-          let has = target.has(key, val)
+          let has = target.has(key)
           let prev = has && target.get(key)
 
           if (has && val === prev) {
