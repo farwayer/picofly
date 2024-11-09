@@ -31,17 +31,17 @@
     "publish": "clean-publish"
   },
   "devDependencies": {
-    "@size-limit/preset-small-lib": "^11.1.2",
+    "@size-limit/preset-small-lib": "^11.1.6",
     "benchmark": "^2.1.4",
-    "clean-publish": "^4.4.0",
+    "clean-publish": "^5.1.0",
     "microtime": "^3.1.1",
-    "mobx": "^6.12.3",
-    "picocolors": "^1.0.0",
+    "mobx": "^6.13.5",
+    "picocolors": "^1.1.1",
     "react": "^18.3.1",
-    "size-limit": "^11.1.2",
-    "tinybench": "^2.8.0",
+    "size-limit": "^11.1.6",
+    "tinybench": "^3.0.3",
     "uvu": "^0.5.6",
-    "valtio": "^1.13.2"
+    "valtio": "^2.1.2"
   },
   "workspaces": [
     "examples/*"
@@ -136,5 +136,5 @@
       "workspaces"
     ]
   },
-  "packageManager": "yarn@4.2.1"
+  "packageManager": "yarn@4.5.1"
 }
