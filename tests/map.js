@@ -2,7 +2,7 @@ import {test} from 'uvu'
 import * as assert from 'uvu/assert'
 import {create, onWrite, onRead, lock} from '../src/store.js'
 import {objMap} from '../src/proxify/index.js'
-import {EntriesSym, ForEachSym, KeysSym, ValuesSym, SizeSym} from '../src/proxify/map.js'
+import {EntriesSym, ValuesSym, SizeSym} from '../src/proxify/map.js'
 
 // TODO: test iterators key/val proxify
 
@@ -139,7 +139,6 @@ test('keys onRead', () => new Promise(resolve => {
       assert.is(key, Symbol.for('keys'))
     } else {
       assert.is(obj, m)
-      assert.is(key, KeysSym)
       resolve()
     }
   })
@@ -232,7 +231,6 @@ test('forEach onRead', () => new Promise(resolve => {
       assert.is(key, Symbol.for('forEach'))
     } else {
       assert.is(obj, m)
-      assert.is(key, ForEachSym)
       resolve()
     }
   })
@@ -287,16 +285,14 @@ test('delete onRead', () => new Promise(resolve => {
 test('delete onWrite', () => {
   let [_, s] = booksStore()
 
-  let c, cSize, cKeys, cValues, cEntries, cForEach
+  let c, cSize, cValues, cEntries
 
   onWrite(s, (obj, key) => {
     switch (key) {
       case '1': return c = true
       case SizeSym: return cSize = true
-      case KeysSym: return cKeys = true
       case ValuesSym: return cValues = true
       case EntriesSym: return cEntries = true
-      case ForEachSym: return cForEach = true
     }
   })
 
@@ -304,10 +300,8 @@ test('delete onWrite', () => {
 
   assert.ok(c, 'c')
   assert.ok(cSize, 'size')
-  assert.ok(cKeys, 'keys')
   assert.ok(cValues, 'values')
   assert.ok(cEntries, 'entries')
-  assert.ok(cForEach, 'forEach')
 })
 
 test('delete onWrite non-exist', () => {
@@ -346,17 +340,15 @@ test('clear onWrite', () => {
   let [m, s] = booksStore()
   m.set('2', {})
 
-  let c1, c2, cSize, cKeys, cValues, cEntries, cForEach
+  let c1, c2, cSize, cValues, cEntries
 
   onWrite(s, (obj, key) => {
     switch (key) {
       case '1': return c1 = true
       case '2': return c2 = true
       case SizeSym: return cSize = true
-      case KeysSym: return cKeys = true
       case ValuesSym: return cValues = true
       case EntriesSym: return cEntries = true
-      case ForEachSym: return cForEach = true
     }
   })
 
@@ -365,10 +357,8 @@ test('clear onWrite', () => {
   assert.ok(c1, 'c1')
   assert.ok(c2, 'c2')
   assert.ok(cSize, 'size')
-  assert.ok(cKeys, 'keys')
   assert.ok(cValues, 'values')
   assert.ok(cEntries, 'entries')
-  assert.ok(cForEach, 'forEach')
 })
 
 test('clear onWrite empty', () => {
@@ -412,16 +402,14 @@ test('set onWrite new', () => {
   let [_, s] = booksStore()
   let book2 = {}
 
-  let c, cSize, cKeys, cValues, cEntries, cForEach
+  let c, cSize, cValues, cEntries
 
   onWrite(s, (obj, key) => {
     switch (key) {
       case '2': return c = true
       case SizeSym: return cSize = true
-      case KeysSym: return cKeys = true
       case ValuesSym: return cValues = true
       case EntriesSym: return cEntries = true
-      case ForEachSym: return cForEach = true
     }
   })
 
@@ -429,26 +417,22 @@ test('set onWrite new', () => {
 
   assert.ok(c, 'c')
   assert.ok(cSize, 'size')
-  assert.ok(cKeys, 'keys')
   assert.ok(cValues, 'values')
   assert.ok(cEntries, 'entries')
-  assert.ok(cForEach, 'forEach')
 })
 
 test('set onWrite replace', () => {
   let [_, s] = booksStore()
   let book2 = {}
 
-  let c, cValues, cEntries, cForEach
+  let c, cValues, cEntries
 
   onWrite(s, (obj, key) => {
     switch (key) {
       case '1': return c = true
       case SizeSym: return assert.unreachable()
-      case KeysSym: return assert.unreachable()
       case ValuesSym: return cValues = true
       case EntriesSym: return cEntries = true
-      case ForEachSym: return cForEach = true
     }
   })
 
@@ -457,7 +441,6 @@ test('set onWrite replace', () => {
   assert.ok(c, 'c')
   assert.ok(cValues, 'values')
   assert.ok(cEntries, 'entries')
-  assert.ok(cForEach, 'forEach')
 })
 
 test('set onWrite same', () => {
