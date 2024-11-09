@@ -220,7 +220,9 @@ export let proxifyMap = ($, map) => {
           target.set(key, val)
 
           for (let cb of writeSubs) {
-            !has && cb(map, SizeSym)
+            if (!has) {
+							cb(map, SizeSym)
+						}
             cb(map, ValuesSym)
             cb(map, EntriesSym)
             cb(map, key)
