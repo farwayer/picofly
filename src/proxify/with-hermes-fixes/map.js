@@ -240,7 +240,9 @@ export let proxifyMap = ($, map) => {
       }
 
       // to differ map keys and map object props (map.get('x') vs map.x)
-      prop = typeof prop === 'symbol' ? prop : SymbolFor(prop)
+			if (typeof prop !== 'symbol') {
+				prop = SymbolFor(prop)
+			}
 
       for (let cb of readSubs) {
         cb(map, prop)
@@ -281,7 +283,9 @@ export let proxifyMap = ($, map) => {
 
       if (!has || next !== prev) {
         // to differ map keys and map object props (map.get('x') vs map.x)
-        prop = typeof prop === 'symbol' ? prop : SymbolFor(prop)
+				if (typeof prop !== 'symbol') {
+					prop = SymbolFor(prop)
+				}
 
         for (let cb of writeSubs) {
           cb(map, prop)
@@ -301,7 +305,9 @@ export let proxifyMap = ($, map) => {
       delete map[prop]
 
       // to differ map keys and map object props (map.get('x') vs map.x)
-      prop = typeof prop === 'symbol' ? prop : SymbolFor(prop)
+			if (typeof prop !== 'symbol') {
+				prop = SymbolFor(prop)
+			}
 
       for (let cb of writeSubs) {
         cb(map, prop)

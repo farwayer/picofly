@@ -27,3 +27,4 @@ export let map: Proxify<any>
 export let objMap: Proxify<any>
 export let objMapIgnoreSpecials: Proxify<any>
 export let objMapIgnoreSpecialsRef: Proxify<any>
+export let objMapSetIgnoreSpecialsRef: Proxify<any>

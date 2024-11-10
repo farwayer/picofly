@@ -1,11 +1,11 @@
 import {test} from 'uvu'
 import * as assert from 'uvu/assert'
-import {create, objMapIgnoreSpecialsRef, onWrite, ref} from 'picofly'
+import {create, objMapSetIgnoreSpecialsRef, onWrite, ref} from 'picofly'
 
 
 let timerStore = () => {
   let o = {timer: {ticks: 0}}
-  let s = create(o, objMapIgnoreSpecialsRef)
+  let s = create(o, objMapSetIgnoreSpecialsRef)
   return [o, s]
 }
 

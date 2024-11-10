@@ -1,5 +1,6 @@
 import {proxifyObj} from './obj.js'
 import {proxifyMap} from './map.js'
+import {proxifySet} from './set.js'
 import {RefSym} from './ref.js'
 
 
@@ -101,6 +102,43 @@ export let objMapIgnoreSpecialsRef = ($, val) => {
   return val instanceof Map
     ? proxifyMap($, val)
     : proxifyObj($, val)
+}
+
+export let objMapSetIgnoreSpecialsRef = ($, val) => {
+	if (
+		typeof val !== 'object' ||
+		!val ||
+		val instanceof Date ||
+		val instanceof Error ||
+		val instanceof RegExp ||
+		val instanceof WeakMap ||
+		val instanceof WeakSet ||
+		val instanceof ArrayBuffer ||
+		val instanceof Number ||
+		val instanceof String ||
+		val instanceof Promise ||
+		val instanceof File ||
+		isTypedArray(val) ||
+		(typeof WeakRef !== 'undefined' && val instanceof WeakRef) ||
+		(typeof Node !== 'undefined' && val instanceof Node)
+	) {
+		return val
+	}
+
+	let refs = $[RefSym]
+	if (refs && refs.has(val)) {
+		return val
+	}
+
+	if (val instanceof Map) {
+		return proxifyMap($, val)
+	}
+
+	if (val instanceof Set) {
+		return proxifySet($, val)
+	}
+
+	return proxifyObj($, val)
 }
 
 let isTypedArray = ArrayBuffer.isView
