@@ -1,8 +1,8 @@
 import {Bench} from 'tinybench'
 import c from 'picocolors'
-import picoflyPkg from 'picofly/package.json' assert {type: 'json'}
-import valtioPkg from 'valtio/package.json' assert {type: 'json'}
-import mobxPkg from 'mobx/package.json' assert {type: 'json'}
+import picoflyPkg from 'picofly/package.json' with {type: 'json'}
+import valtioPkg from 'valtio/package.json' with {type: 'json'}
+import mobxPkg from 'mobx/package.json' with {type: 'json'}
 
 
 let Notes = {
@@ -21,8 +21,6 @@ export let bench = (name, notes = []) => {
   let bench = new Bench()
 
   let run = async () => {
-    await bench.warmup()
-
     let tasks = await bench.run()
     printResult(name, tasks, notes.map(id => Notes[id]))
   }
