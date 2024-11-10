@@ -8,10 +8,7 @@
   "type": "module",
   "sideEffects": false,
   "exports": {
-    ".": {
-      "react-native": "./src/index.native.js",
-      "default": "./src/index.js"
-    },
+    ".": "./src/index.js",
     "./react": "./src/react/index.js",
     "./utils": "./src/utils/index.js",
     "./package.json": "./package.json"
