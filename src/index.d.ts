@@ -12,7 +12,7 @@ export type $<S> = [
 export type Proxify<S> = ($: $<S>, val: S) => S
 export type Callback = (obj: object, key: string | symbol) => void
 
-export function create<S>(initValue: S, proxify: Proxify<any>): S
+export function create<S>(initValue: S, proxify?: Proxify<any>): S
 export function ref<S, V>(store: S, val: V): V
 export function isRef<S, V>(store: S, val: V): V
 export function onWrite<S>(store: S, cb: Callback): void
@@ -20,6 +20,7 @@ export function onRead<S>(store: S, cb: Callback): void
 export function lock<S>(store: S): void
 export function unlock<S>(store: S): void
 export function isLocked<S>(store: S): boolean
+export function store<S>(initValue: S, proxify: Proxify<any>): S
 
 export let obj: Proxify<any>
 export let objIgnoreSpecials: Proxify<any>

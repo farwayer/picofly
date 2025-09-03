@@ -47,84 +47,38 @@
     {
       "name": "Store obj minimal",
       "import": {
-        "src/index.js": "{create, onWrite, obj}"
+        "src/index.js": "{store, onWrite, obj}"
       },
-      "limit": "515b"
+      "limit": "513b"
     },
     {
       "name": "Store obj full",
       "import": {
-        "src/index.js": "{create, obj, onWrite, onRead, lock, unlock}"
+        "src/index.js": "{store, obj, onWrite, onRead, lock, unlock}"
       },
       "limit": "533b"
     },
     {
-      "name": "Store map full",
-      "import": {
-        "src/index.js": "{create, map, onWrite, onRead, lock, unlock}"
-      },
-      "limit": "904b"
-    },
-    {
-      "name": "Store objIgnoreSpecials full",
-      "import": {
-        "src/index.js": "{create, objIgnoreSpecials, onWrite, onRead, lock, unlock}"
-      },
-      "limit": "624b"
-    },
-    {
-      "name": "Store objMap full",
-      "import": {
-        "src/index.js": "{create, objMap, onWrite, onRead, lock, unlock}"
-      },
-      "limit": "1104b"
-    },
-    {
-      "name": "Store objMapIgnoreSpecialsRef zero",
-      "import": {
-        "src/index.js": "{create, objMapIgnoreSpecialsRef}"
-      },
-      "limit": "1104b"
-    },
-    {
       "name": "React obj",
       "import": {
-        "src/index.js": "{create, obj}",
+        "src/index.js": "{store, obj}",
         "src/react/index.js": "{StoreProvider, useStore}"
       },
       "ignore": [
         "react"
       ],
-      "limit": "707b"
+      "limit": "704b"
     },
     {
-      "name": "React objIgnoreSpecials",
+      "name": "React default",
       "import": {
-        "src/index.js": "{create, objIgnoreSpecials}",
+        "src/index.js": "{create}",
         "src/react/index.js": "{StoreProvider, useStore}"
       },
       "ignore": [
         "react"
       ],
-      "limit": "805b"
-    },
-    {
-      "name": "React objMapSetIgnoreSpecialsRef",
-      "import": {
-        "src/index.js": "{create, objMapSetIgnoreSpecialsRef}",
-        "src/react/index.js": "{StoreProvider, useStore}"
-      },
-      "ignore": [
-        "react"
-      ],
-      "limit": "1598b"
-    },
-    {
-      "name": "Utils",
-      "import": {
-        "src/utils/index.js": "{memo}"
-      },
-      "limit": "215b"
+      "limit": "1603b"
     }
   ],
   "clean-publish": {

@@ -1,4 +1,4 @@
-export let create = (initValue, proxify) => {
+export let store = (initValue, proxify) => {
   proxify || 'pass proxifier!'()
 
   let $ = [         // internal store state
