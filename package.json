@@ -1,6 +1,6 @@
 {
   "name": "picofly",
-  "version": "0.0.17",
+  "version": "0.0.18",
   "license": "MIT",
   "description": "Lightweight state manager, simple, fast and built with ❤",
   "author": "farwayer <farwayer@gmail.com>",
