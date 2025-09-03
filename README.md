@@ -108,10 +108,9 @@ function VideoList() {
 #### video.js
 
 This example shows how to use picofly with selectors.  
-Selector is a pure function that derives some data from the store or
-attach action.
 
-Selectors are called in render context so you can use any hooks inside.
+Selector is a pure function that derives some data from the store or
+attach action. Selectors are called in render context so you can use any hooks inside.
 
 I recommend keeping selectors as simple and generic as possible
 so that they can be reused between components.
