@@ -5,3 +5,4 @@
 !.yarn/plugins
 .pnp.*
 node_modules
+yarn.lock
