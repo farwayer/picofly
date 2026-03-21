@@ -1,6 +1,6 @@
 import {test} from 'uvu'
 import * as assert from 'uvu/assert'
-import {create, onWrite, onRead, lock} from '../src/store.js'
+import {store, onWrite, onRead, lock} from '../src/store.js'
 import {objMapSetIgnoreSpecialsRef} from '../src/proxify/index.js'
 import {SizeSym} from '../src/proxify/set.js'
 
@@ -14,7 +14,7 @@ let colorSet = () => {
 
 let colorStore = () => {
   let m = colorSet()
-  let s = create(m, objMapSetIgnoreSpecialsRef)
+  let s = store(m, objMapSetIgnoreSpecialsRef)
 
   return [m, s]
 }
