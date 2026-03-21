@@ -1,5 +1,5 @@
 export type Locked = 1 | 0 | undefined
-export type Sub = (obj: object, key: string | Symbol) => void
+export type Sub = (obj: object, key: string | symbol) => void
 export type ReadSub = Sub
 export type WriteSub = Sub
 export type $<S> = [
@@ -14,9 +14,9 @@ export type Callback = (obj: object, key: string | symbol) => void
 
 export function create<S>(initValue: S, proxify?: Proxify<any>): S
 export function ref<S, V>(store: S, val: V): V
-export function isRef<S, V>(store: S, val: V): V
-export function onWrite<S>(store: S, cb: Callback): void
-export function onRead<S>(store: S, cb: Callback): void
+export function isRef<S, V>(store: S, val: V): boolean
+export function onWrite<S>(store: S, cb: Callback): () => void
+export function onRead<S>(store: S, cb: Callback): () => void
 export function lock<S>(store: S): void
 export function unlock<S>(store: S): void
 export function isLocked<S>(store: S): boolean
