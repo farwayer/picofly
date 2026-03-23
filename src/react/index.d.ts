@@ -14,12 +14,10 @@ export type SelectOptions<S> = {
   withRef?: boolean
 }
 
-type RequiredKeys<T> = { [K in keyof T]-?: {} extends Pick<T, K> ? never : K }[keyof T]
-
 export type Select<S, PE> = <FP>(
-  Component: ComponentType<FP & PE>,
+  Component: ComponentType<FP> & ([PE] extends [void] ? unknown : [Exclude<keyof PE, keyof FP>] extends [never] ? [PE] extends [Pick<FP, keyof PE>] ? unknown : never : never),
   options?: SelectOptions<S>,
-) => FunctionComponent<Omit<FP, RequiredKeys<PE>>>
+) => FunctionComponent<Omit<FP, keyof PE>>
 
 export function select<S>(
 ): Select<S, {}>
