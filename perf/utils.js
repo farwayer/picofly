@@ -45,20 +45,22 @@ let printResult = (name, tasks, notes) => {
   console.log(`\n${c.magenta(c.bold(name))}`)
   console.table(tasks.map(task => ({
     'Name': task.name,
-    'ops/s': Math.floor(task.result.hz),
-    'Margin': `\xb1${task.result.rme.toFixed(2)}%`,
+    'ops/s': Math.floor(ops(task)),
+    'Margin': `\xb1${task.result.throughput.rme.toFixed(2)}%`,
     'Compare': (
       task === fastest ||
-      (fastest.result.hz - task.result.hz) / task.result.hz <= 0.1
+      (ops(fastest) - ops(task)) / ops(task) <= 0.1
     )
       ? '✔ Fastest'
-      : '🔻' + (fastest.result.hz / task.result.hz).toFixed(2) + 'x',
+      : '🔻' + (ops(fastest) / ops(task)).toFixed(2) + 'x',
   })))
 
   notes = notes.map(e => `* ${e}`).join('\n')
   notes.length && console.log(c.yellow(notes))
 }
 
+let ops = task => task.result.throughput.mean
+
 let getFastest = tasks => tasks.reduce((res, task) => (
-  res.result.hz > task.result.hz ? res : task
+  ops(res) > ops(task) ? res : task
 ))
