@@ -54,13 +54,10 @@ export let proxifyObj = ($, obj) => {
       let next = has && ReflectGet(obj, prop, proxy)
 
       if (!has || next !== prev) {
-        let arrLenChanged = (
-          isArr && !has
-          && prop === '0'
-          || ~~prop[0] // starts with digit except 0 ('04' is not an array index)
+        let arrLenChanged = isArr && !has
+          && prop === '' + (prop >>> 0) // canonical array index
           && prop < 4294967295 // max array index check
           && prop >= prevArrLen
-        )
 
         for (let cb of writeSubs) {
           cb(obj, prop)

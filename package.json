@@ -53,7 +53,7 @@
       "import": {
         "src/index.js": "{store, obj, onWrite, onRead, lock, unlock}"
       },
-      "limit": "533b"
+      "limit": "534b"
     },
     {
       "name": "React obj",
@@ -64,7 +64,7 @@
       "ignore": [
         "react"
       ],
-      "limit": "704b"
+      "limit": "701b"
     },
     {
       "name": "React default",
@@ -75,7 +75,7 @@
       "ignore": [
         "react"
       ],
-      "limit": "1603b"
+      "limit": "1600b"
     }
   ],
   "clean-publish": {

@@ -7,7 +7,7 @@ _Lightweight handy state manager, simple, fast and built with ❤️_
 <img src="docs/logo.webp" height="192" align="right">
 
 ⚡ **Fast**: optimized to be as fast as possible  
-🤏 **Tiny**: *513 bytes* in minimal config, *704 bytes* with React support  
+🤏 **Tiny**: *513 bytes* in minimal config, *701 bytes* with React support  
 🥧 **Simple**: *~140 lines* of sparse code + *~70 lines* for React support  
 🍳 **Handy**: you will worry about what needs to be done, not how  
 ⚛️ **React & React Native**: *hooks* or *selectors*, modern React API  
