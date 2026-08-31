@@ -1,9 +1,8 @@
 import {
-  createContext, useContext, useCallback, useRef, useLayoutEffect,
-  useInsertionEffect, useSyncExternalStore, useTransition,
+  createContext, useContext, useCallback, useRef, useInsertionEffect,
+	useSyncExternalStore,
 } from 'react'
 import {onWrite, onRead, lock, unlock, get$} from '../store.js'
-
 
 export let StoreContext = /* @__PURE__ */ createContext()
 export let StoreProvider = StoreContext.Provider
@@ -40,36 +39,6 @@ export let useStore = (store = useContextStore()) => {
   useSyncExternalStore(subscribe, getUpdateId)
 
   return store
-}
-
-export let usePostRenderCallback = (fn, deps) => {
-  let inRenderRef = useRef()
-  let argsRef = useRef()
-  let startTransition = useTransition()[1]
-
-  inRenderRef.current = 1
-
-  useLayoutEffect(() => {
-    inRenderRef.current = 0
-
-    let args = argsRef.current
-    if (!args) return
-
-    fn(...args)
-    argsRef.current = 0
-  })
-
-  return useCallback((...args) => {
-    let inRender = inRenderRef.current
-
-    if (inRender) {
-      startTransition(() => {
-        argsRef.current = args
-      })
-    } else {
-      fn(...args)
-    }
-  }, deps)
 }
 
 // private
