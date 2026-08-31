@@ -67,6 +67,23 @@ suite('obj', () => {
     assert.fail('unreachable')
   }))
 
+  test('onWrite set int key no length', () => {
+    let o = {}
+    let s = create(o, obj)
+
+    let set = false
+
+    onWrite(s, (obj, key) => {
+      assert.equal(obj, o)
+      assert.equal(key, '1')
+      set = true
+    })
+
+    s[1] = 5
+
+    assert.ok(set)
+  })
+
   test('onWrite set same', () => {
     let [_, s] = timerStore()
 

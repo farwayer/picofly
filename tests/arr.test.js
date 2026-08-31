@@ -111,6 +111,24 @@ suite('arr', () => {
     resolve()
   }))
 
+  test('onWrite set existing int no length change', () => new Promise(resolve => {
+    let [a, s] = arrStore()
+
+    let set = false
+
+    onWrite(s, (arr, key) => {
+      assert.equal(arr, a)
+      assert.equal(key, '1')
+      set = true
+    })
+
+    s[1] = 5
+
+    assert.equal(s.length, 3)
+    assert.ok(set)
+    resolve()
+  }))
+
   test('onWrite pop', () => new Promise(resolve => {
     let [a, s] = arrStore()
 
@@ -215,6 +233,43 @@ suite('arr', () => {
     })
 
     s['4xx'] = 5
+
+    assert.equal(s.length, 3)
+    assert.ok(set)
+    resolve()
+  }))
+
+  test('onWrite set exp int no length change', () => new Promise(resolve => {
+    let [a, s] = arrStore()
+
+    let set = false
+
+    onWrite(s, (arr, key) => {
+      assert.equal(arr, a)
+      assert.equal(key, '1e3')
+      set = true
+    })
+
+    s['1e3'] = 5
+
+    assert.equal(s.length, 3)
+    assert.ok(set)
+    resolve()
+  }))
+
+  test('onWrite set sparse zero idx no length change', () => new Promise(resolve => {
+    let a = [, 2, 3]
+    let s = create(a, obj)
+
+    let set = false
+
+    onWrite(s, (arr, key) => {
+      assert.equal(arr, a)
+      assert.equal(key, '0')
+      set = true
+    })
+
+    s[0] = 1
 
     assert.equal(s.length, 3)
     assert.ok(set)
