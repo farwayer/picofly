@@ -1,6 +1,6 @@
 import {
   createContext, useContext, useCallback, useRef, useLayoutEffect,
-  useSyncExternalStore, useTransition,
+  useInsertionEffect, useSyncExternalStore, useTransition,
 } from 'react'
 import {onWrite, onRead, lock, unlock, get$} from '../store.js'
 
@@ -95,10 +95,10 @@ let useRenderRead = (store, cb) => {
     unlock(store)
   }
 
-  useLayoutEffect(cleanup)
+  useInsertionEffect(cleanup)
 
   // due to the asynchronous nature of rendering
-  // useLayoutEffect may not always be called after each render
+  // useInsertionEffect may not always be called after each render
   // (for ex. when the data was updated between the render and commit stages)
   // we will schedule cleanup so as not to miss such a situation
   queueMicrotask(cleanup)
