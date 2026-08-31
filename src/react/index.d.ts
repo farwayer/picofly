@@ -11,7 +11,6 @@ export type Selector<S, P, EP> = (store: S, props: P) => EP
 
 export type SelectOptions<S> = {
   getStore?: () => S
-  withRef?: boolean
 }
 
 type None = null | undefined | false | 0 | 0n | ''

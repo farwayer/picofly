@@ -1,44 +1,25 @@
-import React, {memo, forwardRef} from 'react'
+import React, {memo} from 'react'
 import {useStore} from './use-store.js'
 
-
 export let select = (...selectors) => (Component, options = {}) => {
-  let {getStore, withRef} = options
+	let {getStore} = options
+	let name = (
+		Component.displayName ||
+		Component.render?.name ||
+		Component.name ||
+		'Unknown'
+	)
 
-  let render = isFunctional(Component)
-    ? Component
-    : (
-      withRef
-        ? (props, ref) => <Component {...props} ref={ref}/>
-        : (props) => <Component {...props}/>
-    )
+	let Selector = memo(props => {
+		let store = useStore(getStore?.())
 
-  let Selector = (props, ref) => {
-    let store = useStore(getStore?.())
+		props = selectors.reduce((props, selector) => (
+			Object.assign({}, props, selector(store, props))
+		), props)
 
-    props = selectors.reduce((props, selector) => (
-      Object.assign({}, props, selector(store, props))
-    ), props)
+		return <Component {...props}/>
+	})
+	Selector.displayName = `select(${name})`
 
-    return render(props, ref)
-  }
-
-  let name = (
-    Component.displayName ||
-    Component.render?.name ||
-    Component.name ||
-    'Unknown'
-  )
-  Selector.displayName = `select(${name})`
-
-  if (withRef) {
-    Selector = forwardRef(Selector)
-  }
-
-  return memo(Selector)
+	return Selector
 }
-
-let isFunctional = Component => (
-  typeof Component === 'function' &&
-  !Component.prototype?.isReactComponent
-)
