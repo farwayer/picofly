@@ -6,13 +6,9 @@ let isArray = Array.isArray
 
 export let proxifyObj = ($, obj) => {
 	let [proxify, cache, writeSubs, readSubs] = $
-
-	let proxy = cache.get(obj)
-	if (proxy) return proxy
-
 	let isArr = isArray(obj)
 
-	proxy = new Proxy(obj, {
+	let proxy = new Proxy(obj, {
 		get(obj, prop, receiver) {
 			if (prop === $Sym) {
 				return $

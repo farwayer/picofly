@@ -14,10 +14,7 @@ export let EntriesSym = Symbol('entries')
 export let proxifyMap = ($, map) => {
 	let [proxify, cache, writeSubs, readSubs] = $
 
-	let proxy = cache.get(map)
-	if (proxy) return proxy
-
-	proxy = new Proxy(map, {
+	let proxy = new Proxy(map, {
 		get(map, prop, receiver) {
 			let val, objProp
 

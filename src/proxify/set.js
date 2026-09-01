@@ -12,10 +12,7 @@ export let SizeSym = SymbolFor('size')
 export let proxifySet = ($, set) => {
 	let [proxify, cache, writeSubs, readSubs] = $
 
-	let proxy = cache.get(set)
-	if (proxy) return proxy
-
-	proxy = new Proxy(set, {
+	let proxy = new Proxy(set, {
 		get(set, prop, receiver) {
 			let val, objProp, iterateEntry
 
