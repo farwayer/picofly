@@ -19,26 +19,17 @@ export let objIgnoreSpecials = ($, val) => {
 	}
 
 	return (
+		Symbol.toStringTag in val ||
 		val instanceof Date ||
 		val instanceof Error ||
 		val instanceof RegExp ||
-		val instanceof Map ||
-		val instanceof Set ||
-		val instanceof WeakMap ||
-		val instanceof WeakSet ||
-		val instanceof ArrayBuffer ||
 		val instanceof Number ||
 		val instanceof String ||
-		val instanceof Promise ||
-		val instanceof File ||
-		isTypedArray(val) ||
-		(typeof WeakRef !== 'undefined' && val instanceof WeakRef) ||
-		(typeof Node !== 'undefined' && val instanceof Node)
-			? val
-			: proxifyObj($, val)
+		val instanceof Boolean
 	)
+		? val
+		: proxifyObj($, val)
 }
-
 
 export let map = ($, val) =>
 	val instanceof Map
@@ -70,27 +61,20 @@ export let objMapIgnoreSpecials = ($, val) => {
 		return proxy
 	}
 
-	if (
+	if (val instanceof Map) {
+		return proxifyMap($, val)
+	}
+
+	return (
+		Symbol.toStringTag in val ||
 		val instanceof Date ||
 		val instanceof Error ||
 		val instanceof RegExp ||
-		val instanceof Set ||
-		val instanceof WeakMap ||
-		val instanceof WeakSet ||
-		val instanceof ArrayBuffer ||
 		val instanceof Number ||
 		val instanceof String ||
-		val instanceof Promise ||
-		val instanceof File ||
-		isTypedArray(val) ||
-		(typeof WeakRef !== 'undefined' && val instanceof WeakRef) ||
-		(typeof Node !== 'undefined' && val instanceof Node)
-	) {
-		return val
-	}
-
-	return val instanceof Map
-		? proxifyMap($, val)
+		val instanceof Boolean
+	)
+		? val
 		: proxifyObj($, val)
 }
 
@@ -109,27 +93,20 @@ export let objMapIgnoreSpecialsRef = ($, val) => {
 		return val
 	}
 
-	if (
+	if (val instanceof Map) {
+		return proxifyMap($, val)
+	}
+
+	return (
+		Symbol.toStringTag in val ||
 		val instanceof Date ||
 		val instanceof Error ||
 		val instanceof RegExp ||
-		val instanceof Set ||
-		val instanceof WeakMap ||
-		val instanceof WeakSet ||
-		val instanceof ArrayBuffer ||
 		val instanceof Number ||
 		val instanceof String ||
-		val instanceof Promise ||
-		val instanceof File ||
-		isTypedArray(val) ||
-		(typeof WeakRef !== 'undefined' && val instanceof WeakRef) ||
-		(typeof Node !== 'undefined' && val instanceof Node)
-	) {
-		return val
-	}
-
-	return val instanceof Map
-		? proxifyMap($, val)
+		val instanceof Boolean
+	)
+		? val
 		: proxifyObj($, val)
 }
 
@@ -157,22 +134,14 @@ export let objMapSetIgnoreSpecialsRef = ($, val) => {
 	}
 
 	return (
+		Symbol.toStringTag in val ||
 		val instanceof Date ||
 		val instanceof Error ||
 		val instanceof RegExp ||
-		val instanceof WeakMap ||
-		val instanceof WeakSet ||
-		val instanceof ArrayBuffer ||
 		val instanceof Number ||
 		val instanceof String ||
-		val instanceof Promise ||
-		val instanceof File ||
-		isTypedArray(val) ||
-		(typeof WeakRef !== 'undefined' && val instanceof WeakRef) ||
-		(typeof Node !== 'undefined' && val instanceof Node)
+		val instanceof Boolean
 	)
 		? val
 		: proxifyObj($, val)
 }
-
-let isTypedArray = ArrayBuffer.isView
