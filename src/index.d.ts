@@ -3,16 +3,16 @@ export type Sub = (obj: object, key: string | symbol) => void
 export type ReadSub = Sub
 export type WriteSub = Sub
 export type $<S> = [
-  Proxify<S>,
-  WeakMap<object, S>,
-  Set<WriteSub>,
-  Set<ReadSub>,
-  Locked,
+	Proxify<S>,
+	WeakMap<object, S>,
+	Set<WriteSub>,
+	Set<ReadSub>,
+	Locked,
 ]
 export type Proxify<S> = ($: $<S>, val: S) => S
 export type Callback = (obj: object, key: string | symbol) => void
 
-export function create<S>(initValue: S, proxify?: Proxify<any>): S
+export function create<S>(initValue: S): S
 export function ref<S, V>(store: S, val: V): V
 export function isRef<S, V>(store: S, val: V): boolean
 export function onWrite<S>(store: S, cb: Callback): () => void
