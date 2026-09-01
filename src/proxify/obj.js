@@ -6,88 +6,88 @@ let ReflectDefineProperty = Reflect.defineProperty
 let isArray = Array.isArray
 
 export let proxifyObj = ($, obj) => {
-  let [proxify, cache, writeSubs, readSubs] = $
+	let [proxify, cache, writeSubs, readSubs] = $
 
-  let proxy = cache.get(obj)
-  if (proxy) return proxy
+	let proxy = cache.get(obj)
+	if (proxy) return proxy
 
-  let isArr = isArray(obj)
+	let isArr = isArray(obj)
 
-  proxy = new Proxy(obj, {
-    get(obj, prop, receiver) {
-      if (prop === $Sym) {
-        return $
-      }
+	proxy = new Proxy(obj, {
+		get(obj, prop, receiver) {
+			if (prop === $Sym) {
+				return $
+			}
 
-      if (prop === NakedSym) {
-        return obj
-      }
+			if (prop === NakedSym) {
+				return obj
+			}
 
-      let val = ReflectGet(obj, prop, receiver)
+			let val = ReflectGet(obj, prop, receiver)
 
-      for (let cb of readSubs) {
-        cb(obj, prop)
-      }
+			for (let cb of readSubs) {
+				cb(obj, prop)
+			}
 
-      return proxify($, val)
-    },
+			return proxify($, val)
+		},
 
-    defineProperty(obj, prop, desc) {
-      $[4] && "store locked!"()
+		defineProperty(obj, prop, desc) {
+			$[4] && "store locked!"()
 
-      // in theory prop getter (prev or next) can modify object
-      // so we need to use Reflect with the proxy as receiver
-      // to catch this changes
+			// in theory prop getter (prev or next) can modify object
+			// so we need to use Reflect with the proxy as receiver
+			// to catch this changes
 
-      let has = prop in obj
-      let prev = has && ReflectGet(obj, prop, proxy)
-      let prevArrLen = isArr && !has && ReflectGet(obj, 'length', proxy)
+			let has = prop in obj
+			let prev = has && ReflectGet(obj, prop, proxy)
+			let prevArrLen = isArr && !has && ReflectGet(obj, 'length', proxy)
 
-      // unwrap value if it was proxied with the current $
-      let value = desc.value
-      if (value != null && value[$Sym] === $) {
-        desc.value = value[NakedSym]
-      }
+			// unwrap value if it was proxied with the current $
+			let value = desc.value
+			if (value != null && value[$Sym] === $) {
+				desc.value = value[NakedSym]
+			}
 
-      ReflectDefineProperty(obj, prop, desc)
+			ReflectDefineProperty(obj, prop, desc)
 
-      let next = has && ReflectGet(obj, prop, proxy)
+			let next = has && ReflectGet(obj, prop, proxy)
 
-      if (!has || next !== prev) {
-        let arrLenChanged = isArr && !has
-          && prop === '' + (prop >>> 0) // canonical array index
-          && prop < 4294967295 // max array index check
-          && prop >= prevArrLen
+			if (!has || next !== prev) {
+				let arrLenChanged = isArr && !has
+					&& prop === '' + (prop >>> 0) // canonical array index
+					&& prop < 4294967295 // max array index check
+					&& prop >= prevArrLen
 
-        for (let cb of writeSubs) {
-          cb(obj, prop)
+				for (let cb of writeSubs) {
+					cb(obj, prop)
 
-          if (arrLenChanged) {
-            cb(obj, 'length')
-          }
-        }
-      }
+					if (arrLenChanged) {
+						cb(obj, 'length')
+					}
+				}
+			}
 
-      return true
-    },
+			return true
+		},
 
-    deleteProperty(obj, prop) {
-      $[4] && "store locked!"()
+		deleteProperty(obj, prop) {
+			$[4] && "store locked!"()
 
-      let has = prop in obj
-      if (!has) return true
+			let has = prop in obj
+			if (!has) return true
 
-      delete obj[prop]
+			delete obj[prop]
 
-      for (let cb of writeSubs) {
-        cb(obj, prop)
-      }
+			for (let cb of writeSubs) {
+				cb(obj, prop)
+			}
 
-      return true
-    },
-  })
+			return true
+		},
+	})
 
-  cache.set(obj, proxy)
+	cache.set(obj, proxy)
 
-  return proxy
+	return proxy
 }

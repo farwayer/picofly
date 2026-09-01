@@ -1,5 +1,5 @@
 import {
-  createContext, useContext, useCallback, useRef, useInsertionEffect,
+	createContext, useContext, useCallback, useRef, useInsertionEffect,
 	useSyncExternalStore,
 } from 'react'
 import {onWrite, onRead, lock, unlock, get$} from '../store.js'
@@ -9,36 +9,36 @@ export let StoreProvider = StoreContext.Provider
 export let useContextStore = () => useContext(StoreContext)
 
 export let useStore = (store = useContextStore()) => {
-  let trackedRef = useRef()
-  let updateIdRef = useRef(0)
+	let trackedRef = useRef()
+	let updateIdRef = useRef(0)
 
-  trackedRef.current = new WeakMap()
+	trackedRef.current = new WeakMap()
 
-  useRenderRead(store, (obj, prop) => {
-    let tracked = trackedRef.current
-    let objTrackedProps = tracked.get(obj)
+	useRenderRead(store, (obj, prop) => {
+		let tracked = trackedRef.current
+		let objTrackedProps = tracked.get(obj)
 
-    if (objTrackedProps) {
-      objTrackedProps.add(prop)
-    } else {
-      tracked.set(obj, new Set([prop]))
-    }
-  })
+		if (objTrackedProps) {
+			objTrackedProps.add(prop)
+		} else {
+			tracked.set(obj, new Set([prop]))
+		}
+	})
 
-  let subscribe = useCallback(onChange => onWrite(store, (obj, prop) => {
-    if (trackedRef.current.get(obj)?.has(prop)) {
-      updateIdRef.current++
-      onChange()
-    }
-  }), [store])
+	let subscribe = useCallback(onChange => onWrite(store, (obj, prop) => {
+		if (trackedRef.current.get(obj)?.has(prop)) {
+			updateIdRef.current++
+			onChange()
+		}
+	}), [store])
 
-  let getUpdateId = () => (
-    updateIdRef.current
-  )
+	let getUpdateId = () => (
+		updateIdRef.current
+	)
 
-  useSyncExternalStore(subscribe, getUpdateId)
+	useSyncExternalStore(subscribe, getUpdateId)
 
-  return store
+	return store
 }
 
 // private
@@ -49,26 +49,26 @@ let RenderReadUnsubSym = Symbol()
 // keep in mind that next rendered component
 // will override previous onRead callback
 let useRenderRead = (store, cb) => {
-  lock(store)
+	lock(store)
 
-  let $ = get$(store)
+	let $ = get$(store)
 
-  $[RenderReadUnsubSym]?.()
-  $[RenderReadUnsubSym] = onRead(store, cb)
+	$[RenderReadUnsubSym]?.()
+	$[RenderReadUnsubSym] = onRead(store, cb)
 
-  let cleanup = () => {
-    if (!$[RenderReadUnsubSym]) return
+	let cleanup = () => {
+		if (!$[RenderReadUnsubSym]) return
 
-    $[RenderReadUnsubSym]()
-    $[RenderReadUnsubSym] = null
-    unlock(store)
-  }
+		$[RenderReadUnsubSym]()
+		$[RenderReadUnsubSym] = null
+		unlock(store)
+	}
 
-  useInsertionEffect(cleanup)
+	useInsertionEffect(cleanup)
 
-  // due to the asynchronous nature of rendering
-  // useInsertionEffect may not always be called after each render
-  // (for ex. when the data was updated between the render and commit stages)
-  // we will schedule cleanup so as not to miss such a situation
-  queueMicrotask(cleanup)
+	// due to the asynchronous nature of rendering
+	// useInsertionEffect may not always be called after each render
+	// (for ex. when the data was updated between the render and commit stages)
+	// we will schedule cleanup so as not to miss such a situation
+	queueMicrotask(cleanup)
 }

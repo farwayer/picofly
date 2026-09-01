@@ -1,33 +1,33 @@
 export let store = (initValue, proxify) => {
-  proxify || 'pass proxifier!'()
+	proxify || 'pass proxifier!'()
 
-  let $ = [         // internal store state
-    proxify,        // 0 = proxify fn
-    new WeakMap(),  // 1 = proxy cache
-    new Set(),      // 2 = write subs
-    new Set(),      // 3 = read subs
-                    // 4 = locked
-                    // 5-20 = reserved
-                    // 21-... can be used by libs
-                    // but it's better to use symbols (or str keys)
-                    // to prevent overlaps (see react)
-  ]
+	let $ = [         // internal store state
+		proxify,        // 0 = proxify fn
+		new WeakMap(),  // 1 = proxy cache
+		new Set(),      // 2 = write subs
+		new Set(),      // 3 = read subs
+										// 4 = locked
+										// 5-20 = reserved
+										// 21-... can be used by libs
+										// but it's better to use symbols (or str keys)
+										// to prevent overlaps (see react)
+	]
 
-  return proxify($, initValue)
+	return proxify($, initValue)
 }
 
 let subscriber = subsIndex => (store, cb) => {
-  typeof cb === 'function' || 'invalid cb!'()
+	typeof cb === 'function' || 'invalid cb!'()
 
-  let subs = get$(store)[subsIndex].add(cb)
+	let subs = get$(store)[subsIndex].add(cb)
 
-  return () => {
-    subs.delete(cb)
-  }
+	return () => {
+		subs.delete(cb)
+	}
 }
 
 let locker = locked => store => {
-  get$(store)[4] = locked
+	get$(store)[4] = locked
 }
 
 export let onWrite = /* @__PURE__ */ subscriber(2)

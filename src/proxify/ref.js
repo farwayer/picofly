@@ -4,30 +4,30 @@ import {get$} from '../store.js'
 export let RefSym = Symbol()
 
 export let ref = (store, val) => {
-  if (typeof val !== 'object' || !val) {
-    return val
-  }
+	if (typeof val !== 'object' || !val) {
+		return val
+	}
 
-  let $ = get$(store)
+	let $ = get$(store)
 
-  let refs = $[RefSym]
-  if (!refs) {
-    refs = $[RefSym] = new WeakSet()
-  }
+	let refs = $[RefSym]
+	if (!refs) {
+		refs = $[RefSym] = new WeakSet()
+	}
 
-  refs.add(val)
+	refs.add(val)
 
-  return val
+	return val
 }
 
 export let isRef = (store, val) => {
-  if (typeof val !== 'object' || val === null) {
-    return false
-  }
+	if (typeof val !== 'object' || val === null) {
+		return false
+	}
 
-  let $ = get$(store)
-  let refs = $[RefSym]
-  if (!refs) return false
+	let $ = get$(store)
+	let refs = $[RefSym]
+	if (!refs) return false
 
-  return refs.has(val)
+	return refs.has(val)
 }
