@@ -1,6 +1,5 @@
 import {$Sym, NakedSym} from '../store.js'
 
-
 let ReflectGet = Reflect.get
 let ReflectDefineProperty = Reflect.defineProperty
 let SymbolIterator = Symbol.iterator

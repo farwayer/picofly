@@ -1,6 +1,5 @@
 import {get$} from '../store.js'
 
-
 export let RefSym = Symbol()
 
 export let ref = (store, val) => {

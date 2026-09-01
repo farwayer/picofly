@@ -3,7 +3,6 @@ import {proxifyMap} from './map.js'
 import {proxifySet} from './set.js'
 import {RefSym} from './ref.js'
 
-
 export let obj = ($, val) =>
 	typeof val === 'object' && val
 		? proxifyObj($, val)
