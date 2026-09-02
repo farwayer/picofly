@@ -10,12 +10,14 @@ export let proxifyObj = ($, obj) => {
 
 	let proxy = new Proxy(obj, {
 		get(obj, prop, receiver) {
-			if (prop === $Sym) {
-				return $
-			}
+			if (typeof prop === 'symbol') {
+				if (prop === $Sym) {
+					return $
+				}
 
-			if (prop === NakedSym) {
-				return obj
+				if (prop === NakedSym) {
+					return obj
+				}
 			}
 
 			let val = ReflectGet(obj, prop, receiver)
