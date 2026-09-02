@@ -6,7 +6,6 @@ let SymbolIterator = Symbol.iterator
 let SymbolFor = Symbol.for
 let ArrayFrom = Array.from
 
-
 export let SizeSym = SymbolFor('size')
 export let ValuesSym = Symbol('values')
 export let EntriesSym = Symbol('entries')
@@ -29,6 +28,7 @@ export let proxifyMap = ($, map) => {
 
 				case 'size': {
 					val = map.size
+					prop = SizeSym
 				}
 				break
 
@@ -233,13 +233,15 @@ export let proxifyMap = ($, map) => {
 				}
 			}
 
-			// to differ map keys and map object props (map.get('x') vs map.x)
-			if (typeof prop !== 'symbol') {
-				prop = SymbolFor(prop)
-			}
+			if (readSubs.size) {
+				// to differ map keys and map object props (map.get('x') vs map.x)
+				if (typeof prop !== 'symbol') {
+					prop = SymbolFor(prop)
+				}
 
-			for (let cb of readSubs) {
-				cb(map, prop)
+				for (let cb of readSubs) {
+					cb(map, prop)
+				}
 			}
 
 			return objProp

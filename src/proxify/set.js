@@ -6,7 +6,6 @@ let SymbolIterator = Symbol.iterator
 let SymbolFor = Symbol.for
 let ArrayFrom = Array.from
 
-
 export let SizeSym = SymbolFor('size')
 
 export let proxifySet = ($, set) => {
@@ -27,6 +26,7 @@ export let proxifySet = ($, set) => {
 
 				case 'size': {
 					val = set.size
+					prop = SizeSym
 				}
 				break
 
@@ -154,13 +154,15 @@ export let proxifySet = ($, set) => {
 				}
 			}
 
-			// to differ set values and set object props (set.add('x') vs set.x)
-			if (typeof prop !== 'symbol') {
-				prop = SymbolFor(prop)
-			}
+			if (readSubs.size) {
+				// to differ set values and set object props (set.add('x') vs set.x)
+				if (typeof prop !== 'symbol') {
+					prop = SymbolFor(prop)
+				}
 
-			for (let cb of readSubs) {
-				cb(set, prop)
+				for (let cb of readSubs) {
+					cb(set, prop)
+				}
 			}
 
 			return objProp
