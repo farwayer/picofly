@@ -1,4 +1,4 @@
-import {$Sym, NakedSym} from '../store.js'
+import {$Sym, NakedSym, naked} from '../store.js'
 
 let ReflectGet = Reflect.get
 let ReflectDefineProperty = Reflect.defineProperty
@@ -30,12 +30,14 @@ export let proxifySet = ($, set) => {
 				}
 				break
 
-				case 'has': val = function (val) {
+				case 'has': val = function (value) {
+					value = naked($, value)
+
 					let target = this === receiver ? set : this
-					let has = target.has(val)
+					let has = target.has(value)
 
 					for (let cb of readSubs) {
-						cb(set, val)
+						cb(set, value)
 					}
 
 					return has
@@ -62,8 +64,8 @@ export let proxifySet = ($, set) => {
 							let next = valuesIt.next()
 
 							if (!next.done) {
-								let nextVal = proxify($, next.value)
-								next.value = iterateEntry ? [nextVal, nextVal] : nextVal
+								let nextValue = proxify($, next.value)
+								next.value = iterateEntry ? [nextValue, nextValue] : nextValue
 							}
 
 							return next
@@ -79,25 +81,27 @@ export let proxifySet = ($, set) => {
 						cb(set, SizeSym)
 					}
 
-					target.forEach(val => {
-						val = proxify($, val)
-						cb(val, val, this)
+					target.forEach(value => {
+						value = proxify($, value)
+						cb(value, value, this)
 					}, thisArg)
 				}
 				break
 
-				case 'delete': val = function (val) {
+				case 'delete': val = function (value) {
 					$[4] && "store locked!"()
 
+					value = naked($, value)
+
 					let target = this === receiver ? set : this
-					let has = target.has(val)
+					let has = target.has(value)
 					if (!has) return false
 
-					target.delete(val)
+					target.delete(value)
 
 					for (let cb of writeSubs) {
 						cb(set, SizeSym)
-						cb(set, val)
+						cb(set, value)
 					}
 
 					return true
@@ -115,32 +119,34 @@ export let proxifySet = ($, set) => {
 					// so we need to save all values first
 					// may be slow and takes memory (depending on set size and values)
 					// but anyway clear() should not be often operation
-					let vals = ArrayFrom(target.values())
+					let values = ArrayFrom(target.values())
 
 					target.clear()
 
 					for (let cb of writeSubs) {
 						cb(set, SizeSym)
 
-						for (let val of vals) {
-							cb(set, val)
+						for (let value of values) {
+							cb(set, value)
 						}
 					}
 				}
 				break
 
-				case 'add': val = function (val) {
+				case 'add': val = function (value) {
 					$[4] && "store locked!"()
 
+					value = naked($, value)
+
 					let target = this === receiver ? set : this
-					let has = target.has(val)
+					let has = target.has(value)
 					if (has) return this
 
-					target.add(val)
+					target.add(value)
 
 					for (let cb of writeSubs) {
 						cb(set, SizeSym)
-						cb(set, val)
+						cb(set, value)
 					}
 
 					return this
@@ -181,11 +187,7 @@ export let proxifySet = ($, set) => {
 			let has = prop in set
 			let prev = has && ReflectGet(set, prop, proxy)
 
-			// unwrap value if it was proxied with current $
-			let value = desc.value
-			if (value != null && value[$Sym] === $) {
-				desc.value = value[NakedSym]
-			}
+			desc.value = naked($, desc.value)
 
 			ReflectDefineProperty(set, prop, desc)
 

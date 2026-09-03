@@ -1,4 +1,4 @@
-import {$Sym, NakedSym} from '../store.js'
+import {$Sym, NakedSym, naked} from '../store.js'
 
 let ReflectGet = Reflect.get
 let ReflectDefineProperty = Reflect.defineProperty
@@ -33,6 +33,8 @@ export let proxifyMap = ($, map) => {
 				break
 
 				case 'has': val = function (key) {
+					key = naked($, key)
+
 					let target = this === receiver ? map : this
 					let has = target.has(key)
 
@@ -45,14 +47,16 @@ export let proxifyMap = ($, map) => {
 				break
 
 				case 'get': val = function (key) {
+					key = naked($, key)
+
 					let target = this === receiver ? map : this
-					let item = target.get(key)
+					let value = target.get(key)
 
 					for (let cb of readSubs) {
 						cb(map, key)
 					}
 
-					return proxify($, item)
+					return proxify($, value)
 				}
 				break
 
@@ -123,10 +127,10 @@ export let proxifyMap = ($, map) => {
 							let next = entriesIt.next()
 
 							if (!next.done) {
-								let [key, val] = next.value
+								let [key, value] = next.value
 								next.value = [
 									proxify($, key),
-									proxify($, val),
+									proxify($, value),
 								]
 							}
 
@@ -143,9 +147,9 @@ export let proxifyMap = ($, map) => {
 						cb(map, EntriesSym)
 					}
 
-					target.forEach((val, key) => {
+					target.forEach((value, key) => {
 						cb(
-							proxify($, val),
+							proxify($, value),
 							proxify($, key),
 							this,
 						)
@@ -155,6 +159,8 @@ export let proxifyMap = ($, map) => {
 
 				case 'delete': val = function (key) {
 					$[4] && "store locked!"()
+
+					key = naked($, key)
 
 					let target = this === receiver ? map : this
 					let has = target.has(key)
@@ -200,18 +206,21 @@ export let proxifyMap = ($, map) => {
 				}
 				break
 
-				case 'set': val = function (key, val) {
+				case 'set': val = function (key, value) {
 					$[4] && "store locked!"()
+
+					key = naked($, key)
+					value = naked($, value)
 
 					let target = this === receiver ? map : this
 					let has = target.has(key)
 					let prev = has && target.get(key)
 
-					if (has && val === prev) {
+					if (has && value === prev) {
 						return this
 					}
 
-					target.set(key, val)
+					target.set(key, value)
 
 					for (let cb of writeSubs) {
 						if (!has) {
@@ -260,11 +269,7 @@ export let proxifyMap = ($, map) => {
 			let has = prop in map
 			let prev = has && ReflectGet(map, prop, proxy)
 
-			// unwrap value if it was proxied with current $
-			let value = desc.value
-			if (value != null && value[$Sym] === $) {
-				desc.value = value[NakedSym]
-			}
+			desc.value = naked($, desc.value)
 
 			ReflectDefineProperty(map, prop, desc)
 

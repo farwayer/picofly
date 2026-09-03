@@ -41,3 +41,7 @@ export let isLocked = store => !!get$(store)[4]
 export let $Sym = /* @__PURE__ */ Symbol()
 export let NakedSym = /* @__PURE__ */ Symbol()
 export let get$ = val => val && val[$Sym] || 'invalid store!'()
+export let naked = ($, val) =>
+	typeof val === 'object' && val && val[$Sym] === $
+		? val[NakedSym]
+		: val
