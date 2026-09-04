@@ -193,7 +193,9 @@ export let proxifySet = ($, set) => {
 
 			desc.value = naked($, desc.value)
 
-			ReflectDefineProperty(set, prop, desc)
+			if (!ReflectDefineProperty(set, prop, desc)) {
+				return false
+			}
 
 			let next = has && ReflectGet(set, prop, proxy)
 

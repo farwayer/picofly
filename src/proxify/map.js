@@ -275,7 +275,9 @@ export let proxifyMap = ($, map) => {
 
 			desc.value = naked($, desc.value)
 
-			ReflectDefineProperty(map, prop, desc)
+			if (!ReflectDefineProperty(map, prop, desc)) {
+				return false
+			}
 
 			let next = has && ReflectGet(map, prop, proxy)
 

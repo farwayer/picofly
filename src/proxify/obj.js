@@ -46,7 +46,9 @@ export let proxifyObj = ($, obj) => {
 
 			desc.value = naked($, desc.value)
 
-			ReflectDefineProperty(obj, prop, desc)
+			if (!ReflectDefineProperty(obj, prop, desc)) {
+				return false
+			}
 
 			let next = has && ReflectGet(obj, prop, proxy)
 
