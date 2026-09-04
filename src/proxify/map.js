@@ -262,26 +262,54 @@ export let proxifyMap = ($, map) => {
 				: val
 		},
 
-		// Map is js object so it's possible to define some props
-		defineProperty(map, prop, desc) {
+		// Map is js object so it's possible to set some props
+		set(map, prop, value, receiver) {
 			$[4] && "store locked!"()
 
-			// in theory prop getter (prev or next) can modify object
-			// so we need to use Reflect with the proxy as receiver
-			// to catch this changes
+			value = naked($, value)
 
-			let has = prop in map
-			let prev = has && ReflectGet(map, prop, proxy)
+			let desc = ReflectGetOwnPropertyDescriptor(map, prop)
+			let writable = desc && desc.writable
+			let prev = writable && desc.value
 
-			desc.value = naked($, desc.value)
+			// own data prop
+			if (writable && receiver === proxy) {
+				if (value === prev) {
+					return true
+				}
 
-			if (!ReflectDefineProperty(map, prop, desc)) {
-				return false
+				map[prop] = value
+
+				// to differ map keys and map object props (map.get('x') vs map.x)
+				if (typeof prop !== 'symbol') {
+					prop = SymbolFor(prop)
+				}
+
+				for (let cb of writeSubs) {
+					cb(map, prop)
+				}
+
+				return true
 			}
 
-			let next = has && ReflectGet(map, prop, proxy)
+			// accessor, non-writable, inherited prop, new prop,
+			// outer proxy, our proxy as prototype, foreign receiver
 
-			if (!has || next !== prev) {
+			let res = ReflectSet(map, prop, value, receiver)
+
+			let accessorOrNonWritable = desc && !writable
+			if (accessorOrNonWritable || !res) {
+				return res
+			}
+
+			// inherited prop, new prop, outer proxy, our proxy as prototype,
+			// foreign receiver
+
+			// nothing to compare: ask whether the prop showed up here at all
+			if (writable
+				? ReflectGet(map, prop, proxy) !== prev
+				: hasOwn(map, prop)
+			) {
 				// to differ map keys and map object props (map.get('x') vs map.x)
 				if (typeof prop !== 'symbol') {
 					prop = SymbolFor(prop)

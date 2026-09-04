@@ -1,7 +1,9 @@
 import {$Sym, NakedSym, naked} from '../store.js'
 
 let ReflectGet = Reflect.get
-let ReflectDefineProperty = Reflect.defineProperty
+let ReflectSet = Reflect.set
+let ReflectGetOwnPropertyDescriptor = Reflect.getOwnPropertyDescriptor
+let hasOwn = Object.hasOwn
 let isArray = Array.isArray
 
 export let proxifyObj = ($, obj) => {
@@ -33,30 +35,51 @@ export let proxifyObj = ($, obj) => {
 			return proxify($, val)
 		},
 
-		defineProperty(obj, prop, desc) {
+		set(obj, prop, value, receiver) {
 			$[4] && "store locked!"()
 
-			// in theory prop getter (prev or next) can modify object
-			// so we need to use Reflect with the proxy as receiver
-			// to catch this changes
+			value = naked($, value)
 
-			let has = prop in obj
-			let prev = has && ReflectGet(obj, prop, proxy)
-			let prevArrLen = isArr && !has && ReflectGet(obj, 'length', proxy)
+			let desc = ReflectGetOwnPropertyDescriptor(obj, prop)
+			let writable = desc && desc.writable
+			let prev = writable && desc.value
 
-			desc.value = naked($, desc.value)
+			// own data prop
+			if (writable && receiver === proxy) {
+				if (value === prev) {
+					return true
+				}
 
-			if (!ReflectDefineProperty(obj, prop, desc)) {
-				return false
+				obj[prop] = value
+
+				for (let cb of writeSubs) {
+					cb(obj, prop)
+				}
+
+				return true
 			}
 
-			let next = has && ReflectGet(obj, prop, proxy)
+			// accessor, non-writable, inherited prop, new prop,
+			// outer proxy, our proxy as prototype, foreign receiver
 
-			if (!has || next !== prev) {
-				let arrLenChanged = isArr && !has
-					&& prop === '' + (prop >>> 0) // canonical array index
-					&& prop < 4294967295 // max array index check
-					&& prop >= prevArrLen
+			let prevArrLen = isArr && !desc && ReflectGet(obj, 'length', proxy)
+			let res = ReflectSet(obj, prop, value, receiver)
+
+			let accessorOrNonWritable = desc && !writable
+			if (accessorOrNonWritable || !res) {
+				return res
+			}
+
+			// inherited prop, new prop, outer proxy, our proxy as prototype,
+			// foreign receiver
+
+			// nothing to compare: ask whether the prop showed up here at all
+			if (writable
+				? ReflectGet(obj, prop, proxy) !== prev
+				: hasOwn(obj, prop)
+			) {
+				let arrLenChanged = isArr && !desc &&
+					ReflectGet(obj, 'length', proxy) !== prevArrLen
 
 				for (let cb of writeSubs) {
 					cb(obj, prop)

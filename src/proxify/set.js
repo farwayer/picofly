@@ -1,7 +1,9 @@
 import {$Sym, NakedSym, naked} from '../store.js'
 
 let ReflectGet = Reflect.get
-let ReflectDefineProperty = Reflect.defineProperty
+let ReflectSet = Reflect.set
+let ReflectGetOwnPropertyDescriptor = Reflect.getOwnPropertyDescriptor
+let hasOwn = Object.hasOwn
 let SymbolIterator = Symbol.iterator
 let SymbolFor = Symbol.for
 let ArrayFrom = Array.from
@@ -180,26 +182,54 @@ export let proxifySet = ($, set) => {
 				: val
 		},
 
-		// Set is js object so it's possible to define some props
-		defineProperty(set, prop, desc) {
+		// Set is js object so it's possible to set some props
+		set(set, prop, value, receiver) {
 			$[4] && "store locked!"()
 
-			// in theory prop getter (prev or next) can modify object
-			// so we need to use Reflect with the proxy as receiver
-			// to catch this changes
+			value = naked($, value)
 
-			let has = prop in set
-			let prev = has && ReflectGet(set, prop, proxy)
+			let desc = ReflectGetOwnPropertyDescriptor(set, prop)
+			let writable = desc && desc.writable
+			let prev = writable && desc.value
 
-			desc.value = naked($, desc.value)
+			// own data prop
+			if (writable && receiver === proxy) {
+				if (value === prev) {
+					return true
+				}
 
-			if (!ReflectDefineProperty(set, prop, desc)) {
-				return false
+				set[prop] = value
+
+				// to differ set keys and set object props (set.add('x') vs set.x)
+				if (typeof prop !== 'symbol') {
+					prop = SymbolFor(prop)
+				}
+
+				for (let cb of writeSubs) {
+					cb(set, prop)
+				}
+
+				return true
 			}
 
-			let next = has && ReflectGet(set, prop, proxy)
+			// accessor, non-writable, inherited prop, new prop,
+			// outer proxy, our proxy as prototype, foreign receiver
 
-			if (!has || next !== prev) {
+			let res = ReflectSet(set, prop, value, receiver)
+
+			let accessorOrNonWritable = desc && !writable
+			if (accessorOrNonWritable || !res) {
+				return res
+			}
+
+			// inherited prop, new prop, outer proxy, our proxy as prototype,
+			// foreign receiver
+
+			// nothing to compare: ask whether the prop showed up here at all
+			if (writable
+				? ReflectGet(set, prop, proxy) !== prev
+				: hasOwn(set, prop)
+			) {
 				// to differ set keys and set object props (set.add('x') vs set.x)
 				if (typeof prop !== 'symbol') {
 					prop = SymbolFor(prop)
