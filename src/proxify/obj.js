@@ -5,6 +5,10 @@ let ReflectDefineProperty = Reflect.defineProperty
 let isArray = Array.isArray
 
 export let proxifyObj = ($, obj) => {
+	if (obj[$Sym] === $) {
+		return obj
+	}
+
 	let [proxify, cache, writeSubs, readSubs] = $
 	let isArr = isArray(obj)
 

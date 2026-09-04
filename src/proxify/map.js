@@ -11,6 +11,10 @@ export let ValuesSym = Symbol('values')
 export let EntriesSym = Symbol('entries')
 
 export let proxifyMap = ($, map) => {
+	if (map[$Sym] === $) {
+		return map
+	}
+
 	let [proxify, cache, writeSubs, readSubs] = $
 
 	let proxy = new Proxy(map, {

@@ -9,6 +9,10 @@ let ArrayFrom = Array.from
 export let SizeSym = SymbolFor('size')
 
 export let proxifySet = ($, set) => {
+	if (set[$Sym] === $) {
+		return set
+	}
+
 	let [proxify, cache, writeSubs, readSubs] = $
 
 	let proxy = new Proxy(set, {
