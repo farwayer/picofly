@@ -19,16 +19,24 @@ export let proxifySet = ($, set) => {
 
 	let proxy = new Proxy(set, {
 		get(set, prop, receiver) {
-			let val, iterateEntry
-
-			switch (prop) {
-				case $Sym: {
+			if (typeof prop === 'symbol') {
+				if (prop === $Sym) {
 					return $
 				}
 
-				case NakedSym: {
+				if (prop === NakedSym) {
 					return set
 				}
+			}
+
+			let val, iterateEntry
+
+			switch (prop) {
+				case 'size': {
+					val = set.size
+					prop = SizeSym
+				}
+					break
 
 				case 'has': return function (value) {
 					value = naked($, value)
@@ -43,33 +51,23 @@ export let proxifySet = ($, set) => {
 					return has
 				}
 
-				case 'entries':
-					iterateEntry = true
-				case 'keys':
-				case 'values':
-				case SymbolIterator: return function () {
+				case 'add': return function (value) {
+					$[4] && "store locked!"()
+
+					value = naked($, value)
+
 					let target = this === receiver ? set : this
-					let valuesIt = target.values()
+					let has = target.has(value)
+					if (has) return this
 
-					for (let cb of readSubs) {
+					target.add(value)
+
+					for (let cb of writeSubs) {
 						cb(set, SizeSym)
+						cb(set, value)
 					}
 
-					return {
-						[SymbolIterator]() {
-							return this
-						},
-						next() {
-							let next = valuesIt.next()
-
-							if (!next.done) {
-								let nextValue = proxify($, next.value)
-								next.value = iterateEntry ? [nextValue, nextValue] : nextValue
-							}
-
-							return next
-						},
-					}
+					return this
 				}
 
 				case 'forEach': return function (cb, thisArg) {
@@ -128,37 +126,42 @@ export let proxifySet = ($, set) => {
 					}
 				}
 
-				case 'add': return function (value) {
-					$[4] && "store locked!"()
-
-					value = naked($, value)
-
+				case 'entries':
+					iterateEntry = true
+				case 'keys':
+				case 'values':
+				// string === symbol is slow, must be the last!
+				case SymbolIterator: return function () {
 					let target = this === receiver ? set : this
-					let has = target.has(value)
-					if (has) return this
+					let valuesIt = target.values()
 
-					target.add(value)
-
-					for (let cb of writeSubs) {
+					for (let cb of readSubs) {
 						cb(set, SizeSym)
-						cb(set, value)
 					}
 
-					return this
-				}
+					return {
+						[SymbolIterator]() {
+							return this
+						},
+						next() {
+							let next = valuesIt.next()
 
-				case 'size': {
-					val = set.size
-					prop = SizeSym
+							if (!next.done) {
+								let nextValue = proxify($, next.value)
+								next.value = iterateEntry ? [nextValue, nextValue] : nextValue
+							}
+
+							return next
+						},
+					}
 				}
-				break
 
 				// Set is js object so it's possible to get some props
 				default: {
-					val = ReflectGet(set, prop, receiver)
+					val = proxify($, ReflectGet(set, prop, receiver))
 
 					// to differ set values and set object props (set.add('x') vs set.x)
-					if (typeof prop !== 'symbol') {
+					if (typeof prop !== 'symbol' && readSubs.size) {
 						prop = SymbolFor(prop)
 					}
 				}
@@ -168,7 +171,7 @@ export let proxifySet = ($, set) => {
 				cb(set, prop)
 			}
 
-			return proxify($, val)
+			return val
 		},
 
 		// Set is js object so it's possible to set some props
@@ -189,13 +192,15 @@ export let proxifySet = ($, set) => {
 
 				set[prop] = value
 
-				// to differ set keys and set object props (set.add('x') vs set.x)
-				if (typeof prop !== 'symbol') {
-					prop = SymbolFor(prop)
-				}
+				if (writeSubs.size) {
+					// to differ set keys and set object props (set.add('x') vs set.x)
+					if (typeof prop !== 'symbol') {
+						prop = SymbolFor(prop)
+					}
 
-				for (let cb of writeSubs) {
-					cb(set, prop)
+					for (let cb of writeSubs) {
+						cb(set, prop)
+					}
 				}
 
 				return true
@@ -214,10 +219,12 @@ export let proxifySet = ($, set) => {
 			// inherited prop, new prop, outer proxy, our proxy as prototype,
 			// foreign receiver
 
-			if (writable
-				? ReflectGet(set, prop, proxy) !== prev
-				: hasOwn(set, prop)
-			) {
+			if (
+				writeSubs.size && (
+				writable
+					? ReflectGet(set, prop, proxy) !== prev
+					: hasOwn(set, prop)
+			)) {
 				// to differ set keys and set object props (set.add('x') vs set.x)
 				if (typeof prop !== 'symbol') {
 					prop = SymbolFor(prop)
@@ -240,13 +247,15 @@ export let proxifySet = ($, set) => {
 
 			delete set[prop]
 
-			// to differ set keys and set object props (set.add('x') vs set.x)
-			if (typeof prop !== 'symbol') {
-				prop = SymbolFor(prop)
-			}
+			if (writeSubs.size) {
+				// to differ set keys and set object props (set.add('x') vs set.x)
+				if (typeof prop !== 'symbol') {
+					prop = SymbolFor(prop)
+				}
 
-			for (let cb of writeSubs) {
-				cb(set, prop)
+				for (let cb of writeSubs) {
+					cb(set, prop)
+				}
 			}
 
 			return true

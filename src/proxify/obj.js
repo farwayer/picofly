@@ -73,10 +73,12 @@ export let proxifyObj = ($, obj) => {
 			// inherited prop, new prop, outer proxy, our proxy as prototype,
 			// foreign receiver
 
-			if (writable
-				? ReflectGet(obj, prop, proxy) !== prev
-				: hasOwn(obj, prop)
-			) {
+			if (
+				writeSubs.size && (
+				writable
+					? ReflectGet(obj, prop, proxy) !== prev
+					: hasOwn(obj, prop)
+			)) {
 				let arrLenChanged = isArr && !desc &&
 					ReflectGet(obj, 'length', proxy) !== prevArrLen
 
