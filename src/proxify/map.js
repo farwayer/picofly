@@ -10,7 +10,6 @@ let ArrayFrom = Array.from
 
 export let SizeSym = SymbolFor('size')
 export let ValuesSym = Symbol('values')
-export let EntriesSym = Symbol('entries')
 
 export let proxifyMap = ($, map) => {
 	if (map[$Sym] === $) {
@@ -118,7 +117,7 @@ export let proxifyMap = ($, map) => {
 					let target = this === receiver ? map : this
 
 					for (let cb of readSubs) {
-						cb(map, EntriesSym)
+						cb(map, ValuesSym)
 					}
 
 					target.forEach((value, key) => {
@@ -151,7 +150,6 @@ export let proxifyMap = ($, map) => {
 							cb(map, SizeSym)
 						}
 						cb(map, ValuesSym)
-						cb(map, EntriesSym)
 						cb(map, key)
 					}
 
@@ -172,7 +170,6 @@ export let proxifyMap = ($, map) => {
 					for (let cb of writeSubs) {
 						cb(map, SizeSym)
 						cb(map, ValuesSym)
-						cb(map, EntriesSym)
 						cb(map, key)
 					}
 
@@ -197,7 +194,6 @@ export let proxifyMap = ($, map) => {
 					for (let cb of writeSubs) {
 						cb(map, SizeSym)
 						cb(map, ValuesSym)
-						cb(map, EntriesSym)
 
 						for (let key of keys) {
 							cb(map, key)
@@ -212,7 +208,7 @@ export let proxifyMap = ($, map) => {
 					let entriesIt = target.entries()
 
 					for (let cb of readSubs) {
-						cb(map, EntriesSym)
+						cb(map, ValuesSym)
 					}
 
 					return {
