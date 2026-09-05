@@ -1,7 +1,9 @@
 import {$Sym, NakedSym, naked} from '../store.js'
 
 let ReflectGet = Reflect.get
-let ReflectDefineProperty = Reflect.defineProperty
+let ReflectSet = Reflect.set
+let ReflectGetOwnPropertyDescriptor = Reflect.getOwnPropertyDescriptor
+let hasOwn = Object.hasOwn
 let SymbolIterator = Symbol.iterator
 let SymbolFor = Symbol.for
 let ArrayFrom = Array.from
@@ -19,7 +21,7 @@ export let proxifyMap = ($, map) => {
 
 	let proxy = new Proxy(map, {
 		get(map, prop, receiver) {
-			let val, objProp
+			let val
 
 			switch (prop) {
 				case $Sym: {
@@ -30,13 +32,7 @@ export let proxifyMap = ($, map) => {
 					return map
 				}
 
-				case 'size': {
-					val = map.size
-					prop = SizeSym
-				}
-				break
-
-				case 'has': val = function (key) {
+				case 'has': return function (key) {
 					key = naked($, key)
 
 					let target = this === receiver ? map : this
@@ -48,9 +44,8 @@ export let proxifyMap = ($, map) => {
 
 					return has
 				}
-				break
 
-				case 'get': val = function (key) {
+				case 'get': return function (key) {
 					key = naked($, key)
 
 					let target = this === receiver ? map : this
@@ -62,9 +57,8 @@ export let proxifyMap = ($, map) => {
 
 					return proxify($, value)
 				}
-				break
 
-				case 'keys': val = function () {
+				case 'keys': return function () {
 					let target = this === receiver ? map : this
 					let keysIt = target.keys()
 
@@ -87,9 +81,8 @@ export let proxifyMap = ($, map) => {
 						},
 					}
 				}
-				break
 
-				case 'values': val = function () {
+				case 'values': return function () {
 					let target = this === receiver ? map : this
 					let valuesIt = target.values()
 
@@ -112,10 +105,9 @@ export let proxifyMap = ($, map) => {
 						},
 					}
 				}
-				break
 
 				case 'entries':
-				case SymbolIterator: val = function () {
+				case SymbolIterator: return function () {
 					let target = this === receiver ? map : this
 					let entriesIt = target.entries()
 
@@ -142,9 +134,8 @@ export let proxifyMap = ($, map) => {
 						}
 					}
 				}
-				break
 
-				case 'forEach': val = function (cb, thisArg) {
+				case 'forEach': return function (cb, thisArg) {
 					let target = this === receiver ? map : this
 
 					for (let cb of readSubs) {
@@ -159,9 +150,8 @@ export let proxifyMap = ($, map) => {
 						)
 					}, thisArg)
 				}
-				break
 
-				case 'delete': val = function (key) {
+				case 'delete': return function (key) {
 					$[4] && "store locked!"()
 
 					key = naked($, key)
@@ -181,9 +171,8 @@ export let proxifyMap = ($, map) => {
 
 					return true
 				}
-				break
 
-				case 'clear': val = function () {
+				case 'clear': return function () {
 					$[4] && "store locked!"()
 
 					let target = this === receiver ? map : this
@@ -208,9 +197,8 @@ export let proxifyMap = ($, map) => {
 						}
 					}
 				}
-				break
 
-				case 'set': val = function (key, value) {
+				case 'set': return function (key, value) {
 					$[4] && "store locked!"()
 
 					key = naked($, key)
@@ -237,29 +225,29 @@ export let proxifyMap = ($, map) => {
 
 					return this
 				}
+
+				case 'size': {
+					val = map.size
+					prop = SizeSym
+				}
 				break
 
 				// Map is js object so it's possible to get some props
 				default: {
 					val = ReflectGet(map, prop, receiver)
-					objProp = true
+
+					// to differ map keys and map object props (map.get('x') vs map.x)
+					if (typeof prop !== 'symbol') {
+						prop = SymbolFor(prop)
+					}
 				}
 			}
 
-			if (readSubs.size) {
-				// to differ map keys and map object props (map.get('x') vs map.x)
-				if (typeof prop !== 'symbol') {
-					prop = SymbolFor(prop)
-				}
-
-				for (let cb of readSubs) {
-					cb(map, prop)
-				}
+			for (let cb of readSubs) {
+				cb(map, prop)
 			}
 
-			return objProp
-				? proxify($, val)
-				: val
+			return proxify($, val)
 		},
 
 		// Map is js object so it's possible to set some props
@@ -305,7 +293,6 @@ export let proxifyMap = ($, map) => {
 			// inherited prop, new prop, outer proxy, our proxy as prototype,
 			// foreign receiver
 
-			// nothing to compare: ask whether the prop showed up here at all
 			if (writable
 				? ReflectGet(map, prop, proxy) !== prev
 				: hasOwn(map, prop)

@@ -73,7 +73,6 @@ export let proxifyObj = ($, obj) => {
 			// inherited prop, new prop, outer proxy, our proxy as prototype,
 			// foreign receiver
 
-			// nothing to compare: ask whether the prop showed up here at all
 			if (writable
 				? ReflectGet(obj, prop, proxy) !== prev
 				: hasOwn(obj, prop)

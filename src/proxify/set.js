@@ -19,7 +19,7 @@ export let proxifySet = ($, set) => {
 
 	let proxy = new Proxy(set, {
 		get(set, prop, receiver) {
-			let val, objProp, iterateEntry
+			let val, iterateEntry
 
 			switch (prop) {
 				case $Sym: {
@@ -30,13 +30,7 @@ export let proxifySet = ($, set) => {
 					return set
 				}
 
-				case 'size': {
-					val = set.size
-					prop = SizeSym
-				}
-				break
-
-				case 'has': val = function (value) {
+				case 'has': return function (value) {
 					value = naked($, value)
 
 					let target = this === receiver ? set : this
@@ -48,13 +42,12 @@ export let proxifySet = ($, set) => {
 
 					return has
 				}
-				break
 
 				case 'entries':
 					iterateEntry = true
 				case 'keys':
 				case 'values':
-				case SymbolIterator: val = function () {
+				case SymbolIterator: return function () {
 					let target = this === receiver ? set : this
 					let valuesIt = target.values()
 
@@ -78,9 +71,8 @@ export let proxifySet = ($, set) => {
 						},
 					}
 				}
-				break
 
-				case 'forEach': val = function (cb, thisArg) {
+				case 'forEach': return function (cb, thisArg) {
 					let target = this === receiver ? set : this
 
 					for (let cb of readSubs) {
@@ -92,9 +84,8 @@ export let proxifySet = ($, set) => {
 						cb(value, value, this)
 					}, thisArg)
 				}
-				break
 
-				case 'delete': val = function (value) {
+				case 'delete': return function (value) {
 					$[4] && "store locked!"()
 
 					value = naked($, value)
@@ -112,9 +103,8 @@ export let proxifySet = ($, set) => {
 
 					return true
 				}
-				break
 
-				case 'clear': val = function () {
+				case 'clear': return function () {
 					$[4] && "store locked!"()
 
 					let target = this === receiver ? set : this
@@ -137,9 +127,8 @@ export let proxifySet = ($, set) => {
 						}
 					}
 				}
-				break
 
-				case 'add': val = function (value) {
+				case 'add': return function (value) {
 					$[4] && "store locked!"()
 
 					value = naked($, value)
@@ -157,29 +146,29 @@ export let proxifySet = ($, set) => {
 
 					return this
 				}
+
+				case 'size': {
+					val = set.size
+					prop = SizeSym
+				}
 				break
 
 				// Set is js object so it's possible to get some props
 				default: {
 					val = ReflectGet(set, prop, receiver)
-					objProp = true
+
+					// to differ set values and set object props (set.add('x') vs set.x)
+					if (typeof prop !== 'symbol') {
+						prop = SymbolFor(prop)
+					}
 				}
 			}
 
-			if (readSubs.size) {
-				// to differ set values and set object props (set.add('x') vs set.x)
-				if (typeof prop !== 'symbol') {
-					prop = SymbolFor(prop)
-				}
-
-				for (let cb of readSubs) {
-					cb(set, prop)
-				}
+			for (let cb of readSubs) {
+				cb(set, prop)
 			}
 
-			return objProp
-				? proxify($, val)
-				: val
+			return proxify($, val)
 		},
 
 		// Set is js object so it's possible to set some props
@@ -225,7 +214,6 @@ export let proxifySet = ($, set) => {
 			// inherited prop, new prop, outer proxy, our proxy as prototype,
 			// foreign receiver
 
-			// nothing to compare: ask whether the prop showed up here at all
 			if (writable
 				? ReflectGet(set, prop, proxy) !== prev
 				: hasOwn(set, prop)
