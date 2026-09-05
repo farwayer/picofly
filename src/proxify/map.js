@@ -187,16 +187,18 @@ export let proxifyMap = ($, map) => {
 					// so we need to save all keys first
 					// may be slow and takes memory (depending on map size and keys)
 					// but anyway clear() should not be often operation
-					let keys = ArrayFrom(target.keys())
+					let keys = writeSubs.size && ArrayFrom(target.keys())
 
 					target.clear()
 
-					for (let cb of writeSubs) {
-						cb(map, SizeSym)
-						cb(map, ValuesSym)
+					if (keys) {
+						for (let cb of writeSubs) {
+							cb(map, SizeSym)
+							cb(map, ValuesSym)
 
-						for (let key of keys) {
-							cb(map, key)
+							for (let key of keys) {
+								cb(map, key)
+							}
 						}
 					}
 				}

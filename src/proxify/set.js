@@ -113,15 +113,17 @@ export let proxifySet = ($, set) => {
 					// so we need to save all values first
 					// may be slow and takes memory (depending on set size and values)
 					// but anyway clear() should not be often operation
-					let values = ArrayFrom(target.values())
+					let values = writeSubs.size && ArrayFrom(target.values())
 
 					target.clear()
 
-					for (let cb of writeSubs) {
-						cb(set, SizeSym)
+					if (values) {
+						for (let cb of writeSubs) {
+							cb(set, SizeSym)
 
-						for (let value of values) {
-							cb(set, value)
+							for (let value of values) {
+								cb(set, value)
+							}
 						}
 					}
 				}
