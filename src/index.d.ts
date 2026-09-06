@@ -1,31 +1,43 @@
-export type Locked = 1 | 0 | undefined
-export type Sub = (obj: object, key: string | symbol) => void
-export type ReadSub = Sub
-export type WriteSub = Sub
-export type $<S> = [
-	Proxify<S>,
-	WeakMap<object, S>,
-	Set<WriteSub>,
-	Set<ReadSub>,
-	Locked,
-]
-export type Proxify<S> = ($: $<S>, val: S) => S
-export type Callback = (obj: object, key: string | symbol) => void
-
-export function create<S>(initValue: S): S
-export function ref<S, V>(store: S, val: V): V
-export function isRef<S, V>(store: S, val: V): boolean
-export function onWrite<S>(store: S, cb: Callback): () => void
-export function onRead<S>(store: S, cb: Callback): () => void
+export function create<S>(state: S): S
+export function store<S>(state: S, rules: Rule[]): S
+export function markRaw<S, V>(store: S, val: V): V
+export function isRaw<S, V>(store: S, val: V): boolean
+export function onWrite<S>(store: S, cb: Sub): Unsub
+export function onRead<S>(store: S, cb: Sub): Unsub
 export function lock<S>(store: S): void
 export function unlock<S>(store: S): void
 export function isLocked<S>(store: S): boolean
-export function store<S>(initValue: S, proxify: Proxify<any>): S
 
-export let obj: Proxify<any>
-export let objIgnoreSpecials: Proxify<any>
-export let map: Proxify<any>
-export let objMap: Proxify<any>
-export let objMapIgnoreSpecials: Proxify<any>
-export let objMapIgnoreSpecialsRef: Proxify<any>
-export let objMapSetIgnoreSpecialsRef: Proxify<any>
+export const raw: Rule
+export const map: Rule
+export const set: Rule
+export const builtins: Rule
+export const obj: Rule
+
+export type Sub = (obj: object, prop: string | symbol) => void
+export type Unsub = () => void
+
+// takes the value or passes it to the next step
+export type Step = ($: $, val: any) => any
+
+// returns priority if called without the next step
+export type Rule = (next?: Step) => number | Step
+
+
+// internal
+export const $Sym: unique symbol
+export const NakedSym: unique symbol
+export const RawSym: unique symbol
+export const SizeSym: unique symbol
+export const ValuesSym: unique symbol
+export function get$<S>(store: S): $
+export function naked<V>($: $, val: V): V
+
+export type Locked = 1 | 0 | undefined
+export type $ = [
+	proxify: Step,
+	writeSubs: Set<Sub>,
+	readSubs: Set<Sub>,
+	cache: WeakMap<object, object>,
+	locked: Locked,
+]

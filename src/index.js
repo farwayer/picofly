@@ -1,9 +1,8 @@
 import {store} from './store.js'
-import {objMapSetIgnoreSpecialsRef} from './proxify/index.js'
+import {raw, map, set, builtins, obj} from './rules/index.js'
 
 export * from './store.js'
-export * from './proxify/index.js'
-export * from './proxify/ref.js'
+export * from './rules/index.js'
 
-export let create = initValue =>
-	store(initValue, objMapSetIgnoreSpecialsRef)
+export let create = state =>
+	store(state, [raw, map, set, builtins, obj])

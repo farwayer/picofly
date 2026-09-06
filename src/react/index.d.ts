@@ -1,7 +1,7 @@
 import {Context, Provider, FunctionComponent, ComponentType} from 'react'
 
-export let StoreContext: Context<unknown>
-export let StoreProvider: Provider<unknown>
+export let PicoflyContext: Context<unknown>
+export let Picofly: Provider<unknown>
 
 export function useContextStore<S>(): S
 

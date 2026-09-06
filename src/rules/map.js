@@ -1,24 +1,17 @@
 import {$Sym, NakedSym, naked} from '../store.js'
+import {SizeSym, ValuesSym} from './utils.js'
 
-let ReflectGet = Reflect.get
-let ReflectSet = Reflect.set
-let ReflectGetOwnPropertyDescriptor = Reflect.getOwnPropertyDescriptor
-let hasOwn = Object.hasOwn
-let SymbolIterator = Symbol.iterator
-let SymbolFor = Symbol.for
-let ArrayFrom = Array.from
+// 30 bc
+export let map = next => !next ? 20 : ($, val) =>
+	val instanceof Map
+		? proxifyMap($, val)
+		: next($, val)
 
-export let SizeSym = SymbolFor('size')
-export let ValuesSym = Symbol('values')
+let proxifyMap = ($, map) => {
+	let [proxify, writeSubs, readSubs] = $
+	let proxy
 
-export let proxifyMap = ($, map) => {
-	if (map[$Sym] === $) {
-		return map
-	}
-
-	let [proxify, cache, writeSubs, readSubs] = $
-
-	let proxy = new Proxy(map, {
+	return proxy = new Proxy(map, {
 		get(map, prop, receiver) {
 			if (typeof prop === 'symbol') {
 				if (prop === $Sym) {
@@ -37,7 +30,7 @@ export let proxifyMap = ($, map) => {
 					val = map.size
 					prop = SizeSym
 				}
-				break
+					break
 
 				case 'get': return function (key) {
 					key = naked($, key)
@@ -61,7 +54,7 @@ export let proxifyMap = ($, map) => {
 					}
 
 					return {
-						[SymbolIterator]() {
+						[Symbol.iterator]() {
 							return this
 						},
 						next() {
@@ -85,7 +78,7 @@ export let proxifyMap = ($, map) => {
 					}
 
 					return {
-						[SymbolIterator]() {
+						[Symbol.iterator]() {
 							return this
 						},
 						next() {
@@ -187,7 +180,7 @@ export let proxifyMap = ($, map) => {
 					// so we need to save all keys first
 					// may be slow and takes memory (depending on map size and keys)
 					// but anyway clear() should not be often operation
-					let keys = writeSubs.size && ArrayFrom(target.keys())
+					let keys = writeSubs.size && Array.from(target.keys())
 
 					target.clear()
 
@@ -205,7 +198,7 @@ export let proxifyMap = ($, map) => {
 
 				case 'entries':
 				// string === symbol is slow, must be the last!
-				case SymbolIterator: return function () {
+				case Symbol.iterator: return function () {
 					let target = this === receiver ? map : this
 					let entriesIt = target.entries()
 
@@ -214,7 +207,7 @@ export let proxifyMap = ($, map) => {
 					}
 
 					return {
-						[SymbolIterator]() {
+						[Symbol.iterator]() {
 							return this
 						},
 						next() {
@@ -235,10 +228,10 @@ export let proxifyMap = ($, map) => {
 
 				// Map is js object so it's possible to get some props
 				default: {
-					val = proxify($, ReflectGet(map, prop, receiver))
+					val = proxify($, Reflect.get(map, prop, receiver))
 
 					if (typeof prop !== 'symbol' && readSubs.size) {
-						prop = SymbolFor(prop)
+						prop = Symbol.for(prop)
 					}
 				}
 			}
@@ -256,7 +249,7 @@ export let proxifyMap = ($, map) => {
 
 			value = naked($, value)
 
-			let desc = ReflectGetOwnPropertyDescriptor(map, prop)
+			let desc = Reflect.getOwnPropertyDescriptor(map, prop)
 			let writable = desc && desc.writable
 			let prev = writable && desc.value
 
@@ -271,7 +264,7 @@ export let proxifyMap = ($, map) => {
 				if (writeSubs.size) {
 					// to differ map keys and map object props (map.get('x') vs map.x)
 					if (typeof prop !== 'symbol') {
-						prop = SymbolFor(prop)
+						prop = Symbol.for(prop)
 					}
 
 					for (let cb of writeSubs) {
@@ -285,7 +278,7 @@ export let proxifyMap = ($, map) => {
 			// accessor, non-writable, inherited prop, new prop,
 			// outer proxy, our proxy as prototype, foreign receiver
 
-			let res = ReflectSet(map, prop, value, receiver)
+			let res = Reflect.set(map, prop, value, receiver)
 
 			let accessorOrNonWritable = desc && !writable
 			if (accessorOrNonWritable || !res) {
@@ -297,13 +290,13 @@ export let proxifyMap = ($, map) => {
 
 			if (
 				writeSubs.size && (
-				writable
-					? ReflectGet(map, prop, proxy) !== prev
-					: hasOwn(map, prop)
-			)) {
+					writable
+						? Reflect.get(map, prop, proxy) !== prev
+						: Object.hasOwn(map, prop)
+				)) {
 				// to differ map keys and map object props (map.get('x') vs map.x)
 				if (typeof prop !== 'symbol') {
-					prop = SymbolFor(prop)
+					prop = Symbol.for(prop)
 				}
 
 				for (let cb of writeSubs) {
@@ -326,7 +319,7 @@ export let proxifyMap = ($, map) => {
 			if (writeSubs.size) {
 				// to differ map keys and map object props (map.get('x') vs map.x)
 				if (typeof prop !== 'symbol') {
-					prop = SymbolFor(prop)
+					prop = Symbol.for(prop)
 				}
 
 				for (let cb of writeSubs) {
@@ -337,8 +330,4 @@ export let proxifyMap = ($, map) => {
 			return true
 		},
 	})
-
-	cache.set(map, proxy)
-
-	return proxy
 }

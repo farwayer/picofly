@@ -1,23 +1,17 @@
 import {$Sym, NakedSym, naked} from '../store.js'
+import {SizeSym} from './utils.js'
 
-let ReflectGet = Reflect.get
-let ReflectSet = Reflect.set
-let ReflectGetOwnPropertyDescriptor = Reflect.getOwnPropertyDescriptor
-let hasOwn = Object.hasOwn
-let SymbolIterator = Symbol.iterator
-let SymbolFor = Symbol.for
-let ArrayFrom = Array.from
+// 30 bc
+export let set = next => !next ? 30 : ($, val) =>
+	val instanceof Set
+		? proxifySet($, val)
+		: next($, val)
 
-export let SizeSym = SymbolFor('size')
+let proxifySet = ($, set) => {
+	let [proxify, writeSubs, readSubs] = $
+	let proxy
 
-export let proxifySet = ($, set) => {
-	if (set[$Sym] === $) {
-		return set
-	}
-
-	let [proxify, cache, writeSubs, readSubs] = $
-
-	let proxy = new Proxy(set, {
+	return proxy = new Proxy(set, {
 		get(set, prop, receiver) {
 			if (typeof prop === 'symbol') {
 				if (prop === $Sym) {
@@ -113,7 +107,7 @@ export let proxifySet = ($, set) => {
 					// so we need to save all values first
 					// may be slow and takes memory (depending on set size and values)
 					// but anyway clear() should not be often operation
-					let values = writeSubs.size && ArrayFrom(target.values())
+					let values = writeSubs.size && Array.from(target.values())
 
 					target.clear()
 
@@ -130,10 +124,11 @@ export let proxifySet = ($, set) => {
 
 				case 'entries':
 					iterateEntry = true
+				// falls through
 				case 'keys':
 				case 'values':
 				// string === symbol is slow, must be the last!
-				case SymbolIterator: return function () {
+				case Symbol.iterator: return function () {
 					let target = this === receiver ? set : this
 					let valuesIt = target.values()
 
@@ -142,7 +137,7 @@ export let proxifySet = ($, set) => {
 					}
 
 					return {
-						[SymbolIterator]() {
+						[Symbol.iterator]() {
 							return this
 						},
 						next() {
@@ -160,11 +155,11 @@ export let proxifySet = ($, set) => {
 
 				// Set is js object so it's possible to get some props
 				default: {
-					val = proxify($, ReflectGet(set, prop, receiver))
+					val = proxify($, Reflect.get(set, prop, receiver))
 
 					// to differ set values and set object props (set.add('x') vs set.x)
 					if (typeof prop !== 'symbol' && readSubs.size) {
-						prop = SymbolFor(prop)
+						prop = Symbol.for(prop)
 					}
 				}
 			}
@@ -182,7 +177,7 @@ export let proxifySet = ($, set) => {
 
 			value = naked($, value)
 
-			let desc = ReflectGetOwnPropertyDescriptor(set, prop)
+			let desc = Reflect.getOwnPropertyDescriptor(set, prop)
 			let writable = desc && desc.writable
 			let prev = writable && desc.value
 
@@ -197,7 +192,7 @@ export let proxifySet = ($, set) => {
 				if (writeSubs.size) {
 					// to differ set keys and set object props (set.add('x') vs set.x)
 					if (typeof prop !== 'symbol') {
-						prop = SymbolFor(prop)
+						prop = Symbol.for(prop)
 					}
 
 					for (let cb of writeSubs) {
@@ -211,7 +206,7 @@ export let proxifySet = ($, set) => {
 			// accessor, non-writable, inherited prop, new prop,
 			// outer proxy, our proxy as prototype, foreign receiver
 
-			let res = ReflectSet(set, prop, value, receiver)
+			let res = Reflect.set(set, prop, value, receiver)
 
 			let accessorOrNonWritable = desc && !writable
 			if (accessorOrNonWritable || !res) {
@@ -223,13 +218,13 @@ export let proxifySet = ($, set) => {
 
 			if (
 				writeSubs.size && (
-				writable
-					? ReflectGet(set, prop, proxy) !== prev
-					: hasOwn(set, prop)
-			)) {
+					writable
+						? Reflect.get(set, prop, proxy) !== prev
+						: Object.hasOwn(set, prop)
+				)) {
 				// to differ set keys and set object props (set.add('x') vs set.x)
 				if (typeof prop !== 'symbol') {
-					prop = SymbolFor(prop)
+					prop = Symbol.for(prop)
 				}
 
 				for (let cb of writeSubs) {
@@ -252,7 +247,7 @@ export let proxifySet = ($, set) => {
 			if (writeSubs.size) {
 				// to differ set keys and set object props (set.add('x') vs set.x)
 				if (typeof prop !== 'symbol') {
-					prop = SymbolFor(prop)
+					prop = Symbol.for(prop)
 				}
 
 				for (let cb of writeSubs) {
@@ -263,8 +258,4 @@ export let proxifySet = ($, set) => {
 			return true
 		},
 	})
-
-	cache.set(set, proxy)
-
-	return proxy
 }

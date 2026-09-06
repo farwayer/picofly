@@ -1,20 +1,14 @@
 import {$Sym, NakedSym, naked} from '../store.js'
 
-let ReflectGet = Reflect.get
-let ReflectSet = Reflect.set
-let ReflectGetOwnPropertyDescriptor = Reflect.getOwnPropertyDescriptor
-let hasOwn = Object.hasOwn
-let isArray = Array.isArray
+// 12 bc
+export let obj = next => !next ? 50 : ($, val) =>
+	proxifyObj($, val)
 
-export let proxifyObj = ($, obj) => {
-	if (obj[$Sym] === $) {
-		return obj
-	}
+let proxifyObj = ($, obj) => {
+	let [proxify, writeSubs, readSubs] = $
+	let proxy, isArr = Array.isArray(obj)
 
-	let [proxify, cache, writeSubs, readSubs] = $
-	let isArr = isArray(obj)
-
-	let proxy = new Proxy(obj, {
+	return proxy = new Proxy(obj, {
 		get(obj, prop, receiver) {
 			if (typeof prop === 'symbol') {
 				if (prop === $Sym) {
@@ -26,7 +20,7 @@ export let proxifyObj = ($, obj) => {
 				}
 			}
 
-			let val = ReflectGet(obj, prop, receiver)
+			let val = Reflect.get(obj, prop, receiver)
 
 			for (let cb of readSubs) {
 				cb(obj, prop)
@@ -40,7 +34,7 @@ export let proxifyObj = ($, obj) => {
 
 			value = naked($, value)
 
-			let desc = ReflectGetOwnPropertyDescriptor(obj, prop)
+			let desc = Reflect.getOwnPropertyDescriptor(obj, prop)
 			let writable = desc && desc.writable
 			let prev = writable && desc.value
 
@@ -62,8 +56,8 @@ export let proxifyObj = ($, obj) => {
 			// accessor, non-writable, inherited prop, new prop,
 			// outer proxy, our proxy as prototype, foreign receiver
 
-			let prevArrLen = isArr && !desc && ReflectGet(obj, 'length', proxy)
-			let res = ReflectSet(obj, prop, value, receiver)
+			let prevArrLen = isArr && !desc && Reflect.get(obj, 'length', proxy)
+			let res = Reflect.set(obj, prop, value, receiver)
 
 			let accessorOrNonWritable = desc && !writable
 			if (accessorOrNonWritable || !res) {
@@ -76,11 +70,11 @@ export let proxifyObj = ($, obj) => {
 			if (
 				writeSubs.size && (
 				writable
-					? ReflectGet(obj, prop, proxy) !== prev
-					: hasOwn(obj, prop)
+					? Reflect.get(obj, prop, proxy) !== prev
+					: Object.hasOwn(obj, prop)
 			)) {
 				let arrLenChanged = isArr && !desc &&
-					ReflectGet(obj, 'length', proxy) !== prevArrLen
+					Reflect.get(obj, 'length', proxy) !== prevArrLen
 
 				for (let cb of writeSubs) {
 					cb(obj, prop)
@@ -109,8 +103,4 @@ export let proxifyObj = ($, obj) => {
 			return true
 		},
 	})
-
-	cache.set(obj, proxy)
-
-	return proxy
 }
