@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "target": "es2022",
+    "lib": ["es2022", "dom", "dom.iterable"],
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "jsx": "react-jsx",
+    "jsxImportSource": "preact",
+    "types": ["vite/client", "node"],
+    "paths": {
+      "~/*": ["./src/*"],
+      "~docs/*": ["../docs/*"],
+      "react": ["../node_modules/preact/compat"]
+    }
+  },
+  "include": ["src", "vite", "vite.config.ts"]
+}

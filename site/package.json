@@ -1,0 +1,25 @@
+{
+  "name": "picofly-site",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "vite",
+    "build": "vite build",
+    "check": "tsc --noEmit",
+    "check:deps": "node scripts/check-deps.mjs"
+  },
+  "dependencies": {
+    "picofly": "portal:..",
+    "preact": "11.0.0-rc.1",
+    "sugar-high": "^2.3.1"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.29.7",
+    "@mdx-js/rollup": "^3.1.1",
+    "@preact/preset-vite": "^2.10.6",
+    "@types/node": "^26.4.0",
+    "typescript": "^7.0.2",
+    "vite": "^8.2.2",
+    "wrangler": "^4.127.1"
+  }
+}
