@@ -1,12 +1,12 @@
 import {suite, test} from 'node:test'
 import * as assert from 'node:assert/strict'
 import {store, onWrite, onRead, lock} from '../src/store.js'
-import {objMapSetIgnoreSpecialsRef} from '../src/proxify/index.js'
-import {SizeSym} from '../src/proxify/set.js'
+import {obj, set} from '../src/rules/index.js'
+import {SizeSym} from '../src/rules/utils.js'
 
 
 suite('set', () => {
-  // TODO: test iterators key/val proxify
+  let rules = [obj, set]
 
   let colorSet = () => {
     return new Set()
@@ -16,11 +16,67 @@ suite('set', () => {
 
   let colorStore = () => {
     let m = colorSet()
-    let s = store(m, objMapSetIgnoreSpecialsRef)
+    let s = store(m, rules)
 
     return [m, s]
   }
 
+  // an object inside, to see the iterators proxify what they yield
+  let objStore = () => {
+    let item = {name: 'green'}
+    let m = new Set().add(item)
+    let s = store(m, rules)
+
+    return [m, s, item]
+  }
+
+
+  // both sides of `this === receiver ? set : this` in the method wrappers
+  test('foreign proxy on top', () => {
+    let [m, s] = colorStore()
+    let outer = new Proxy(s, {})
+
+    assert.equal(outer.has('green'), true)
+    assert.equal(outer.size, 2)
+    assert.equal([...outer.values()].length, 2)
+
+    let events = []
+    onWrite(s, (_, prop) => events.push(prop))
+
+    outer.add('red')
+    assert.ok(m.has('red'))
+    assert.ok(events.includes('red'))
+
+    outer.delete('red')
+    assert.equal(m.has('red'), false)
+  })
+
+  // same as in map: the wrapper may read a method after the store did
+  test('foreign proxy after a direct read', () => {
+    let [m, s] = colorStore()
+
+    assert.ok(s.has('green'))
+
+    let outer = new Proxy(s, {})
+
+    assert.ok(outer.has('green'))
+    assert.equal(outer.size, 2)
+    assert.deepEqual(Array.from(outer.values()), ['green', 'purple'])
+
+    outer.add('red')
+    assert.ok(m.has('red'))
+  })
+
+  test('method borrowed to a raw Set', () => {
+    let [, s] = colorStore()
+    let other = new Set().add('yellow')
+
+    assert.equal(s.has.call(other, 'yellow'), true)
+    assert.equal(s.has.call(other, 'green'), false)
+
+    s.add.call(other, 'blue')
+    assert.ok(other.has('blue'))
+  })
 
   test('create', () => {
     let [m, s] = colorStore()
@@ -37,18 +93,19 @@ suite('set', () => {
     assert.equal(s.size, m.size)
   })
 
-  test('size onRead', () => new Promise(resolve => {
+  test('size onRead', () => {
     let [m, s] = colorStore()
+    let hits = []
 
     onRead(s, (obj, key) => {
       assert.equal(obj, m)
-      assert.equal(key, SizeSym)
-      resolve()
+      hits.push(key)
     })
 
     s.size
-    assert.fail('unreachable')
-  }))
+
+    assert.deepEqual(hits, [SizeSym])
+  })
 
   test('has', () => {
     let [m, s] = colorStore()
@@ -59,25 +116,19 @@ suite('set', () => {
     assert.equal(sHas, mHas)
   })
 
-  test('has onRead', () => new Promise(resolve => {
+  test('has onRead', () => {
     let [m, s] = colorStore()
-
-    let called = 0
+    let hits = []
 
     onRead(s, (obj, key) => {
-      if (!called++) {
-        assert.equal(obj, m)
-        assert.equal(key, Symbol.for('has'))
-      } else {
-        assert.equal(obj, m)
-        assert.equal(key, 'green')
-        resolve()
-      }
+      assert.equal(obj, m)
+      hits.push(key)
     })
 
     s.has('green')
-    assert.fail('unreachable')
-  }))
+
+    assert.deepEqual(hits, ['green'])
+  })
 
   test('keys', () => {
     let [m, s] = colorStore()
@@ -88,24 +139,19 @@ suite('set', () => {
     assert.deepEqual(sKeys, mKeys)
   })
 
-  test('keys onRead', () => new Promise(resolve => {
+  test('keys onRead', () => {
     let [m, s] = colorStore()
-
-    let called = 0
+    let hits = []
 
     onRead(s, (obj, key) => {
-      if (!called++) {
-        assert.equal(obj, m)
-        assert.equal(key, Symbol.for('keys'))
-      } else {
-        assert.equal(obj, m)
-        resolve()
-      }
+      assert.equal(obj, m)
+      hits.push(key)
     })
 
     s.keys()
-    assert.fail('unreachable')
-  }))
+
+    assert.deepEqual(hits, [SizeSym])
+  })
 
   test('values', () => {
     let [m, s] = colorStore()
@@ -116,25 +162,19 @@ suite('set', () => {
     assert.deepEqual(sValues, mValues)
   })
 
-  test('values onRead', () => new Promise(resolve => {
+  test('values onRead', () => {
     let [m, s] = colorStore()
-
-    let called = 0
+    let hits = []
 
     onRead(s, (obj, key) => {
-      if (!called++) {
-        assert.equal(obj, m)
-        assert.equal(key, Symbol.for('values'))
-      } else {
-        assert.equal(obj, m)
-        assert.equal(key, SizeSym)
-        resolve()
-      }
+      assert.equal(obj, m)
+      hits.push(key)
     })
 
     s.values()
-    assert.fail('unreachable')
-  }))
+
+    assert.deepEqual(hits, [SizeSym])
+  })
 
   test('entries', () => {
     let [m, s] = colorStore()
@@ -145,65 +185,45 @@ suite('set', () => {
     assert.deepEqual(sEntries, mEntries)
   })
 
-  test('entries onRead', () => new Promise(resolve => {
+  test('entries onRead', () => {
     let [m, s] = colorStore()
-
-    let called = 0
+    let hits = []
 
     onRead(s, (obj, key) => {
-      if (!called++) {
-        assert.equal(obj, m)
-        assert.equal(key, Symbol.for('entries'))
-      } else {
-        assert.equal(obj, m)
-        assert.equal(key, SizeSym)
-        resolve()
-      }
+      assert.equal(obj, m)
+      hits.push(key)
     })
 
     s.entries()
-    assert.fail('unreachable')
-  }))
 
-  test('forEach', () => new Promise(resolve => {
-    let [m, s] = colorStore()
+    assert.deepEqual(hits, [SizeSym])
+  })
 
-  	let called = 0
+  test('forEach', () => {
+    let [, s] = colorStore()
+    let calls = []
 
     s.forEach((val, key, proxy) => {
-  		if (!called++) {
-  			assert.deepEqual(key, 'green')
-  			assert.deepEqual(val, 'green')
-  			assert.equal(proxy, s)
-  		} else {
-  			assert.deepEqual(key, 'purple')
-  			assert.deepEqual(val, 'purple')
-  			assert.equal(proxy, s)
-  			resolve()
-  		}
+      assert.equal(proxy, s)
+      calls.push([key, val])
     })
 
-    assert.fail('unreachable')
-  }))
+    assert.deepEqual(calls, [['green', 'green'], ['purple', 'purple']])
+  })
 
-  test('forEach onRead', () => new Promise(resolve => {
+  test('forEach onRead', () => {
     let [m, s] = colorStore()
-
-    let called = 0
+    let hits = []
 
     onRead(s, (obj, key) => {
-      if (!called++) {
-        assert.equal(obj, m)
-        assert.equal(key, Symbol.for('forEach'))
-      } else {
-        assert.equal(obj, m)
-        resolve()
-      }
+      assert.equal(obj, m)
+      hits.push(key)
     })
 
     s.forEach(() => {})
-    assert.fail('unreachable')
-  }))
+
+    assert.deepEqual(hits, [SizeSym])
+  })
 
   test('for..of', () => {
     let [m, s] = colorStore()
@@ -217,6 +237,66 @@ suite('set', () => {
   			assert.equal(val, 'purple')
   		}
     }
+  })
+
+  // what the iterators yield must be proxied, writes through it notify
+
+  test('values proxify', () => {
+    let [, s, item] = objStore()
+    let hits = []
+
+    onWrite(s, (_, prop) => hits.push(prop))
+
+    let [proxied] = Array.from(s.values())
+    proxied.name = 'red'
+
+    assert.equal(item.name, 'red')
+    assert.deepEqual(hits, ['name'])
+  })
+
+  test('keys proxify', () => {
+    let [, s, item] = objStore()
+    let hits = []
+
+    onWrite(s, (_, prop) => hits.push(prop))
+
+    let [proxied] = Array.from(s.keys())
+    proxied.name = 'red'
+
+    assert.equal(item.name, 'red')
+    assert.deepEqual(hits, ['name'])
+  })
+
+  // entries gives the same value twice, both sides proxied
+  test('entries proxify', () => {
+    let [, s, item] = objStore()
+    let hits = []
+
+    onWrite(s, (_, prop) => hits.push(prop))
+
+    let [[first, second]] = Array.from(s.entries())
+    assert.equal(first, second)
+
+    first.name = 'red'
+    second.color = 'blue'
+
+    assert.equal(item.name, 'red')
+    assert.equal(item.color, 'blue')
+    assert.deepEqual(hits, ['name', 'color'])
+  })
+
+  test('for..of proxify', () => {
+    let [, s, item] = objStore()
+    let hits = []
+
+    onWrite(s, (_, prop) => hits.push(prop))
+
+    for (let proxied of s) {
+      proxied.name = 'red'
+    }
+
+    assert.equal(item.name, 'red')
+    assert.deepEqual(hits, ['name'])
   })
 
   test('delete', () => {
@@ -240,36 +320,32 @@ suite('set', () => {
   	assert.equal(m.size, 2)
   })
 
-  test('delete onRead', () => new Promise(resolve => {
+  test('delete onRead', () => {
     let [m, s] = colorStore()
+    let hits = []
 
     onRead(s, (obj, key) => {
       assert.equal(obj, m)
-      assert.equal(key, Symbol.for('delete'))
-      resolve()
+      hits.push(key)
     })
 
     s.delete('green')
 
-    assert.fail('unreachable')
-  }))
+    assert.deepEqual(hits, [])
+  })
 
   test('delete onWrite', () => {
-    let [_, s] = colorStore()
-
-    let c, cSize
+    let [m, s] = colorStore()
+    let hits = []
 
     onWrite(s, (obj, key) => {
-      switch (key) {
-        case 'green': return c = true
-        case SizeSym: return cSize = true
-      }
+      assert.equal(obj, m)
+      hits.push(key)
     })
 
     s.delete('green')
 
-    assert.ok(c, 'c')
-    assert.ok(cSize, 'size')
+    assert.deepEqual(hits, [SizeSym, 'green'])
   })
 
   test('delete onWrite non-exist', () => {
@@ -290,38 +366,32 @@ suite('set', () => {
     assert.equal(m.size, 0)
   })
 
-  test('clear onRead', () => new Promise(resolve => {
+  test('clear onRead', () => {
     let [m, s] = colorStore()
+    let hits = []
 
     onRead(s, (obj, key) => {
       assert.equal(obj, m)
-      assert.equal(key, Symbol.for('clear'))
-      resolve()
+      hits.push(key)
     })
 
     s.clear()
 
-    assert.fail('unreachable')
-  }))
+    assert.deepEqual(hits, [])
+  })
 
   test('clear onWrite', () => {
     let [m, s] = colorStore()
-
-    let c1, c2, cSize
+    let hits = []
 
     onWrite(s, (obj, key) => {
-      switch (key) {
-        case 'green': return c1 = true
-        case 'purple': return c2 = true
-        case SizeSym: return cSize = true
-      }
+      assert.equal(obj, m)
+      hits.push(key)
     })
 
     s.clear()
 
-    assert.ok(c1, 'c1')
-    assert.ok(c2, 'c2')
-    assert.ok(cSize, 'size')
+    assert.deepEqual(hits, [SizeSym, 'green', 'purple'])
   })
 
   test('clear onWrite empty', () => {
@@ -346,36 +416,32 @@ suite('set', () => {
     assert.deepEqual(Array.from(m), ['green', 'purple', 'blue'])
   })
 
-  test('add onRead', () => new Promise(resolve => {
+  test('add onRead', () => {
     let [m, s] = colorStore()
+    let hits = []
 
     onRead(s, (obj, key) => {
       assert.equal(obj, m)
-      assert.equal(key, Symbol.for('add'))
-      resolve()
+      hits.push(key)
     })
 
     s.add('blue')
 
-    assert.fail('unreachable')
-  }))
+    assert.deepEqual(hits, [])
+  })
 
   test('add onWrite new', () => {
-    let [_, s] = colorStore()
-
-    let c, cSize
+    let [m, s] = colorStore()
+    let hits = []
 
     onWrite(s, (obj, key) => {
-      switch (key) {
-        case 'blue': return c = true
-        case SizeSym: return cSize = true
-      }
+      assert.equal(obj, m)
+      hits.push(key)
     })
 
     s.add('blue')
 
-    assert.ok(c, 'c')
-    assert.ok(cSize, 'size')
+    assert.deepEqual(hits, [SizeSym, 'blue'])
   })
 
   test('add onWrite same', () => {
@@ -397,40 +463,19 @@ suite('set', () => {
     assert.equal(s.test, 1)
   })
 
-  test('set obj prop onWrite', () => new Promise(resolve => {
+  test('set obj prop onWrite', () => {
     let [m, s] = colorStore()
+    let hits = []
 
     onWrite(s, (obj, key) => {
       assert.equal(obj, m)
-      assert.equal(key, Symbol.for('test'))
-      resolve()
+      hits.push(key)
     })
 
     s.test = 1
-    assert.fail('unreachable')
-  }))
 
-  test('define obj prop', () => {
-    let [m, s] = colorStore()
-
-    Object.defineProperty(s, 'test', {value: 1})
-    assert.equal(m.test, 1)
-    assert.equal(s.test, 1)
+    assert.deepEqual(hits, [Symbol.for('test')])
   })
-
-  test('define obj prop onWrite', () => new Promise(resolve => {
-    let [m, s] = colorStore()
-
-    onWrite(s, (obj, key) => {
-      assert.equal(obj, m)
-      assert.equal(key, Symbol.for('test'))
-      resolve()
-    })
-
-    Object.defineProperty(s, 'test', {value: 1})
-    assert.fail('unreachable')
-  }))
-
 
   test('delete obj prop', () => {
     let [m, s] = colorStore()
@@ -444,19 +489,122 @@ suite('set', () => {
     assert.ok(!('test' in s))
   })
 
-  test('delete obj prop onWrite', () => new Promise(resolve => {
+  test('delete obj prop onWrite', () => {
     let [m, s] = colorStore()
     m.test = 1
+    let hits = []
 
     onWrite(s, (obj, key) => {
       assert.equal(obj, m)
-      assert.equal(key, Symbol.for('test'))
-      resolve()
+      hits.push(key)
     })
 
     delete s.test
-    assert.fail('unreachable')
-  }))
+
+    assert.deepEqual(hits, [Symbol.for('test')])
+  })
+
+  test('set obj prop replace onWrite', () => {
+    let [m, s] = colorStore()
+    s.test = 1
+
+    let hits = []
+    onWrite(s, (_, prop) => hits.push(prop))
+    s.test = 2
+
+    assert.equal(m.test, 2)
+    assert.deepEqual(hits, [Symbol.for('test')])
+  })
+
+  test('set obj prop same onWrite', () => {
+    let [, s] = colorStore()
+    s.test = 1
+
+    let hits = []
+    onWrite(s, (_, prop) => hits.push(prop))
+    s.test = 1
+
+    assert.deepEqual(hits, [])
+  })
+
+  test('get obj prop onRead', () => {
+    let [m, s] = colorStore()
+    m.test = 1
+
+    let hits = []
+    onRead(s, (obj, prop) => {
+      assert.equal(obj, m)
+      hits.push(prop)
+    })
+
+    assert.equal(s.test, 1)
+    assert.deepEqual(hits, [Symbol.for('test')])
+  })
+
+  test('obj prop object value is proxified', () => {
+    let [m, s] = colorStore()
+    m.test = {n: 1}
+
+    let hits = []
+    onWrite(s, (_, prop) => hits.push(prop))
+    s.test.n = 2
+
+    assert.notEqual(s.test, m.test)
+    assert.equal(m.test.n, 2)
+    assert.deepEqual(hits, ['n'])
+  })
+
+  test('obj prop stores the value raw', () => {
+    let raw = {n: 1}
+    let set = new Set([raw])
+    let s = store(set, rules)
+    let [item] = Array.from(s.values())
+
+    s.item = item
+
+    assert.equal(set.item, raw)
+  })
+
+  // props are namespaced with Symbol.for, so set.x and set.has('x')
+  // stay different subscriptions
+  test('obj prop and set element with the same name', () => {
+    let [m, s] = colorStore()
+    s.add('x')
+
+    let hits = []
+    onWrite(s, (_, prop) => hits.push(prop))
+    s.x = 2
+
+    assert.deepEqual(hits, [Symbol.for('x')])
+    assert.ok(s.has('x'))
+    assert.equal(m.x, 2)
+  })
+
+  test('obj prop and set element with the same name onRead', () => {
+    let [, s] = colorStore()
+    s.add('x')
+    s.x = 2
+
+    let hits = []
+    onRead(s, (_, prop) => hits.push(prop))
+
+    assert.ok(s.has('x'))
+    assert.equal(s.x, 2)
+
+    assert.deepEqual(hits, ['x', Symbol.for('x')])
+  })
+
+  test('symbol obj prop is not namespaced', () => {
+    let [m, s] = colorStore()
+    let sym = Symbol('test')
+
+    let hits = []
+    onWrite(s, (_, prop) => hits.push(prop))
+    s[sym] = 1
+
+    assert.equal(m[sym], 1)
+    assert.deepEqual(hits, [sym])
+  })
 
   test('lock', () => {
     let [_, s] = colorStore()
@@ -481,11 +629,43 @@ suite('set', () => {
     }, /"store locked!" is not a function/)
 
     assert.throws(() => {
-      Object.defineProperty(s, 'test2', {value: 1})
-    }, /"store locked!" is not a function/)
-
-    assert.throws(() => {
       delete s.test
     }, /"store locked!" is not a function/)
+  })
+  // same as in map: an element read back is our proxy, adding it again must not
+  // put a second entry into the raw Set
+  test('add stores the value raw', () => {
+    let raw = {n: 1}
+    let set = new Set([raw])
+    let s = store(set, rules)
+    let [item] = Array.from(s.values())
+
+    s.add(item)
+
+    assert.equal(set.size, 1)
+    assert.ok(set.has(raw))
+  })
+
+  test('add of an element just read notifies nothing', () => {
+    let set = new Set([{n: 1}])
+    let s = store(set, rules)
+    let hits = []
+    let [item] = Array.from(s.values())
+
+    onWrite(s, (_, prop) => hits.push(prop))
+    s.add(item)
+
+    assert.deepEqual(hits, [])
+  })
+
+  test('has and delete take a proxied element', () => {
+    let raw = {n: 1}
+    let set = new Set([raw])
+    let s = store(set, rules)
+    let [item] = Array.from(s.values())
+
+    assert.ok(s.has(item))
+    assert.ok(s.delete(item))
+    assert.equal(set.size, 0)
   })
 })

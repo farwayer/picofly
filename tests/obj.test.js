@@ -1,14 +1,23 @@
 import {suite, test} from 'node:test'
 import * as assert from 'node:assert/strict'
-import {create, obj, onWrite, onRead, lock, unlock} from 'picofly'
+import {store, obj, onWrite, onRead, lock, unlock} from 'picofly'
 
 
 suite('obj', () => {
   let timerStore = () => {
     let o = {timer: {ticks: 0}}
-    let s = create(o, obj)
+    let s = store(o, [obj])
     return [o, s]
   }
+
+  test('symbol prop', () => {
+    let sym = Symbol('mine')
+    let o = {[sym]: {n: 1}}
+    let s = store(o, [obj])
+
+    assert.equal(s[sym].n, 1)
+    assert.notEqual(s[sym], o[sym])
+  })
 
   test('create', () => {
     let [o, s] = timerStore()
@@ -25,14 +34,6 @@ suite('obj', () => {
     assert.equal(s.timer.ticks, 1)
   })
 
-  test('define', () => {
-    let [o, s] = timerStore()
-
-    Object.defineProperty(s.timer, 'interval', {value: 1000})
-    assert.equal(o.timer.interval, 1000)
-    assert.equal(s.timer.interval, 1000)
-  })
-
   test('delete', () => {
     let [o, s] = timerStore()
 
@@ -41,35 +42,37 @@ suite('obj', () => {
     assert.ok(!('ticks' in o.timer))
   })
 
-  test('onWrite set root', () => new Promise(resolve => {
+  test('onWrite set root', () => {
     let [o, s] = timerStore()
+    let hits = []
 
     onWrite(s, (obj, key) => {
       assert.equal(obj, o)
-      assert.equal(key, 'show')
-      resolve()
+      hits.push(key)
     })
 
     s.show = true
-    assert.fail('unreachable')
-  }))
 
-  test('onWrite set nested', () => new Promise(resolve => {
+    assert.deepEqual(hits, ['show'])
+  })
+
+  test('onWrite set nested', () => {
     let [o, s] = timerStore()
+    let hits = []
 
     onWrite(s, (obj, key) => {
       assert.equal(obj, o.timer)
-      assert.equal(key, 'ticks')
-      resolve()
+      hits.push(key)
     })
 
     s.timer.ticks = 1
-    assert.fail('unreachable')
-  }))
+
+    assert.deepEqual(hits, ['ticks'])
+  })
 
   test('onWrite set int key no length', () => {
     let o = {}
-    let s = create(o, obj)
+    let s = store(o, [obj])
 
     let set = false
 
@@ -104,31 +107,19 @@ suite('obj', () => {
     s.timer = s.timer
   })
 
-  test('onWrite define nested', () => new Promise(resolve => {
+  test('onWrite delete nested', () => {
     let [o, s] = timerStore()
+    let hits = []
 
     onWrite(s, (obj, key) => {
       assert.equal(obj, o.timer)
-      assert.equal(key, 'interval')
-      resolve()
-    })
-
-    Object.defineProperty(s.timer, 'interval', {value: 1000})
-    assert.fail('unreachable')
-  }))
-
-  test('onWrite delete nested', () => new Promise(resolve => {
-    let [o, s] = timerStore()
-
-    onWrite(s, (obj, key) => {
-      assert.equal(obj, o.timer)
-      assert.equal(key, 'ticks')
-      resolve()
+      hits.push(key)
     })
 
     delete s.timer.ticks
-    assert.fail('unreachable')
-  }))
+
+    assert.deepEqual(hits, ['ticks'])
+  })
 
   test('lock', () => {
     let [_, s] = timerStore()
@@ -137,10 +128,6 @@ suite('obj', () => {
 
     assert.throws(() => {
       s.timer.ticks = 1
-    }, /"store locked!" is not a function/)
-
-    assert.throws(() => {
-      Object.defineProperty(s.timer, 'interval', {value: 1000})
     }, /"store locked!" is not a function/)
 
     assert.throws(() => {
@@ -160,36 +147,69 @@ suite('obj', () => {
     assert.equal(s.timer.ticks, 1)
   })
 
-  test('onRead root', () => new Promise(resolve => {
+  test('onRead root', () => {
     let [o, s] = timerStore()
+    let hits = []
 
     onRead(s, (obj, key) => {
       assert.equal(obj, o)
-      assert.equal(key, 'timer')
-      resolve()
+      hits.push(key)
     })
 
     s.timer
-    assert.fail('unreachable')
-  }))
 
-  test('onRead nested', () => new Promise(resolve => {
+    assert.deepEqual(hits, ['timer'])
+  })
+
+  test('onRead nested', () => {
     let [o, s] = timerStore()
+    let hits = []
 
-    let called = 0
-
-    onRead(s, (obj, key) => {
-      if (!called++) {
-        assert.equal(obj, o)
-        assert.equal(key, 'timer')
-      } else {
-        assert.equal(obj, o.timer)
-        assert.equal(key, 'ticks')
-        resolve()
-      }
-    })
+    onRead(s, (obj, key) => hits.push([obj, key]))
 
     s.timer.ticks
-    assert.fail('unreachable')
-  }))
+
+    assert.deepEqual(hits.map(([, key]) => key), ['timer', 'ticks'])
+    assert.equal(hits[0][0], o)
+    assert.equal(hits[1][0], o.timer)
+  })
+
+  test('symbol key write', () => {
+    let sym = Symbol('mine')
+    let o = {}
+    let s = store(o, [obj])
+    let hits = []
+
+    onWrite(s, (_, prop) => hits.push(prop))
+    s[sym] = 1
+
+    assert.deepEqual(hits, [sym])
+    assert.equal(o[sym], 1)
+  })
+
+  test('Object.assign notifies every key', () => {
+    let o = {a: 0}
+    let s = store(o, [obj])
+    let hits = []
+
+    onWrite(s, (_, prop) => hits.push(prop))
+    Object.assign(s, {a: 1, b: 2})
+
+    assert.deepEqual(hits, ['a', 'b'])
+    assert.deepEqual(o, {a: 1, b: 2})
+  })
+
+  test('Reflect.set with a foreign receiver leaves the store alone', () => {
+    let o = {a: 0}
+    let s = store(o, [obj])
+    let other = {}
+    let hits = []
+
+    onWrite(s, (_, prop) => hits.push(prop))
+
+    assert.ok(Reflect.set(s, 'a', 5, other))
+    assert.deepEqual(hits, [])
+    assert.equal(o.a, 0)
+    assert.equal(other.a, 5)
+  })
 })
