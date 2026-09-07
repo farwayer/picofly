@@ -1,5 +1,5 @@
 import {$Sym, NakedSym, naked} from '../store.js'
-import {SizeSym} from './utils.js'
+import {SizeSym, PairIterProto, iter} from './utils.js'
 
 // 30 bc
 export let set = next => !next ? 30 : ($, val) =>
@@ -23,7 +23,7 @@ let proxifySet = ($, set) => {
 				}
 			}
 
-			let val, iterateEntry
+			let val, iterProto
 
 			switch (prop) {
 				case 'size': {
@@ -123,7 +123,7 @@ let proxifySet = ($, set) => {
 				}
 
 				case 'entries':
-					iterateEntry = true
+					iterProto = PairIterProto
 				// falls through
 				case 'keys':
 				case 'values':
@@ -136,21 +136,7 @@ let proxifySet = ($, set) => {
 						cb(set, SizeSym)
 					}
 
-					return {
-						[Symbol.iterator]() {
-							return this
-						},
-						next() {
-							let next = valuesIt.next()
-
-							if (!next.done) {
-								let nextValue = proxify($, next.value)
-								next.value = iterateEntry ? [nextValue, nextValue] : nextValue
-							}
-
-							return next
-						},
-					}
+					return iter($, valuesIt, iterProto)
 				}
 
 				// Set is js object so it's possible to get some props

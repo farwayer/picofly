@@ -1,5 +1,5 @@
 import {$Sym, NakedSym, naked} from '../store.js'
-import {SizeSym, ValuesSym} from './utils.js'
+import {ValuesSym, EntriesIterProto, SizeSym, iter} from './utils.js'
 
 // 30 bc
 export let map = next => !next ? 20 : ($, val) =>
@@ -53,20 +53,7 @@ let proxifyMap = ($, map) => {
 						cb(map, SizeSym)
 					}
 
-					return {
-						[Symbol.iterator]() {
-							return this
-						},
-						next() {
-							let next = keysIt.next()
-
-							if (!next.done) {
-								next.value = proxify($, next.value)
-							}
-
-							return next
-						},
-					}
+					return iter($, keysIt)
 				}
 
 				case 'values': return function () {
@@ -77,20 +64,7 @@ let proxifyMap = ($, map) => {
 						cb(map, ValuesSym)
 					}
 
-					return {
-						[Symbol.iterator]() {
-							return this
-						},
-						next() {
-							let next = valuesIt.next()
-
-							if (!next.done) {
-								next.value = proxify($, next.value)
-							}
-
-							return next
-						},
-					}
+					return iter($, valuesIt)
 				}
 
 				case 'has': return function (key) {
@@ -206,24 +180,7 @@ let proxifyMap = ($, map) => {
 						cb(map, ValuesSym)
 					}
 
-					return {
-						[Symbol.iterator]() {
-							return this
-						},
-						next() {
-							let next = entriesIt.next()
-
-							if (!next.done) {
-								let [key, value] = next.value
-								next.value = [
-									proxify($, key),
-									proxify($, value),
-								]
-							}
-
-							return next
-						}
-					}
+					return iter($, entriesIt, EntriesIterProto)
 				}
 
 				// Map is js object so it's possible to get some props
