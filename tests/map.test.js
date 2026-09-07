@@ -800,4 +800,44 @@ suite('map', () => {
     assert.deepEqual(ours, ['n'])
     assert.deepEqual(theirs, ['n'])
   })
+
+  // === says NaN differs from NaN and -0 equals +0, Object.is has it right
+  test('set NaN over NaN notifies nothing', () => {
+    let m = new Map([['1', NaN]])
+    let s = store(m, rules)
+    let hits = []
+
+    onWrite(s, (_, prop) => hits.push(prop))
+
+    s.set('1', NaN)
+
+    assert.deepEqual(hits, [])
+  })
+
+  test('set minus zero over plus zero is written', () => {
+    let m = new Map([['1', 0]])
+    let s = store(m, rules)
+    let hits = []
+
+    onWrite(s, (_, prop) => hits.push(prop))
+
+    s.set('1', -0)
+
+    assert.ok(Object.is(m.get('1'), -0))
+    assert.deepEqual(hits, [ValuesSym, '1'])
+  })
+
+  test('prop NaN over NaN notifies nothing', () => {
+    let m = new Map()
+    m.tag = NaN
+
+    let s = store(m, rules)
+    let hits = []
+
+    onWrite(s, (_, prop) => hits.push(prop))
+
+    s.tag = NaN
+
+    assert.deepEqual(hits, [])
+  })
 })

@@ -240,6 +240,31 @@ suite('obj', () => {
     assert.deepEqual(theirs, ['n'])
   })
 
+  // === says NaN differs from NaN and -0 equals +0, Object.is has it right
+  test('NaN over NaN notifies nothing', () => {
+    let s = store({x: NaN}, [obj])
+    let hits = []
+
+    onWrite(s, (_, prop) => hits.push(prop))
+
+    s.x = NaN
+
+    assert.deepEqual(hits, [])
+  })
+
+  test('minus zero over plus zero is written', () => {
+    let o = {x: 0}
+    let s = store(o, [obj])
+    let hits = []
+
+    onWrite(s, (_, prop) => hits.push(prop))
+
+    s.x = -0
+
+    assert.ok(Object.is(o.x, -0))
+    assert.deepEqual(hits, ['x'])
+  })
+
   test('lock', () => {
     let [_, s] = timerStore()
 

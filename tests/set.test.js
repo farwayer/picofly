@@ -750,4 +750,47 @@ suite('set', () => {
     assert.deepEqual(ours, ['n'])
     assert.deepEqual(theirs, ['n'])
   })
+
+  // add compares by SameValueZero, like a real Set does
+  test('add NaN twice notifies once', () => {
+    let m = new Set()
+    let s = store(m, rules)
+    let hits = []
+
+    onWrite(s, (_, prop) => hits.push(prop))
+
+    s.add(NaN)
+    s.add(NaN)
+
+    assert.equal(m.size, 1)
+    assert.deepEqual(hits, [SizeSym, NaN])
+  })
+
+  test('add minus zero over plus zero notifies nothing', () => {
+    let m = new Set([0])
+    let s = store(m, rules)
+    let hits = []
+
+    onWrite(s, (_, prop) => hits.push(prop))
+
+    s.add(-0)
+
+    assert.equal(m.size, 1)
+    assert.deepEqual(hits, [])
+  })
+
+  // === says NaN differs from NaN and -0 equals +0, Object.is has it right
+  test('prop NaN over NaN notifies nothing', () => {
+    let m = new Set()
+    m.tag = NaN
+
+    let s = store(m, rules)
+    let hits = []
+
+    onWrite(s, (_, prop) => hits.push(prop))
+
+    s.tag = NaN
+
+    assert.deepEqual(hits, [])
+  })
 })

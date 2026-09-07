@@ -40,7 +40,7 @@ let proxifyObj = ($, obj) => {
 
 			// own data prop
 			if (writable && receiver === proxy) {
-				if (value === prev) {
+				if (Object.is(value, prev)) {
 					return true
 				}
 

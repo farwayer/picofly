@@ -106,7 +106,7 @@ let proxifyMap = ($, map) => {
 					let has = target.has(key)
 					let prev = has && target.get(key)
 
-					if (has && value === prev) {
+					if (has && Object.is(value, prev)) {
 						return this
 					}
 
@@ -212,7 +212,7 @@ let proxifyMap = ($, map) => {
 
 			// own data prop
 			if (writable && receiver === proxy) {
-				if (value === prev) {
+				if (Object.is(value, prev)) {
 					return true
 				}
 
