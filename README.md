@@ -4,7 +4,7 @@ _Lightweight handy state manager, simple, fast and built with ❤️_
 
 [![NPM version](https://img.shields.io/npm/v/picofly.svg)](https://www.npmjs.com/package/picofly)
 
-<img src="docs/logo.webp" height="192" align="right">
+<img src="docs/logo.svg" height="192" align="right">
 
 ⚡ **Fast**: optimized to be as fast as possible  
 🤏 **Tiny**: *513 bytes* in minimal config, *701 bytes* with React support  
