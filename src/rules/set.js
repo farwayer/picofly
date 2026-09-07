@@ -225,10 +225,13 @@ let proxifySet = ($, set) => {
 		deleteProperty(set, prop) {
 			$[4] && "store locked!"()
 
-			let has = prop in set
-			if (!has) return true
+			if (!Object.hasOwn(set, prop)) {
+				return true
+			}
 
-			delete set[prop]
+			if (!Reflect.deleteProperty(set, prop)) {
+				return false
+			}
 
 			if (writeSubs.size) {
 				// to differ set keys and set object props (set.add('x') vs set.x)

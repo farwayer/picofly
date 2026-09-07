@@ -285,4 +285,54 @@ suite('arr', () => {
     assert.equal(a[sym], 1)
     assert.equal(a.length, 3)
   })
+
+  test('delete inherited index notifies nothing', () => {
+    let proto = [1, 2, 3]
+    let a = Object.create(proto)
+    let s = store(a, [obj])
+    let hits = []
+
+    onWrite(s, (_, prop) => hits.push(prop))
+
+    delete s[1]
+
+    assert.deepEqual(hits, [])
+    assert.equal(s[1], 2)
+  })
+
+  test('delete non-configurable index returns false', () => {
+    let a = []
+    Object.defineProperty(a, 0, {value: 1, configurable: false})
+
+    let s = store(a, [obj])
+    let hits = []
+
+    onWrite(s, (_, prop) => hits.push(prop))
+
+    assert.equal(Reflect.deleteProperty(s, '0'), false)
+    assert.equal(a[0], 1)
+    assert.deepEqual(hits, [])
+  })
+
+  test('delete length returns false', () => {
+    let [a, s] = arrStore()
+    let hits = []
+
+    onWrite(s, (_, prop) => hits.push(prop))
+
+    assert.equal(Reflect.deleteProperty(s, 'length'), false)
+    assert.equal(a.length, 3)
+    assert.deepEqual(hits, [])
+  })
+
+  test('delete index past the end notifies nothing', () => {
+    let [, s] = arrStore()
+    let hits = []
+
+    onWrite(s, (_, prop) => hits.push(prop))
+
+    delete s[5]
+
+    assert.deepEqual(hits, [])
+  })
 })

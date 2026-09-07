@@ -10,7 +10,7 @@ export let store = (state, rules) => {
 	let proxify = ($, val, res) =>
 		typeof val === 'object' && val
 			? $[3].get(val) || ( // cached
-				val[$Sym] === $ // proxied (only in one case: our proxy returned from getter)
+				val[$Sym] === $ // proxied (only in one case: getter returned our proxy)
 					? val
 					: (
 						// cache only if not the same obj returned from rules

@@ -91,10 +91,13 @@ let proxifyObj = ($, obj) => {
 		deleteProperty(obj, prop) {
 			$[4] && "store locked!"()
 
-			let has = prop in obj
-			if (!has) return true
+			if (!Object.hasOwn(obj, prop)) {
+				return true
+			}
 
-			delete obj[prop]
+			if (!Reflect.deleteProperty(obj, prop)) {
+				return false
+			}
 
 			for (let cb of writeSubs) {
 				cb(obj, prop)

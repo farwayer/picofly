@@ -121,6 +121,100 @@ suite('obj', () => {
     assert.deepEqual(hits, ['ticks'])
   })
 
+  test('onWrite delete inherited notifies nothing', () => {
+    let proto = {inherited: 1}
+    let o = Object.create(proto)
+    let s = store(o, [obj])
+    let hits = []
+
+    onWrite(s, (_, key) => hits.push(key))
+
+    delete s.inherited
+
+    assert.deepEqual(hits, [])
+    assert.equal(s.inherited, 1)
+  })
+
+  test('onWrite delete missing notifies nothing', () => {
+    let [, s] = timerStore()
+    let hits = []
+
+    onWrite(s, (_, key) => hits.push(key))
+
+    delete s.nothing
+
+    assert.deepEqual(hits, [])
+  })
+
+  test('delete non-configurable returns false', () => {
+    let o = {}
+    Object.defineProperty(o, 'fixed', {value: 1, configurable: false})
+
+    let s = store(o, [obj])
+    let hits = []
+
+    onWrite(s, (_, key) => hits.push(key))
+
+    assert.equal(Reflect.deleteProperty(s, 'fixed'), false)
+    assert.equal(o.fixed, 1)
+    assert.deepEqual(hits, [])
+  })
+
+  test('delete symbol prop notifies', () => {
+    let sym = Symbol('mine')
+    let o = {[sym]: 1}
+    let s = store(o, [obj])
+    let hits = []
+
+    onWrite(s, (_, key) => hits.push(key))
+
+    delete s[sym]
+
+    assert.deepEqual(hits, [sym])
+    assert.equal(sym in o, false)
+  })
+
+  test('delete own prop uncovers the inherited one', () => {
+    let o = Object.create({x: 'proto'})
+    o.x = 'own'
+
+    let s = store(o, [obj])
+    let hits = []
+
+    onWrite(s, (_, key) => hits.push(key))
+
+    delete s.x
+
+    assert.deepEqual(hits, ['x'])
+    assert.equal(s.x, 'proto')
+  })
+
+  test('delete on a sealed object returns false', () => {
+    let o = Object.seal({x: 1})
+    let s = store(o, [obj])
+    let hits = []
+
+    onWrite(s, (_, key) => hits.push(key))
+
+    assert.equal(Reflect.deleteProperty(s, 'x'), false)
+    assert.equal(o.x, 1)
+    assert.deepEqual(hits, [])
+  })
+
+  // preventExtensions leaves props configurable, so the delete goes through
+  test('delete on a non-extensible object works', () => {
+    let o = Object.preventExtensions({x: 1})
+    let s = store(o, [obj])
+    let hits = []
+
+    onWrite(s, (_, key) => hits.push(key))
+
+    delete s.x
+
+    assert.deepEqual(hits, ['x'])
+    assert.equal('x' in o, false)
+  })
+
   test('lock', () => {
     let [_, s] = timerStore()
 

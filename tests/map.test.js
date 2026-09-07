@@ -719,4 +719,63 @@ suite('map', () => {
     assert.equal(s.get(key), 'a')
     assert.ok(s.has(key))
   })
+
+  test('delete inherited prop notifies nothing', () => {
+    class MyMap extends Map {}
+    MyMap.prototype.tag = 'x'
+
+    let m = new MyMap()
+    let s = store(m, rules)
+    let hits = []
+
+    onWrite(s, (_, prop) => hits.push(prop))
+
+    delete s.tag
+
+    assert.deepEqual(hits, [])
+    assert.equal(s.tag, 'x')
+  })
+
+  test('delete non-configurable prop returns false', () => {
+    let m = new Map()
+    Object.defineProperty(m, 'tag', {value: 'x', configurable: false})
+
+    let s = store(m, rules)
+    let hits = []
+
+    onWrite(s, (_, prop) => hits.push(prop))
+
+    assert.equal(Reflect.deleteProperty(s, 'tag'), false)
+    assert.equal(m.tag, 'x')
+    assert.deepEqual(hits, [])
+  })
+
+  test('delete an inherited method leaves it working', () => {
+    let m = new Map([[1, 1]])
+    let s = store(m, rules)
+    let hits = []
+
+    onWrite(s, (_, prop) => hits.push(prop))
+
+    delete s.get
+
+    assert.deepEqual(hits, [])
+    assert.equal(s.get(1), 1)
+  })
+
+  test('delete symbol prop notifies with the symbol', () => {
+    let sym = Symbol('mine')
+    let m = new Map([[1, 1]])
+    m[sym] = 1
+
+    let s = store(m, rules)
+    let hits = []
+
+    onWrite(s, (_, prop) => hits.push(prop))
+
+    delete s[sym]
+
+    assert.deepEqual(hits, [sym])
+    assert.equal(sym in m, false)
+  })
 })

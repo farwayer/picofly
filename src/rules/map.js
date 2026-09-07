@@ -268,10 +268,13 @@ let proxifyMap = ($, map) => {
 		deleteProperty(map, prop) {
 			$[4] && "store locked!"()
 
-			let has = prop in map
-			if (!has) return true
+			if (!Object.hasOwn(map, prop)) {
+				return true
+			}
 
-			delete map[prop]
+			if (!Reflect.deleteProperty(map, prop)) {
+				return false
+			}
 
 			if (writeSubs.size) {
 				// to differ map keys and map object props (map.get('x') vs map.x)

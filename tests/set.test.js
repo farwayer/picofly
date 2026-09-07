@@ -668,4 +668,63 @@ suite('set', () => {
     assert.ok(s.delete(item))
     assert.equal(set.size, 0)
   })
+
+  test('delete inherited prop notifies nothing', () => {
+    class MySet extends Set {}
+    MySet.prototype.tag = 'x'
+
+    let m = new MySet()
+    let s = store(m, rules)
+    let hits = []
+
+    onWrite(s, (_, prop) => hits.push(prop))
+
+    delete s.tag
+
+    assert.deepEqual(hits, [])
+    assert.equal(s.tag, 'x')
+  })
+
+  test('delete non-configurable prop returns false', () => {
+    let m = new Set()
+    Object.defineProperty(m, 'tag', {value: 'x', configurable: false})
+
+    let s = store(m, rules)
+    let hits = []
+
+    onWrite(s, (_, prop) => hits.push(prop))
+
+    assert.equal(Reflect.deleteProperty(s, 'tag'), false)
+    assert.equal(m.tag, 'x')
+    assert.deepEqual(hits, [])
+  })
+
+  test('delete an inherited method leaves it working', () => {
+    let m = new Set([1])
+    let s = store(m, rules)
+    let hits = []
+
+    onWrite(s, (_, prop) => hits.push(prop))
+
+    delete s.has
+
+    assert.deepEqual(hits, [])
+    assert.equal(s.has(1), true)
+  })
+
+  test('delete symbol prop notifies with the symbol', () => {
+    let sym = Symbol('mine')
+    let m = new Set([1])
+    m[sym] = 1
+
+    let s = store(m, rules)
+    let hits = []
+
+    onWrite(s, (_, prop) => hits.push(prop))
+
+    delete s[sym]
+
+    assert.deepEqual(hits, [sym])
+    assert.equal(sym in m, false)
+  })
 })
