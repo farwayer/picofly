@@ -215,6 +215,31 @@ suite('obj', () => {
     assert.equal('x' in o, false)
   })
 
+  // unwrapping it would cut the object out of the other store, so it stays
+  // a proxy in our data and a write notifies both sides
+  test('a proxy from another store keeps its own tracking', () => {
+    let raw = {n: 1}
+    let other = store(raw, [obj])
+    let s = store({}, [obj])
+
+    let ours = []
+    let theirs = []
+
+    onWrite(s, (_, prop) => ours.push(prop))
+    onWrite(other, (obj, prop) => theirs.push(prop))
+
+    s.x = other
+
+    assert.deepEqual(ours, ['x'])
+    assert.deepEqual(theirs, [])
+
+    s.x.n = 2
+
+    assert.equal(raw.n, 2)
+    assert.deepEqual(ours, ['x', 'n'])
+    assert.deepEqual(theirs, ['n'])
+  })
+
   test('lock', () => {
     let [_, s] = timerStore()
 

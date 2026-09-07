@@ -778,4 +778,26 @@ suite('map', () => {
     assert.deepEqual(hits, [sym])
     assert.equal(sym in m, false)
   })
+
+  // unwrapping it would cut the object out of the other store, so it stays
+  // a proxy in our data and a write notifies both sides
+  test('a proxy from another store keeps its own tracking', () => {
+    let raw = {n: 1}
+    let other = store(raw, [obj])
+    let s = store(new Map(), rules)
+
+    let ours = []
+    let theirs = []
+
+    onWrite(other, (_, prop) => theirs.push(prop))
+
+    s.set('x', other)
+    onWrite(s, (_, prop) => ours.push(prop))
+
+    s.get('x').n = 2
+
+    assert.equal(raw.n, 2)
+    assert.deepEqual(ours, ['n'])
+    assert.deepEqual(theirs, ['n'])
+  })
 })
