@@ -3,7 +3,7 @@
 Both work, and nothing stops you from mixing them (except good taste 🙂). The
 hook is quicker to start with, selectors hold up better as things grow.
 
-<Compare names={['hook', 'selector']}>
+<Compare names="hook selector">
 
 ```jsx
 export default function Video({id}) {
