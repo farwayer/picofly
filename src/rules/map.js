@@ -248,8 +248,8 @@ let proxifyMap = ($, map) => {
 			if (
 				writeSubs.size && (
 					writable
-						? Reflect.get(map, prop, proxy) !== prev
-						: Object.hasOwn(map, prop)
+						? !Object.is(Reflect.get(map, prop, proxy), prev)
+						: Object.hasOwn(map, prop) // new
 				)) {
 				// to differ map keys and map object props (map.get('x') vs map.x)
 				if (typeof prop !== 'symbol') {

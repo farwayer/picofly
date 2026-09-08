@@ -205,8 +205,8 @@ let proxifySet = ($, set) => {
 			if (
 				writeSubs.size && (
 					writable
-						? Reflect.get(set, prop, proxy) !== prev
-						: Object.hasOwn(set, prop)
+						? !Object.is(Reflect.get(set, prop, proxy), prev)
+						: Object.hasOwn(set, prop) // new
 				)) {
 				// to differ set keys and set object props (set.add('x') vs set.x)
 				if (typeof prop !== 'symbol') {

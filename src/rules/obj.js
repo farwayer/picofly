@@ -70,8 +70,8 @@ let proxifyObj = ($, obj) => {
 			if (
 				writeSubs.size && (
 				writable
-					? Reflect.get(obj, prop, proxy) !== prev
-					: Object.hasOwn(obj, prop)
+					? !Object.is(Reflect.get(obj, prop, proxy), prev)
+					: Object.hasOwn(obj, prop) // new
 			)) {
 				let arrLenChanged = isArr && !desc &&
 					Reflect.get(obj, 'length', proxy) !== prevArrLen
