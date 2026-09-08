@@ -167,8 +167,9 @@ let proxifySet = ($, set) => {
 			let writable = desc && desc.writable
 			let prev = writable && desc.value
 
-			// own data prop
+			// fast path: own plain prop and no external receiver
 			if (writable && receiver === proxy) {
+				// not ===, +0/-0/NaN
 				if (Object.is(value, prev)) {
 					return true
 				}
@@ -189,8 +190,8 @@ let proxifySet = ($, set) => {
 				return true
 			}
 
-			// accessor, non-writable, inherited prop, new prop,
-			// outer proxy, our proxy as prototype, foreign receiver
+			// accessor, non-writable, inherited, new, outer proxy,
+			// our proxy as prototype, foreign receiver
 
 			let res = Reflect.set(set, prop, value, receiver)
 
@@ -199,8 +200,7 @@ let proxifySet = ($, set) => {
 				return res
 			}
 
-			// inherited prop, new prop, outer proxy, our proxy as prototype,
-			// foreign receiver
+			// inherited, new, outer proxy, our proxy as prototype, foreign receiver
 
 			if (
 				writeSubs.size && (

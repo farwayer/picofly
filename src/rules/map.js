@@ -106,6 +106,7 @@ let proxifyMap = ($, map) => {
 					let has = target.has(key)
 					let prev = has && target.get(key)
 
+					// not ===, +0/-0/NaN
 					if (has && Object.is(value, prev)) {
 						return this
 					}
@@ -210,8 +211,9 @@ let proxifyMap = ($, map) => {
 			let writable = desc && desc.writable
 			let prev = writable && desc.value
 
-			// own data prop
+			// fast path: own plain prop and no external receiver
 			if (writable && receiver === proxy) {
+				// not ===, +0/-0/NaN
 				if (Object.is(value, prev)) {
 					return true
 				}
@@ -232,8 +234,8 @@ let proxifyMap = ($, map) => {
 				return true
 			}
 
-			// accessor, non-writable, inherited prop, new prop,
-			// outer proxy, our proxy as prototype, foreign receiver
+			// accessor, non-writable, inherited, new, outer proxy,
+			// our proxy as prototype, foreign receiver
 
 			let res = Reflect.set(map, prop, value, receiver)
 
@@ -242,8 +244,7 @@ let proxifyMap = ($, map) => {
 				return res
 			}
 
-			// inherited prop, new prop, outer proxy, our proxy as prototype,
-			// foreign receiver
+			// inherited, new, outer proxy, our proxy as prototype, foreign receiver
 
 			if (
 				writeSubs.size && (
