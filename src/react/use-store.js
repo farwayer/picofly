@@ -25,8 +25,10 @@ export let useStore = (store = useContextStore()) => {
 		}
 	})
 
+	// 79 bc
 	let subscribe = useCallback(onChange => onWrite(store, (obj, prop) => {
-		if (trackedRef.current.get(obj)?.has(prop)) {
+		if (trackedRef.current?.get(obj)?.has(prop)) {
+			trackedRef.current = null
 			updateIdRef.current++
 			onChange()
 		}
