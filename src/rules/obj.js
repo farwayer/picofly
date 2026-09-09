@@ -6,7 +6,8 @@ export let obj = next => !next ? 50 : ($, val) =>
 
 let proxifyObj = ($, obj) => {
 	let [proxify, writeSubs, readSubs] = $
-	let proxy, isArr = Array.isArray(obj)
+	let isArr = Array.isArray(obj)
+	let proxy = null
 
 	return proxy = new Proxy(obj, {
 		get(obj, prop, receiver) {
@@ -34,50 +35,53 @@ let proxifyObj = ($, obj) => {
 
 			value = naked($, value)
 
-			let desc = Reflect.getOwnPropertyDescriptor(obj, prop)
-			let writable = desc && desc.writable
-			let prev = writable && desc.value
+			let watch = writeSubs.size
+			let had = prop in obj
+			let prev = watch && had && obj[prop]
 
-			// fast path: own plain prop and no external receiver
-			if (writable && receiver === proxy) {
-				// not ===, +0/-0/NaN
-				if (Object.is(value, prev)) {
-					return true
+			let arrWatch = watch && isArr
+			let arrGrew = arrWatch && !had
+			let arrPrevLen = arrGrew && obj.length
+
+			let arrDropped = arrWatch && prop === 'length' && prev > value && []
+			if (arrDropped) {
+				let i = prev
+				while (i-- > value) {
+					if (i in obj) { // not a hole
+						arrDropped.push('' + i)
+					}
 				}
-
-				obj[prop] = value
-
-				for (let cb of writeSubs) {
-					cb(obj, prop)
-				}
-
-				return true
 			}
-
-			// accessor, non-writable, inherited, new, outer proxy,
-			// our proxy as prototype, foreign receiver
-
-			let prevArrLen = isArr && !desc && Reflect.get(obj, 'length', proxy)
-			let res = Reflect.set(obj, prop, value, receiver)
-
-			let accessorOrNonWritable = desc && !writable
-			if (accessorOrNonWritable || !res) {
-				return res
-			}
-
-			// inherited, new, outer proxy, our proxy as prototype, foreign receiver
 
 			if (
-				writeSubs.size && (
-				writable
-					? !Object.is(Reflect.get(obj, prop, proxy), prev)
-					: Object.hasOwn(obj, prop) // new
+				had &&
+				receiver === proxy &&
+				Reflect.getOwnPropertyDescriptor(obj, prop)?.writable
+			) {
+				obj[prop] = value
+			} else {
+				if (!Reflect.set(obj, prop, value, receiver)) {
+					return false
+				}
+			}
+
+			if (watch && (
+				had
+					// not ===, +0/-0/NaN
+					? !Object.is(obj[prop], prev)
+					// was it actually created?
+					: prop in obj
 			)) {
-				let arrLenChanged = isArr && !desc &&
-					Reflect.get(obj, 'length', proxy) !== prevArrLen
+				let arrLenChanged = arrGrew && obj.length !== arrPrevLen
 
 				for (let cb of writeSubs) {
 					cb(obj, prop)
+
+					if (arrDropped) {
+						for (let i = 0, len = arrDropped.length; i < len; i++) {
+							cb(obj, arrDropped[i])
+						}
+					}
 
 					if (arrLenChanged) {
 						cb(obj, 'length')

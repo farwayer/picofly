@@ -9,7 +9,7 @@ export let map = next => !next ? 20 : ($, val) =>
 
 let proxifyMap = ($, map) => {
 	let [proxify, writeSubs, readSubs] = $
-	let proxy
+	let proxy = null
 
 	return proxy = new Proxy(map, {
 		get(map, prop, receiver) {
@@ -207,51 +207,29 @@ let proxifyMap = ($, map) => {
 
 			value = naked($, value)
 
-			let desc = Reflect.getOwnPropertyDescriptor(map, prop)
-			let writable = desc && desc.writable
-			let prev = writable && desc.value
-
-			// fast path: own plain prop and no external receiver
-			if (writable && receiver === proxy) {
-				// not ===, +0/-0/NaN
-				if (Object.is(value, prev)) {
-					return true
-				}
-
-				map[prop] = value
-
-				if (writeSubs.size) {
-					// to differ map keys and map object props (map.get('x') vs map.x)
-					if (typeof prop !== 'symbol') {
-						prop = Symbol.for(prop)
-					}
-
-					for (let cb of writeSubs) {
-						cb(map, prop)
-					}
-				}
-
-				return true
-			}
-
-			// accessor, non-writable, inherited, new, outer proxy,
-			// our proxy as prototype, foreign receiver
-
-			let res = Reflect.set(map, prop, value, receiver)
-
-			let accessorOrNonWritable = desc && !writable
-			if (accessorOrNonWritable || !res) {
-				return res
-			}
-
-			// inherited, new, outer proxy, our proxy as prototype, foreign receiver
+			let watch = writeSubs.size
+			let had = prop in map
+			let prev = watch && had && map[prop]
 
 			if (
-				writeSubs.size && (
-					writable
-						? !Object.is(Reflect.get(map, prop, proxy), prev)
-						: Object.hasOwn(map, prop) // new
-				)) {
+				had &&
+				receiver === proxy &&
+				Reflect.getOwnPropertyDescriptor(map, prop)?.writable
+			) {
+				map[prop] = value
+			} else {
+				if (!Reflect.set(map, prop, value, receiver)) {
+					return false
+				}
+			}
+
+			if (watch && (
+				had
+					// not ===, +0/-0/NaN
+					? !Object.is(map[prop], prev)
+					// was it actually created?
+					: prop in map
+			)) {
 				// to differ map keys and map object props (map.get('x') vs map.x)
 				if (typeof prop !== 'symbol') {
 					prop = Symbol.for(prop)

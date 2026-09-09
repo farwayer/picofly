@@ -9,7 +9,7 @@ export let set = next => !next ? 30 : ($, val) =>
 
 let proxifySet = ($, set) => {
 	let [proxify, writeSubs, readSubs] = $
-	let proxy
+	let proxy = null
 
 	return proxy = new Proxy(set, {
 		get(set, prop, receiver) {
@@ -163,52 +163,30 @@ let proxifySet = ($, set) => {
 
 			value = naked($, value)
 
-			let desc = Reflect.getOwnPropertyDescriptor(set, prop)
-			let writable = desc && desc.writable
-			let prev = writable && desc.value
-
-			// fast path: own plain prop and no external receiver
-			if (writable && receiver === proxy) {
-				// not ===, +0/-0/NaN
-				if (Object.is(value, prev)) {
-					return true
-				}
-
-				set[prop] = value
-
-				if (writeSubs.size) {
-					// to differ set keys and set object props (set.add('x') vs set.x)
-					if (typeof prop !== 'symbol') {
-						prop = Symbol.for(prop)
-					}
-
-					for (let cb of writeSubs) {
-						cb(set, prop)
-					}
-				}
-
-				return true
-			}
-
-			// accessor, non-writable, inherited, new, outer proxy,
-			// our proxy as prototype, foreign receiver
-
-			let res = Reflect.set(set, prop, value, receiver)
-
-			let accessorOrNonWritable = desc && !writable
-			if (accessorOrNonWritable || !res) {
-				return res
-			}
-
-			// inherited, new, outer proxy, our proxy as prototype, foreign receiver
+			let watch = writeSubs.size
+			let had = prop in set
+			let prev = watch && had && set[prop]
 
 			if (
-				writeSubs.size && (
-					writable
-						? !Object.is(Reflect.get(set, prop, proxy), prev)
-						: Object.hasOwn(set, prop) // new
-				)) {
-				// to differ set keys and set object props (set.add('x') vs set.x)
+				had &&
+				receiver === proxy &&
+				Reflect.getOwnPropertyDescriptor(set, prop)?.writable
+			) {
+				set[prop] = value
+			} else {
+				if (!Reflect.set(set, prop, value, receiver)) {
+					return false
+				}
+			}
+
+			if (watch && (
+				had
+					// not ===, +0/-0/NaN
+					? !Object.is(set[prop], prev)
+					// was it actually created?
+					: prop in set
+			)) {
+				// to differ set value and set object props (set.has('x') vs set.x)
 				if (typeof prop !== 'symbol') {
 					prop = Symbol.for(prop)
 				}
