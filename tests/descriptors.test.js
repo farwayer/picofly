@@ -1,6 +1,7 @@
 import {suite, test} from 'node:test'
 import * as assert from 'node:assert/strict'
 import {store, obj, onWrite} from 'picofly'
+import {KeysSym} from '../src/rules/utils.js'
 
 
 // property shapes a write has to respect: writability, frozen targets,
@@ -71,10 +72,41 @@ suite('descriptors', () => {
     onWrite(s, (_, prop) => hits.push(prop))
     s[5] = 9
 
-    assert.deepEqual(hits, ['5', 'length'])
+    assert.deepEqual(hits, [KeysSym, '5', 'length'])
     assert.equal(a.length, 6)
     assert.ok(!(4 in a))
     assert.ok(!(4 in s))
+  })
+
+  test('shadowing with the same value notifies nothing', () => {
+    let proto = {n: 1}
+    let o = Object.create(proto)
+    let s = store(o, [obj])
+    let hits = []
+
+    onWrite(s, (_, prop) => hits.push(prop))
+    s.n = 1
+
+    assert.deepEqual(hits, [])
+    assert.ok(Object.hasOwn(o, 'n'))
+    assert.equal(proto.n, 1)
+  })
+
+  test('inherited non-writable prop rejects the write', () => {
+    let proto = {}
+    Object.defineProperty(proto, 'n', {value: 1})
+    let o = Object.create(proto)
+    let s = store(o, [obj])
+    let hits = []
+
+    onWrite(s, (_, prop) => hits.push(prop))
+
+    assert.throws(() => {
+      s.n = 2
+    }, TypeError)
+    assert.deepEqual(hits, [])
+    assert.ok(!Object.hasOwn(o, 'n'))
+    assert.equal(s.n, 1)
   })
 
   test('write to a getter-only prop throws', () => {
@@ -105,6 +137,29 @@ suite('descriptors', () => {
 
     assert.deepEqual(hits, ['a'])
     assert.equal(o.a, 2)
+  })
+
+  // gap: there is no defineProperty trap, so the write goes straight to the
+  // target. The data changes and nobody hears about it, which also covers
+  // Object.assign of a getter and anything else defining rather than setting
+  test('defineProperty notifies nothing', () => {
+    let o = {a: 1}
+    let s = store(o, [obj])
+    let hits = []
+
+    onWrite(s, (_, prop) => hits.push(prop))
+
+    Object.defineProperty(s, 'b', {
+      value: 2,
+      writable: true,
+      enumerable: true,
+      configurable: true,
+    })
+    Object.defineProperty(s, 'a', {value: 9})
+
+    assert.deepEqual(hits, [])
+    assert.equal(o.a, 9)
+    assert.equal(o.b, 2)
   })
 
   test('adding to a non-extensible object notifies nothing', () => {

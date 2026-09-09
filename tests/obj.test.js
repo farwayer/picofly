@@ -1,6 +1,7 @@
 import {suite, test} from 'node:test'
 import * as assert from 'node:assert/strict'
 import {store, obj, onWrite, onRead, lock, unlock} from 'picofly'
+import {KeysSym} from '../src/rules/utils.js'
 
 
 suite('obj', () => {
@@ -53,7 +54,7 @@ suite('obj', () => {
 
     s.show = true
 
-    assert.deepEqual(hits, ['show'])
+    assert.deepEqual(hits, [KeysSym, 'show'])
   })
 
   test('onWrite set nested', () => {
@@ -74,17 +75,16 @@ suite('obj', () => {
     let o = {}
     let s = store(o, [obj])
 
-    let set = false
+    let hits = []
 
     onWrite(s, (obj, key) => {
       assert.equal(obj, o)
-      assert.equal(key, '1')
-      set = true
+      hits.push(key)
     })
 
     s[1] = 5
 
-    assert.ok(set)
+    assert.deepEqual(hits, [KeysSym, '1'])
   })
 
   test('onWrite set same', () => {
@@ -118,7 +118,27 @@ suite('obj', () => {
 
     delete s.timer.ticks
 
-    assert.deepEqual(hits, ['ticks'])
+    assert.deepEqual(hits, [KeysSym, 'ticks'])
+  })
+
+  // gap: `had` looks at the prototype, so shadowing an inherited prop makes a
+  // new own key while the key set stays quiet. Telling that apart would cost
+  // an `Object.hasOwn` on every write
+  test('inherited prop becomes own on write', () => {
+    let proto = {tag: 'x'}
+    let o = Object.create(proto)
+    let s = store(o, [obj])
+    let hits = []
+
+    onWrite(s, (_, prop) => hits.push(prop))
+
+    s.tag = 'y'
+
+    // the key list grew and nobody heard about it
+    assert.deepEqual(hits, ['tag'])
+    assert.deepEqual(Reflect.ownKeys(o), ['tag'])
+    assert.equal(proto.tag, 'x')
+    assert.equal(s.tag, 'y')
   })
 
   test('onWrite delete inherited notifies nothing', () => {
@@ -170,7 +190,7 @@ suite('obj', () => {
 
     delete s[sym]
 
-    assert.deepEqual(hits, [sym])
+    assert.deepEqual(hits, [KeysSym, sym])
     assert.equal(sym in o, false)
   })
 
@@ -185,7 +205,7 @@ suite('obj', () => {
 
     delete s.x
 
-    assert.deepEqual(hits, ['x'])
+    assert.deepEqual(hits, [KeysSym, 'x'])
     assert.equal(s.x, 'proto')
   })
 
@@ -211,7 +231,7 @@ suite('obj', () => {
 
     delete s.x
 
-    assert.deepEqual(hits, ['x'])
+    assert.deepEqual(hits, [KeysSym, 'x'])
     assert.equal('x' in o, false)
   })
 
@@ -230,13 +250,13 @@ suite('obj', () => {
 
     s.x = other
 
-    assert.deepEqual(ours, ['x'])
+    assert.deepEqual(ours, [KeysSym, 'x'])
     assert.deepEqual(theirs, [])
 
     s.x.n = 2
 
     assert.equal(raw.n, 2)
-    assert.deepEqual(ours, ['x', 'n'])
+    assert.deepEqual(ours, [KeysSym, 'x', 'n'])
     assert.deepEqual(theirs, ['n'])
   })
 
@@ -291,6 +311,142 @@ suite('obj', () => {
     assert.equal(s.timer.ticks, 1)
   })
 
+  test('a read subscriber cannot change what a prop returns', () => {
+    let o = {a: 1}
+    let s = store(o, [obj])
+
+    let off = onRead(s, () => {
+      o.a = 2
+    })
+
+    assert.equal(s.a, 1)
+    off()
+    assert.equal(o.a, 2)
+  })
+
+  test('listing keys is a read', () => {
+    let o = {a: 1}
+    let s = store(o, [obj])
+    let hits = []
+
+    let off = onRead(s, (_, prop) => hits.push(prop))
+
+    Object.keys(s)
+    for (let key in s) key
+
+    assert.deepEqual(hits, [KeysSym, KeysSym])
+
+    // the values behind the keys are read as usual
+    s.a
+    off()
+
+    assert.deepEqual(hits, [KeysSym, KeysSym, 'a'])
+  })
+
+  // gap: `[[GetOwnProperty]]` has no trap, so asking whether a prop is there
+  // without reading it is not a read. Trapping it would fire on every key of
+  // every enumeration — the engine checks enumerable through it — and the
+  // answer is the one `in` already tracks
+  test('asking for an own prop tracks nothing', () => {
+    let o = {x: 1}
+    let s = store(o, [obj])
+    let hits = []
+
+    let off = onRead(s, (_, prop) => hits.push(prop))
+
+    Object.hasOwn(s, 'x')
+    Object.getOwnPropertyDescriptor(s, 'x')
+    off()
+
+    assert.deepEqual(hits, [])
+  })
+
+  // what a component would see: the props a read tracked, then a write
+  // checked against them
+  let wakes = (s, read, write) => {
+    let tracked = new Set()
+    let off = onRead(s, (_, prop) => tracked.add(prop))
+
+    read()
+    off()
+
+    let hit = false
+    let stop = onWrite(s, (_, prop) => {
+      hit ||= tracked.has(prop)
+    })
+
+    write()
+    stop()
+
+    return hit
+  }
+
+  // gap: `in` subscribes to the key, so writing a new value there wakes a
+  // reader whose answer never changed. Keying it wider would mean waking on
+  // every key added to the object
+  test('in wakes on a value change too', () => {
+    let s = store({a: 1}, [obj])
+
+    assert.equal(wakes(s, () => 'a' in s, () => { s.a = 2 }), true)
+    assert.equal(wakes(s, () => 'a' in s, () => { s.b = 1 }), false)
+    assert.equal(wakes(s, () => 'a' in s, () => { delete s.a }), true)
+  })
+
+  test('in is a read', () => {
+    let o = {a: 1}
+    let s = store(o, [obj])
+    let hits = []
+
+    let off = onRead(s, (_, prop) => hits.push(prop))
+
+    'a' in s
+    'zz' in s
+    off()
+
+    assert.deepEqual(hits, ['a', 'zz'])
+  })
+
+  test('a read subscriber cannot change what in returns', () => {
+    let o = {a: 1}
+    let s = store(o, [obj])
+
+    let off = onRead(s, () => {
+      delete o.a
+    })
+
+    assert.equal('a' in s, true)
+    off()
+    assert.equal('a' in o, false)
+  })
+
+  test('a read subscriber cannot change the key list', () => {
+    let o = {a: 1, b: 2}
+    let s = store(o, [obj])
+
+    let off = onRead(s, () => {
+      delete o.b
+    })
+
+    assert.deepEqual(Reflect.ownKeys(s), ['a', 'b'])
+    off()
+    assert.deepEqual(Reflect.ownKeys(o), ['a'])
+  })
+
+  // gap: `Object.keys` is `ownKeys` plus a descriptor per key, and we notify
+  // in between, so a read subscriber can still drop one of them. Holding the
+  // list would mean answering descriptors out of a snapshot nobody else needs
+  test('a read subscriber can drop a key from Object.keys', () => {
+    let o = {a: 1, b: 2}
+    let s = store(o, [obj])
+
+    let off = onRead(s, () => {
+      delete o.b
+    })
+
+    assert.deepEqual(Object.keys(s), ['a'])
+    off()
+  })
+
   test('onRead root', () => {
     let [o, s] = timerStore()
     let hits = []
@@ -327,7 +483,7 @@ suite('obj', () => {
     onWrite(s, (_, prop) => hits.push(prop))
     s[sym] = 1
 
-    assert.deepEqual(hits, [sym])
+    assert.deepEqual(hits, [KeysSym, sym])
     assert.equal(o[sym], 1)
   })
 
@@ -339,8 +495,263 @@ suite('obj', () => {
     onWrite(s, (_, prop) => hits.push(prop))
     Object.assign(s, {a: 1, b: 2})
 
-    assert.deepEqual(hits, ['a', 'b'])
+    assert.deepEqual(hits, ['a', KeysSym, 'b'])
     assert.deepEqual(o, {a: 1, b: 2})
+  })
+
+  // gap: a proxy carries no private brand, so `this` inside a class method is
+  // the wrong object for #fields. Public fields and getters over them work, an
+  // instance that needs private state has to be markRaw'd
+  test('private field through the store throws', () => {
+    class Counter {
+      #n = 1
+
+      get n() {
+        return this.#n
+      }
+
+      inc() {
+        this.#n++
+      }
+    }
+
+    let c = new Counter()
+    let s = store(c, [obj])
+
+    assert.throws(() => s.n, TypeError)
+    assert.throws(() => s.inc(), TypeError)
+    assert.equal(c.n, 1)
+  })
+
+  // a proxy of their own around our data: what the store shows is what their
+  // get trap returns, and what lands is what their set trap stores
+  test('an inner proxy that stores something else is written through', () => {
+    let raw = {n: 4}
+    let theirs = new Proxy(raw, {
+      set: (target, prop, val, receiver) => Reflect.set(target, prop, val * 2, receiver),
+    })
+
+    let s = store({box: theirs}, [obj])
+    let hits = []
+
+    onWrite(s, (_, prop) => hits.push(prop))
+
+    s.box.n = 4
+
+    assert.deepEqual(hits, ['n'])
+    assert.equal(raw.n, 8)
+  })
+
+  test('an inner proxy that transforms both ways notifies nothing', () => {
+    let raw = {n: 4}
+    let theirs = new Proxy(raw, {
+      get: (target, prop, receiver) => Reflect.get(target, prop, receiver) / 2,
+      set: (target, prop, val, receiver) => Reflect.set(target, prop, val * 2, receiver),
+    })
+
+    let s = store({box: theirs}, [obj])
+    let hits = []
+
+    onWrite(s, (_, prop) => hits.push(prop))
+
+    s.box.n = 2
+
+    assert.deepEqual(hits, [])
+    assert.equal(raw.n, 4)
+  })
+
+  test('an inner proxy behind an outer one notifies nothing either', () => {
+    let raw = {n: 4}
+    let theirs = new Proxy(raw, {
+      get: (target, prop, receiver) => Reflect.get(target, prop, receiver) / 2,
+      set: (target, prop, val, receiver) => Reflect.set(target, prop, val * 2, receiver),
+    })
+
+    let s = store({box: theirs}, [obj])
+    let hits = []
+
+    onWrite(s, (_, prop) => hits.push(prop))
+
+    new Proxy(s.box, {}).n = 2
+
+    assert.deepEqual(hits, [])
+    assert.equal(raw.n, 4)
+  })
+
+
+  test('an inner proxy handing out fresh wrappers notifies nothing', () => {
+    let raw = {n: 1}
+    let theirs
+    theirs = new Proxy(raw, {
+      get: (target, prop, receiver) => typeof prop === 'symbol' || receiver === theirs
+        ? Reflect.get(target, prop, receiver)
+        : {of: Reflect.get(target, prop, receiver)},
+    })
+
+    let s = store({box: theirs}, [obj])
+    let hits = []
+
+    onWrite(s, (_, prop) => hits.push(prop))
+
+    s.box.n = 1
+
+    assert.deepEqual(hits, [])
+    assert.equal(raw.n, 1)
+  })
+
+  test('an inner proxy unwrapping a ref notifies the change', () => {
+    let ref = {value: 1}
+    let raw = {n: ref}
+    let theirs
+    theirs = new Proxy(raw, {
+      get: (target, prop, receiver) => prop === 'n' && receiver === theirs
+        ? Reflect.get(target, prop, receiver).value
+        : Reflect.get(target, prop, receiver),
+      set(target, prop, val) {
+        target[prop].value = val
+        return true
+      },
+    })
+
+    let s = store({box: theirs}, [obj])
+    let hits = []
+
+    onWrite(s, (_, prop) => hits.push(prop))
+
+    s.box.n = 5
+
+    assert.deepEqual(hits, ['n'])
+    assert.equal(ref.value, 5)
+  })
+
+  // gap: an inner proxy that keeps its state for its own receiver shows us the
+  // real value while a reader of the store gets undefined, so we announce a
+  // change nobody can see
+  test('an inner proxy guarding its state over-notifies', () => {
+    let raw = {n: 1}
+    let theirs
+    theirs = new Proxy(raw, {
+      get: (target, prop, receiver) => typeof prop === 'symbol' || receiver === theirs
+        ? Reflect.get(target, prop, receiver)
+        : undefined,
+    })
+
+    let s = store({box: theirs}, [obj])
+    let hits = []
+
+    onWrite(s, (_, prop) => hits.push(prop))
+
+    s.box.n = 5
+
+    assert.deepEqual(hits, ['n'])
+    assert.equal(s.box.n, undefined)
+  })
+
+  // gap: an inner proxy that answers its own receiver with something of its
+  // own hides the change from us, while a reader of the store sees it
+  test('an inner proxy answering itself hides the change', () => {
+    let raw = {n: 1}
+    let theirs
+    theirs = new Proxy(raw, {
+      get: (target, prop, receiver) => typeof prop === 'symbol' || receiver !== theirs
+        ? Reflect.get(target, prop, receiver)
+        : 99,
+    })
+
+    let s = store({box: theirs}, [obj])
+    let hits = []
+
+    onWrite(s, (_, prop) => hits.push(prop))
+
+    s.box.n = 5
+
+    assert.deepEqual(hits, [])
+    assert.equal(s.box.n, 5)
+  })
+
+  // an outer proxy is the receiver, so the write takes the slow path
+  test('NaN over NaN through an outer proxy notifies nothing', () => {
+    let o = {a: NaN}
+    let s = store(o, [obj])
+    let hits = []
+
+    onWrite(s, (_, prop) => hits.push(prop))
+
+    new Proxy(s, {}).a = NaN
+
+    assert.deepEqual(hits, [])
+  })
+
+  test('minus zero over plus zero through an outer proxy notifies', () => {
+    let o = {a: 0}
+    let s = store(o, [obj])
+    let hits = []
+
+    onWrite(s, (_, prop) => hits.push(prop))
+
+    new Proxy(s, {}).a = -0
+
+    assert.deepEqual(hits, ['a'])
+    assert.ok(Object.is(o.a, -0))
+  })
+
+  test('same value through an outer proxy notifies nothing', () => {
+    let o = {a: 1}
+    let s = store(o, [obj])
+    let hits = []
+
+    onWrite(s, (_, prop) => hits.push(prop))
+
+    new Proxy(s, {}).a = 1
+
+    assert.deepEqual(hits, [])
+  })
+
+  test('a store used as a prototype keeps writes on the child', () => {
+    let o = {a: 1}
+    let s = store(o, [obj])
+    let child = Object.create(s)
+    let hits = []
+
+    onWrite(s, (_, prop) => hits.push(prop))
+
+    child.a = 2
+
+    assert.deepEqual(hits, [])
+    assert.equal(o.a, 1)
+    assert.equal(child.a, 2)
+    assert.ok(Object.hasOwn(child, 'a'))
+  })
+
+  test('Reflect.set with a primitive receiver fails', () => {
+    let o = {a: 1}
+    let s = store(o, [obj])
+    let hits = []
+
+    onWrite(s, (_, prop) => hits.push(prop))
+
+    assert.equal(Reflect.set(s, 'a', 5, 1), false)
+    assert.deepEqual(hits, [])
+    assert.equal(o.a, 1)
+  })
+
+  // gap: the value is defined on the other store, not set on it, and defining
+  // is not tracked, so neither store hears about the write
+  test('Reflect.set into another store notifies nothing', () => {
+    let a = {x: 1}
+    let b = {x: 1}
+    let sa = store(a, [obj])
+    let sb = store(b, [obj])
+    let hits = []
+
+    onWrite(sa, (_, prop) => hits.push('a:' + prop))
+    onWrite(sb, (_, prop) => hits.push('b:' + prop))
+
+    assert.ok(Reflect.set(sa, 'x', 5, sb))
+
+    assert.deepEqual(hits, [])
+    assert.equal(a.x, 1)
+    assert.equal(b.x, 5)
   })
 
   test('Reflect.set with a foreign receiver leaves the store alone', () => {

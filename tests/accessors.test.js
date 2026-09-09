@@ -47,6 +47,77 @@ suite('accessors', () => {
     assert.equal(o.a, 6)
   })
 
+  test('accessor with a getter notifies its own prop too', () => {
+    let o = {
+      _n: 1,
+      get n() {
+        return this._n
+      },
+      set n(v) {
+        this._n = v
+      },
+    }
+    let s = store(o, [obj])
+    let hits = []
+
+    onWrite(s, (_, prop) => hits.push(prop))
+    s.n = 2
+
+    assert.deepEqual(hits, ['_n', 'n'])
+    assert.equal(o._n, 2)
+  })
+
+  test('accessor through an outer proxy notifies its own prop too', () => {
+    class State {
+      _n = 1
+
+      get n() {
+        return this._n
+      }
+
+      set n(v) {
+        this._n = v
+      }
+    }
+
+    let o = new State()
+    let s = store(o, [obj])
+    let hits = []
+
+    onWrite(s, (_, prop) => hits.push(prop))
+    new Proxy(s, {}).n = 2
+
+    assert.deepEqual(hits, ['_n', 'n'])
+    assert.equal(o._n, 2)
+  })
+
+  // gap: the getter runs while we read the prop for the comparison, and what it
+  // writes on the way is never announced. The mutation is ours, but the value
+  // outside did move
+  test('a getter that writes is not announced', () => {
+    let o = {
+      reads: 0,
+      _n: 1,
+
+      get n() {
+        this.reads++
+        return this._n
+      },
+
+      set n(v) {
+        this._n = v
+      },
+    }
+    let s = store(o, [obj])
+    let hits = []
+
+    onWrite(s, (_, prop) => hits.push(prop))
+    s.n = 2
+
+    assert.deepEqual(hits, ['_n', 'n'])
+    assert.equal(o.reads, 2)
+  })
+
   test('setter writing a nested object notifies that object', () => {
     let o = {
       timer: {ticks: 0},
