@@ -164,8 +164,8 @@ let proxifyMap = ($, map) => {
 							cb(map, SizeSym)
 							cb(map, ValuesSym)
 
-							for (let key of keys) {
-								cb(map, key)
+							for (let i = 0, len = keys.length; i < len; i++) {
+								cb(map, keys[i])
 							}
 						}
 					}

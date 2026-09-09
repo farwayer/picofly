@@ -115,8 +115,8 @@ let proxifySet = ($, set) => {
 						for (let cb of writeSubs) {
 							cb(set, SizeSym)
 
-							for (let value of values) {
-								cb(set, value)
+							for (let i = 0, len = values.length; i < len; i++) {
+								cb(set, values[i])
 							}
 						}
 					}
