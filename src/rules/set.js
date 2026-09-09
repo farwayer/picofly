@@ -30,7 +30,7 @@ let proxifySet = ($, set) => {
 					val = set.size
 					prop = SizeSym
 				}
-					break
+				break
 
 				case 'has': return function (value) {
 					value = naked($, value)
@@ -64,7 +64,7 @@ let proxifySet = ($, set) => {
 					return this
 				}
 
-				case 'forEach': return function (cb, thisArg) {
+				case 'forEach': return function (fn, thisArg) {
 					let target = this === receiver ? set : this
 
 					for (let cb of readSubs) {
@@ -73,7 +73,7 @@ let proxifySet = ($, set) => {
 
 					target.forEach(value => {
 						value = proxify($, value)
-						cb(value, value, this)
+						fn(value, value, this)
 					}, thisArg)
 				}
 

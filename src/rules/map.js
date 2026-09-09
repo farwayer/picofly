@@ -80,7 +80,7 @@ let proxifyMap = ($, map) => {
 					return has
 				}
 
-				case 'forEach': return function (cb, thisArg) {
+				case 'forEach': return function (fn, thisArg) {
 					let target = this === receiver ? map : this
 
 					for (let cb of readSubs) {
@@ -88,7 +88,7 @@ let proxifyMap = ($, map) => {
 					}
 
 					target.forEach((value, key) => {
-						cb(
+						fn(
 							proxify($, value),
 							proxify($, key),
 							this,
@@ -188,6 +188,7 @@ let proxifyMap = ($, map) => {
 				default: {
 					val = proxify($, Reflect.get(map, prop, receiver))
 
+					// to differ map keys and map object props (map.get('x') vs map.x)
 					if (typeof prop !== 'symbol' && readSubs.size) {
 						prop = Symbol.for(prop)
 					}
