@@ -14,7 +14,7 @@ export const set: Rule
 export const builtins: Rule
 export const obj: Rule
 
-export type Sub = (obj: object, prop: string | symbol) => void
+export type Sub = (obj: object, key: unknown) => void
 export type Unsub = () => void
 
 // takes the value or passes it to the next step

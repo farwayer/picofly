@@ -14,20 +14,20 @@ export let useStore = (store = useContextStore()) => {
 
 	trackedRef.current = new WeakMap()
 
-	useRenderRead(store, (obj, prop) => {
+	useRenderRead(store, (obj, key) => {
 		let tracked = trackedRef.current
-		let objTrackedProps = tracked.get(obj)
+		let objTrackedKeys = tracked.get(obj)
 
-		if (objTrackedProps) {
-			objTrackedProps.add(prop)
+		if (objTrackedKeys) {
+			objTrackedKeys.add(key)
 		} else {
-			tracked.set(obj, new Set([prop]))
+			tracked.set(obj, new Set([key]))
 		}
 	})
 
 	// 79 bc
-	let subscribe = useCallback(onChange => onWrite(store, (obj, prop) => {
-		if (trackedRef.current?.get(obj)?.has(prop)) {
+	let subscribe = useCallback(onChange => onWrite(store, (obj, key) => {
+		if (trackedRef.current?.get(obj)?.has(key)) {
 			trackedRef.current = null
 			updateIdRef.current++
 			onChange()
