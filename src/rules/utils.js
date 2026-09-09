@@ -1,4 +1,5 @@
 export let SizeSym = /* @__PURE__ */ Symbol.for('size')
+export let KeysSym = /* @__PURE__ */ Symbol('keys')
 export let ValuesSym = /* @__PURE__ */ Symbol('values')
 
 let SingleIterProto = {
@@ -71,3 +72,9 @@ export let iter = ($, it, proto) => {
 	wrapped.it = it
 	return wrapped
 }
+
+// convert Map/Set as object property names to Symbol
+export let msPropToKey = prop =>
+	typeof prop === 'symbol'
+		? prop
+		: Symbol.for(prop)

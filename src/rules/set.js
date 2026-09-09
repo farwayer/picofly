@@ -1,5 +1,5 @@
 import {$Sym, NakedSym, naked} from '../store.js'
-import {SizeSym, PairIterProto, iter} from './utils.js'
+import {PairIterProto, KeysSym, SizeSym, iter, msPropToKey} from './utils.js'
 
 // 30 bc
 export let set = next => !next ? 30 : ($, val) =>
@@ -11,7 +11,56 @@ let proxifySet = ($, set) => {
 	let [proxify, writeSubs, readSubs] = $
 	let proxy = null
 
+	// Set is js object so we must maintain its regular properties
+	// we use Symbol(prop) to differ set values and set object props
 	return proxy = new Proxy(set, {
+		ownKeys(set) {
+			let keys = Reflect.ownKeys(set)
+
+			for (let cb of readSubs) {
+				cb(set, KeysSym)
+			}
+
+			return keys
+		},
+
+		has(set, prop) {
+			let has = prop in set
+
+			if (readSubs.size) {
+				prop = msPropToKey(prop)
+
+				for (let cb of readSubs) {
+					cb(set, prop)
+				}
+			}
+
+			return has
+		},
+
+		deleteProperty(set, prop) {
+			$[4] && "store locked!"()
+
+			if (!Object.hasOwn(set, prop)) {
+				return true
+			}
+
+			if (!Reflect.deleteProperty(set, prop)) {
+				return false
+			}
+
+			if (writeSubs.size) {
+				prop = msPropToKey(prop)
+
+				for (let cb of writeSubs) {
+					cb(set, KeysSym)
+					cb(set, prop)
+				}
+			}
+
+			return true
+		},
+
 		get(set, prop, receiver) {
 			if (typeof prop === 'symbol') {
 				if (prop === $Sym) {
@@ -139,25 +188,22 @@ let proxifySet = ($, set) => {
 					return iter($, valuesIt, iterProto)
 				}
 
-				// Set is js object so it's possible to get some props
 				default: {
 					val = proxify($, Reflect.get(set, prop, receiver))
-
-					// to differ set values and set object props (set.add('x') vs set.x)
-					if (typeof prop !== 'symbol' && readSubs.size) {
-						prop = Symbol.for(prop)
-					}
 				}
 			}
 
-			for (let cb of readSubs) {
-				cb(set, prop)
+			if (readSubs.size) {
+				prop = msPropToKey(prop)
+
+				for (let cb of readSubs) {
+					cb(set, prop)
+				}
 			}
 
 			return val
 		},
 
-		// Set is js object so it's possible to set some props
 		set(set, prop, value, receiver) {
 			$[4] && "store locked!"()
 
@@ -186,38 +232,13 @@ let proxifySet = ($, set) => {
 					// was it actually created?
 					: prop in set
 			)) {
-				// to differ set value and set object props (set.has('x') vs set.x)
-				if (typeof prop !== 'symbol') {
-					prop = Symbol.for(prop)
-				}
+				prop = msPropToKey(prop)
 
 				for (let cb of writeSubs) {
-					cb(set, prop)
-				}
-			}
+					if (!had) {
+						cb(set, KeysSym)
+					}
 
-			return true
-		},
-
-		// Set is js object so it's possible to delete some props
-		deleteProperty(set, prop) {
-			$[4] && "store locked!"()
-
-			if (!Object.hasOwn(set, prop)) {
-				return true
-			}
-
-			if (!Reflect.deleteProperty(set, prop)) {
-				return false
-			}
-
-			if (writeSubs.size) {
-				// to differ set keys and set object props (set.add('x') vs set.x)
-				if (typeof prop !== 'symbol') {
-					prop = Symbol.for(prop)
-				}
-
-				for (let cb of writeSubs) {
 					cb(set, prop)
 				}
 			}

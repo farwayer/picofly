@@ -1,5 +1,5 @@
 import {$Sym, NakedSym, naked} from '../store.js'
-import {ValuesSym, EntriesIterProto, SizeSym, iter} from './utils.js'
+import {EntriesIterProto, ValuesSym, KeysSym, SizeSym, iter, msPropToKey} from './utils.js'
 
 // 30 bc
 export let map = next => !next ? 20 : ($, val) =>
@@ -11,7 +11,56 @@ let proxifyMap = ($, map) => {
 	let [proxify, writeSubs, readSubs] = $
 	let proxy = null
 
+	// Map is js object so we must maintain its regular properties
+	// we use Symbol(prop) to differ map keys and map object props
 	return proxy = new Proxy(map, {
+		ownKeys(map) {
+			let keys = Reflect.ownKeys(map)
+
+			for (let cb of readSubs) {
+				cb(map, KeysSym)
+			}
+
+			return keys
+		},
+
+		has(map, prop) {
+			let has = prop in map
+
+			if (readSubs.size) {
+				prop = msPropToKey(prop)
+
+				for (let cb of readSubs) {
+					cb(map, prop)
+				}
+			}
+
+			return has
+		},
+
+		deleteProperty(map, prop) {
+			$[4] && "store locked!"()
+
+			if (!Object.hasOwn(map, prop)) {
+				return true
+			}
+
+			if (!Reflect.deleteProperty(map, prop)) {
+				return false
+			}
+
+			if (writeSubs.size) {
+				prop = msPropToKey(prop)
+
+				for (let cb of writeSubs) {
+					cb(map, KeysSym)
+					cb(map, prop)
+				}
+			}
+
+			return true
+		},
+
 		get(map, prop, receiver) {
 			if (typeof prop === 'symbol') {
 				if (prop === $Sym) {
@@ -30,7 +79,7 @@ let proxifyMap = ($, map) => {
 					val = map.size
 					prop = SizeSym
 				}
-					break
+				break
 
 				case 'get': return function (key) {
 					key = naked($, key)
@@ -184,25 +233,22 @@ let proxifyMap = ($, map) => {
 					return iter($, entriesIt, EntriesIterProto)
 				}
 
-				// Map is js object so it's possible to get some props
 				default: {
 					val = proxify($, Reflect.get(map, prop, receiver))
-
-					// to differ map keys and map object props (map.get('x') vs map.x)
-					if (typeof prop !== 'symbol' && readSubs.size) {
-						prop = Symbol.for(prop)
-					}
 				}
 			}
 
-			for (let cb of readSubs) {
-				cb(map, prop)
+			if (readSubs.size) {
+				prop = msPropToKey(prop)
+
+				for (let cb of readSubs) {
+					cb(map, prop)
+				}
 			}
 
 			return val
 		},
 
-		// Map is js object so it's possible to set some props
 		set(map, prop, value, receiver) {
 			$[4] && "store locked!"()
 
@@ -231,38 +277,13 @@ let proxifyMap = ($, map) => {
 					// was it actually created?
 					: prop in map
 			)) {
-				// to differ map keys and map object props (map.get('x') vs map.x)
-				if (typeof prop !== 'symbol') {
-					prop = Symbol.for(prop)
-				}
+				prop = msPropToKey(prop)
 
 				for (let cb of writeSubs) {
-					cb(map, prop)
-				}
-			}
+					if (!had) {
+						cb(map, KeysSym)
+					}
 
-			return true
-		},
-
-		// Map is js object so it's possible to delete some props
-		deleteProperty(map, prop) {
-			$[4] && "store locked!"()
-
-			if (!Object.hasOwn(map, prop)) {
-				return true
-			}
-
-			if (!Reflect.deleteProperty(map, prop)) {
-				return false
-			}
-
-			if (writeSubs.size) {
-				// to differ map keys and map object props (map.get('x') vs map.x)
-				if (typeof prop !== 'symbol') {
-					prop = Symbol.for(prop)
-				}
-
-				for (let cb of writeSubs) {
 					cb(map, prop)
 				}
 			}

@@ -1,4 +1,5 @@
 import {$Sym, NakedSym, naked} from '../store.js'
+import {KeysSym} from './utils.js'
 
 // 12 bc
 export let obj = next => !next ? 50 : ($, val) =>
@@ -10,6 +11,45 @@ let proxifyObj = ($, obj) => {
 	let proxy = null
 
 	return proxy = new Proxy(obj, {
+		ownKeys(obj) {
+			let keys = Reflect.ownKeys(obj)
+
+			for (let cb of readSubs) {
+				cb(obj, KeysSym)
+			}
+
+			return keys
+		},
+
+		has(obj, prop) {
+			let has = prop in obj
+
+			for (let cb of readSubs) {
+				cb(obj, prop)
+			}
+
+			return has
+		},
+
+		deleteProperty(obj, prop) {
+			$[4] && "store locked!"()
+
+			if (!Object.hasOwn(obj, prop)) {
+				return true
+			}
+
+			if (!Reflect.deleteProperty(obj, prop)) {
+				return false
+			}
+
+			for (let cb of writeSubs) {
+				cb(obj, KeysSym)
+				cb(obj, prop)
+			}
+
+			return true
+		},
+
 		get(obj, prop, receiver) {
 			if (typeof prop === 'symbol') {
 				if (prop === $Sym) {
@@ -73,38 +113,25 @@ let proxifyObj = ($, obj) => {
 					: prop in obj
 			)) {
 				let arrLenChanged = arrGrew && obj.length !== arrPrevLen
+				let arrDroppedLen = arrDropped ? arrDropped.length : 0
+				let keysChanged = !had || arrDroppedLen
 
 				for (let cb of writeSubs) {
+					if (keysChanged) {
+						cb(obj, KeysSym)
+					}
+
 					cb(obj, prop)
 
-					if (arrDropped) {
-						for (let i = 0, len = arrDropped.length; i < len; i++) {
-							cb(obj, arrDropped[i])
-						}
+
+					for (let i = 0; i < arrDroppedLen; i++) {
+						cb(obj, arrDropped[i])
 					}
 
 					if (arrLenChanged) {
 						cb(obj, 'length')
 					}
 				}
-			}
-
-			return true
-		},
-
-		deleteProperty(obj, prop) {
-			$[4] && "store locked!"()
-
-			if (!Object.hasOwn(obj, prop)) {
-				return true
-			}
-
-			if (!Reflect.deleteProperty(obj, prop)) {
-				return false
-			}
-
-			for (let cb of writeSubs) {
-				cb(obj, prop)
 			}
 
 			return true
