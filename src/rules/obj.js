@@ -1,4 +1,4 @@
-import {$Sym, NakedSym, naked} from '../store.js'
+import {ILocked, $Sym, NakedSym, naked} from '../store.js'
 import {KeysSym} from './utils.js'
 
 // 12 bc
@@ -32,7 +32,7 @@ let proxifyObj = ($, obj) => {
 		},
 
 		deleteProperty(obj, prop) {
-			$[4] && "store locked!"()
+			$[ILocked] && "store locked!"()
 
 			if (!Object.hasOwn(obj, prop)) {
 				return true
@@ -71,7 +71,7 @@ let proxifyObj = ($, obj) => {
 		},
 
 		set(obj, prop, value, receiver) {
-			$[4] && "store locked!"()
+			$[ILocked] && "store locked!"()
 
 			value = naked($, value)
 

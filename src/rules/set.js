@@ -1,4 +1,4 @@
-import {$Sym, NakedSym, naked} from '../store.js'
+import {ILocked, $Sym, NakedSym, naked} from '../store.js'
 import {PairIterProto, KeysSym, SizeSym, iter, msPropToKey} from './utils.js'
 
 // 30 bc
@@ -39,7 +39,7 @@ let proxifySet = ($, set) => {
 		},
 
 		deleteProperty(set, prop) {
-			$[4] && "store locked!"()
+			$[ILocked] && "store locked!"()
 
 			if (!Object.hasOwn(set, prop)) {
 				return true
@@ -95,7 +95,7 @@ let proxifySet = ($, set) => {
 				}
 
 				case 'add': return function (value) {
-					$[4] && "store locked!"()
+					$[ILocked] && "store locked!"()
 
 					value = naked($, value)
 
@@ -127,7 +127,7 @@ let proxifySet = ($, set) => {
 				}
 
 				case 'delete': return function (value) {
-					$[4] && "store locked!"()
+					$[ILocked] && "store locked!"()
 
 					value = naked($, value)
 
@@ -146,7 +146,7 @@ let proxifySet = ($, set) => {
 				}
 
 				case 'clear': return function () {
-					$[4] && "store locked!"()
+					$[ILocked] && "store locked!"()
 
 					let target = this === receiver ? set : this
 					if (!target.size) return
@@ -206,7 +206,7 @@ let proxifySet = ($, set) => {
 		},
 
 		set(set, prop, value, receiver) {
-			$[4] && "store locked!"()
+			$[ILocked] && "store locked!"()
 
 			value = naked($, value)
 

@@ -1,3 +1,5 @@
+import {IProxify} from '../store.js'
+
 export let SizeSym = /* @__PURE__ */ Symbol.for('size')
 export let KeysSym = /* @__PURE__ */ Symbol('keys')
 export let ValuesSym = /* @__PURE__ */ Symbol('values')
@@ -10,7 +12,7 @@ let SingleIterProto = /* @__PURE__ */ (() => ({
 
 		if (!next.done) {
 			let $ = this.$
-			let proxify = $[0]
+			let proxify = $[IProxify]
 			let val = next.value
 
 			next.value = proxify($, val)
@@ -28,7 +30,7 @@ export let EntriesIterProto = /* @__PURE__ */ (() => ({
 
 		if (!next.done) {
 			let $ = this.$
-			let proxify = $[0]
+			let proxify = $[IProxify]
 			let val = next.value
 
 			next.value = [
@@ -49,7 +51,7 @@ export let PairIterProto = /* @__PURE__ */ (() => ({
 
 		if (!next.done) {
 			let $ = this.$
-			let proxify = $[0]
+			let proxify = $[IProxify]
 			let val = next.value
 
 			val = proxify($, val)
