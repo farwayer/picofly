@@ -120,10 +120,13 @@ let proxifySet = ($, set) => {
 						cb(set, SizeSym)
 					}
 
-					target.forEach(value => {
+					for (let value of target.values()) {
 						value = proxify($, value)
-						fn(value, value, this)
-					}, thisArg)
+
+						thisArg === undefined
+							? fn(value, value, this)
+							: fn.call(thisArg, value, value, this)
+					}
 				}
 
 				case 'delete': return function (value) {

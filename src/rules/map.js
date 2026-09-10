@@ -136,13 +136,14 @@ let proxifyMap = ($, map) => {
 						cb(map, ValuesSym)
 					}
 
-					target.forEach((value, key) => {
-						fn(
-							proxify($, value),
-							proxify($, key),
-							this,
-						)
-					}, thisArg)
+					for (let [key, value] of target.entries()) {
+						key = proxify($, key)
+						value = proxify($, value)
+
+						thisArg === undefined
+							? fn(value, key, this)
+							: fn.call(thisArg, value, key, this)
+					}
 				}
 
 				case 'set': return function (key, value) {
