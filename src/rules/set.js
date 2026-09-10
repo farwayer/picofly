@@ -160,11 +160,12 @@ let proxifySet = ($, set) => {
 
 					target.clear()
 
-					if (values) {
+					let valuesLen = values && values.length
+					if (valuesLen) {
 						for (let cb of writeSubs) {
 							cb(set, SizeSym)
 
-							for (let i = 0, len = values.length; i < len; i++) {
+							for (let i = 0; i < valuesLen; i++) {
 								cb(set, values[i])
 							}
 						}

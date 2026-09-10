@@ -208,12 +208,13 @@ let proxifyMap = ($, map) => {
 
 					target.clear()
 
-					if (keys) {
+					let keysLen = keys && keys.length
+					if (keysLen) {
 						for (let cb of writeSubs) {
 							cb(map, SizeSym)
 							cb(map, ValuesSym)
 
-							for (let i = 0, len = keys.length; i < len; i++) {
+							for (let i = 0; i < keysLen; i++) {
 								cb(map, keys[i])
 							}
 						}
