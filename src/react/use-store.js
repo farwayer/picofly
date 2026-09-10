@@ -4,11 +4,13 @@ import {
 } from 'react'
 import {onWrite, onRead, lock, unlock, get$} from '../store.js'
 
-export let PicoflyContext = /* @__PURE__ */ createContext()
-export let Picofly = PicoflyContext.Provider
+export let PicoflyContext
+export let Picofly = /* @__PURE__ */ (() => (
+	PicoflyContext ||= createContext()
+).Provider)()
 export let useContextStore = () => useContext(PicoflyContext)
 
-export let useStore = (store = useContextStore()) => {
+export let useStore = (store = useContextStore() || "use <Picofly>"()) => {
 	let trackedRef = useRef()
 	let updateIdRef = useRef(0)
 
