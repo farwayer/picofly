@@ -2,10 +2,8 @@ export let SizeSym = /* @__PURE__ */ Symbol.for('size')
 export let KeysSym = /* @__PURE__ */ Symbol('keys')
 export let ValuesSym = /* @__PURE__ */ Symbol('values')
 
-let SingleIterProto = {
-	[Symbol.iterator]() {
-		return this
-	},
+let SingleIterProto = /* @__PURE__ */ (() => ({
+	__proto__: Iterator.prototype,
 
 	next() {
 		let next = this.it.next()
@@ -20,12 +18,10 @@ let SingleIterProto = {
 
 		return next
 	}
-}
+}))()
 
-export let EntriesIterProto = {
-	[Symbol.iterator]() {
-		return this
-	},
+export let EntriesIterProto = /* @__PURE__ */ (() => ({
+	__proto__: Iterator.prototype,
 
 	next() {
 		let next = this.it.next()
@@ -43,12 +39,10 @@ export let EntriesIterProto = {
 
 		return next
 	}
-}
+}))()
 
-export let PairIterProto = {
-	[Symbol.iterator]() {
-		return this
-	},
+export let PairIterProto = /* @__PURE__ */ (() => ({
+	__proto__: Iterator.prototype,
 
 	next() {
 		let next = this.it.next()
@@ -64,7 +58,7 @@ export let PairIterProto = {
 
 		return next
 	}
-}
+}))()
 
 export let iter = ($, it, proto) => {
 	let wrapped = Object.create(proto || SingleIterProto)
