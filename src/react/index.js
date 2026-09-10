@@ -1,2 +1,2 @@
 export * from './use-store.js'
-export * from './select.jsx'
+export * from './select.js'
