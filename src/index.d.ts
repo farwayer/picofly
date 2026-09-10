@@ -33,7 +33,7 @@ export const ValuesSym: unique symbol
 export function get$<S>(store: S): $
 export function naked<V>($: $, val: V): V
 
-export type Locked = 1 | 0 | undefined
+export type Locked = 1 | 0
 export type $ = [
 	proxify: Step,
 	writeSubs: Set<Sub>,

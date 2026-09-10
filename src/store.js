@@ -25,7 +25,7 @@ export let store = (state, rules) => {
 		new Set(),     // 1 = write subs
 		new Set(),     // 2 = read subs
 		new WeakMap(), // 3 = proxy cache
-		               // 4 = locked
+		0,             // 4 = locked
 		               // 5-20 = reserved
 		               // 21-... can be used by libs/rules
 		               // but it's better to use symbols (or str keys)
