@@ -45,9 +45,8 @@ let subscriber = subsIndex => (store, cb) => {
 	}
 }
 
-let locker = locked => store => {
+let locker = locked => store =>
 	get$(store)[4] = locked
-}
 
 export let onWrite = /* @__PURE__ */ subscriber(1)
 export let onRead = /* @__PURE__ */ subscriber(2)
