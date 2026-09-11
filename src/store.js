@@ -9,9 +9,13 @@ export let store = (state, rules) => {
 	rules || 'pass rules!'()
 
 	rules = rules
-		.sort(rulePriorityCompare)
+		// the rule must return a priority if called without the next
+		.sort((rule1, rule2) => rule1() - rule2())
 		.reduceRight((next, rule) => rule(next), naked)
 
+	// it would be elegant to create a `primitive` and a `cache` rule
+	// but inlining inside `reduceRight` may break with custom rules
+	// primitive checks and the cache must work quickly regardless
 	// do not add anything!
 	// 91 bc <= max-maglev-inlined-bytecode-size=100, JSC FTL=100
 	let proxify = ($, val, res) =>
@@ -20,7 +24,7 @@ export let store = (state, rules) => {
 				val[$Sym] === $ // proxied (only in one case: getter returned our proxy)
 					? val
 					: (
-						// cache only if not the same obj returned from rules
+						// cache only if not the same obj returned from the rules
 						(res = rules($, val)) === val ||
 						$[ICache].set(val, res),
 					res)
@@ -70,7 +74,3 @@ export let naked = ($, val) =>
 	typeof val === 'object' && val && val[$Sym] === $
 		? val[NakedSym]
 		: val
-
-// the rule must return a priority if called without the next
-let rulePriorityCompare = (rule1, rule2) =>
-	rule1() - rule2()
