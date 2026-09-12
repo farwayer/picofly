@@ -194,15 +194,12 @@ let proxifySet = ($, set) => {
 
 				default: {
 					val = proxify($, Reflect.get(set, prop, receiver))
+					prop = readSubs.size && msPropToKey(prop)
 				}
 			}
 
-			if (readSubs.size) {
-				prop = msPropToKey(prop)
-
-				for (let cb of readSubs) {
-					cb(set, prop)
-				}
+			for (let cb of readSubs) {
+				cb(set, prop)
 			}
 
 			return val

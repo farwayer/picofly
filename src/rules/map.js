@@ -237,15 +237,12 @@ let proxifyMap = ($, map) => {
 
 				default: {
 					val = proxify($, Reflect.get(map, prop, receiver))
+					prop = readSubs.size && msPropToKey(prop)
 				}
 			}
 
-			if (readSubs.size) {
-				prop = msPropToKey(prop)
-
-				for (let cb of readSubs) {
-					cb(map, prop)
-				}
+			for (let cb of readSubs) {
+				cb(map, prop)
 			}
 
 			return val
