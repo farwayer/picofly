@@ -19,7 +19,7 @@ export let useStore = (store = useContextStore() || "use <Picofly>"()) => {
 
 	let state = useRef().current ??= {
 		epoch: 0,
-		writeUnsubs: new Set(),
+		writeUnsubs: [],
 	}
 	let writeUnsubs = state.writeUnsubs
 	let tracked = new WeakMap()
@@ -37,11 +37,12 @@ export let useStore = (store = useContextStore() || "use <Picofly>"()) => {
 	}
 
 	let stopTrackWrite = () => {
-		if (writeUnsubs.size) {
-			for (let unsub of writeUnsubs) {
-				unsub()
+		let len = writeUnsubs.length
+		if (len) {
+			for (let i = 0; i < len; i++) {
+				writeUnsubs[i]()
 			}
-			writeUnsubs.clear()
+			writeUnsubs.length = 0
 		}
 	}
 
@@ -61,7 +62,7 @@ export let useStore = (store = useContextStore() || "use <Picofly>"()) => {
 			tracked.set(obj, trackedKeys = new Set())
 
 			let unsub = onObjWrite(brokerWriteSubs, obj, updateIfTrackedKey)
-			writeUnsubs.add(unsub)
+			writeUnsubs.push(unsub)
 		}
 
 		trackedKeys.add(key)
