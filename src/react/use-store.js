@@ -4,6 +4,8 @@ import {
 } from 'react'
 import {onWrite, onRead, lock, unlock, get$} from '../store.js'
 
+export let ReactSym = /* @__PURE__ */ Symbol()
+
 export let PicoflyContext
 export let Picofly = /* @__PURE__ */ (() => (
 	PicoflyContext ??= createContext()
@@ -15,52 +17,15 @@ export let useStore = (store = useContextStore() || "use <Picofly>"()) => {
 	// and unlocked at any (!) component commit stage
 	lock(store)
 
-	let epochRef = useRef(0)
-	let trackedRef = useRef()
-	let writeUnsubsRef = useRef()
-	let onChangeRef = useRef()
-
-	let $ = get$(store)
-	let $react = $[ReactSym]
-
-	writeUnsubsRef.current ??= new Set()
-
-
-	// init (once per component)
-	// epoch used as inited flag
-	if (!epochRef.current) {
-		epochRef.current++
-
-		// attach the store write broker (once: one for all components)
-		if (!$react) {
-			let brokerSubs = new WeakMap()
-
-			let brokerUnsub = onWrite(store, (obj, key) => {
-				let objSubs = brokerSubs.get(obj)
-				if (!objSubs?.size) return
-
-				for (let cb of objSubs) {
-					cb(obj, key)
-				}
-			})
-
-			$react = $[ReactSym] = {
-				alive: 0,
-				brokerSubs,
-				brokerUnsub,
-			}
-		}
-
-		$react.alive++
+	let state = useRef().current ??= {
+		epoch: 0,
+		writeUnsubs: new Set(),
 	}
+	let writeUnsubs = state.writeUnsubs
+	let tracked = new WeakMap()
 
-	let brokerRelease = () => {
-		if (!--$react.alive) {
-			$react.brokerUnsub()
-			delete $[ReactSym]
-		}
-	}
-
+	let $react = attachWriteBroker(store)
+	let brokerWriteSubs = $react.brokerWriteSubs
 
 	// tracking
 	let stopTrackRead = () => {
@@ -72,58 +37,55 @@ export let useStore = (store = useContextStore() || "use <Picofly>"()) => {
 	}
 
 	let stopTrackWrite = () => {
-		let unsubs = writeUnsubsRef.current
-		if (!unsubs.size) return
-
-		for (let unsub of unsubs) {
-			unsub()
+		if (writeUnsubs.size) {
+			for (let unsub of writeUnsubs) {
+				unsub()
+			}
+			writeUnsubs.clear()
 		}
-		unsubs.clear()
 	}
 
-	let notifyIfTrackedKey = (obj, key) => {
-		if (trackedRef.current.get(obj)?.has(key)) {
+	let updateIfTrackedKey = (obj, key) => {
+		if (tracked.get(obj).has(key)) {
 			stopTrackWrite()
-			epochRef.current++
-			onChangeRef.current()
+			state.epoch++
+			state.onChange?.()
 		}
 	}
 
+	// 93 bc
 	let trackKey = (obj, key) => {
-		let tracked = trackedRef.current
 		let trackedKeys = tracked.get(obj)
 
-		if (trackedKeys) {
-			trackedKeys.add(key)
-		} else {
-			tracked.set(obj, new Set().add(key))
+		if (!trackedKeys) {
+			tracked.set(obj, trackedKeys = new Set())
 
-			let unsub = onObjWrite($react, obj, notifyIfTrackedKey)
-			writeUnsubsRef.current.add(unsub)
+			let unsub = onObjWrite(brokerWriteSubs, obj, updateIfTrackedKey)
+			writeUnsubs.add(unsub)
 		}
+
+		trackedKeys.add(key)
 	}
 
 	stopTrackWrite()
-	trackedRef.current = new WeakMap()
 
 	// remove previous component read callback (if exists) and attach our
 	$react.readUnsub?.()
 	$react.readUnsub = onRead(store, trackKey)
 
 	let subscribe = useCallback(onChange => {
-		onChangeRef.current = onChange
+		state.onChange = onChange
 
 		return () => {
 			stopTrackWrite()
-			brokerRelease()
+			state.epoch++
 		}
-	}, [$react])
+	}, [])
 
-	let getEpoch = () => epochRef.current
+	let getEpoch = () => state.epoch
 
 	useSyncExternalStore(subscribe, getEpoch, getEpoch)
 	useInsertionEffect(stopTrackRead)
-
 	// due to the asynchronous nature of rendering
 	// useInsertionEffect may not always be called after each render
 	// (for ex. when the data was updated between the render and commit stages)
@@ -133,20 +95,47 @@ export let useStore = (store = useContextStore() || "use <Picofly>"()) => {
 	return store
 }
 
-// private
-let ReactSym = Symbol()
 
-let onObjWrite = ($react, obj, cb) => {
-	let brokerSubs = $react.brokerSubs
-	let objSubs = brokerSubs.get(obj)
+// attach the store write broker (one for all components)
+let attachWriteBroker = (store) => {
+	let $ = get$(store)
+	let $react = $[ReactSym]
 
-	if (objSubs) {
-		objSubs.add(cb)
-	} else {
-		$react.brokerSubs.set(obj, objSubs = new Set().add(cb))
+	if (!$react) {
+		let brokerWriteSubs = new WeakMap()
+		$react = $[ReactSym] = {brokerWriteSubs}
+
+		// 39 bc
+		onWrite(store, (obj, key) => {
+			let objSubs = brokerWriteSubs.get(obj)
+			if (objSubs) {
+				notifyKey(objSubs, obj, key)
+			}
+		})
 	}
 
-	return () => (
+	return $react
+}
+
+let notifyKey = (subs, obj, key) => {
+	for (let cb of subs) {
+		cb(obj, key)
+	}
+}
+
+let onObjWrite = (writeSubs, obj, cb) => {
+	let objSubs = writeSubs.get(obj)
+
+	if (!objSubs) {
+		writeSubs.set(obj, objSubs = new Set())
+	}
+	objSubs.add(cb)
+
+	return () => {
 		objSubs.delete(cb)
-	)
+
+		if (!objSubs.size) {
+			writeSubs.delete(obj)
+		}
+	}
 }
