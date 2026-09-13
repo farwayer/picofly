@@ -220,7 +220,8 @@ let proxifySet = ($, set) => {
 				Reflect.getOwnPropertyDescriptor(set, prop)?.writable
 			) {
 				set[prop] = value
-			} else {
+			}
+			else {
 				if (!Reflect.set(set, prop, value, receiver)) {
 					return false
 				}
