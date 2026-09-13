@@ -19,7 +19,9 @@ export let useStore = (store = useContextStore() || "use <Picofly>"()) => {
 
 	let state = useRef().current ??= {
 		epoch: 0,
+		dirty: 0,
 		subs: [],
+		notify: null,
 	}
 
 	let trackRead = attachTracker(store)
@@ -30,7 +32,7 @@ export let useStore = (store = useContextStore() || "use <Picofly>"()) => {
 
 		return () => {
 			state.epoch++
-			clearTailSubs(state.subs, 0)
+			clearTailSubsIfNeed(state, 0)
 		}
 	}, [])
 
@@ -47,7 +49,7 @@ export let useStore = (store = useContextStore() || "use <Picofly>"()) => {
 	return store
 }
 
-// one tracker for all components
+// one tracker to rule them all
 let attachTracker = (store) => {
 	let $ = get$(store)
 	let trackRead = $[ReactSym]
@@ -56,8 +58,38 @@ let attachTracker = (store) => {
 		return trackRead
 	}
 
-	let readUnsub, state, subIndex
+	let state, readUnsub, subIndex, lastObj, lastObjSubs
 	let allSubs = new WeakMap()
+
+	let upLastObjSubs = obj => {
+		if (obj !== lastObj) {
+			lastObj = obj
+			lastObjSubs = allSubs.get(obj)
+		}
+
+		if (!lastObjSubs) {
+			allSubs.set(obj, lastObjSubs = new Map())
+		}
+	}
+
+	let retrack = (key) => {
+		clearTailSubsIfNeed(state, subIndex)
+		addSub(state, lastObjSubs, key)
+	}
+
+	// 74 bc
+	let trackKey = (obj, key) => {
+		upLastObjSubs(obj)
+
+		let subs = state.subs
+		let sub = subs[subIndex]
+
+		if (!sub || sub.objSubs !== lastObjSubs || sub.key !== key) {
+			retrack(key)
+		}
+
+		subIndex++
+	}
 
 	// 93 bc
 	onWrite(store, (obj, key) => {
@@ -83,50 +115,35 @@ let attachTracker = (store) => {
 		}
 	})
 
-	let retrack = (objSubs, obj, key, subs) => {
-		if (!objSubs) {
-			allSubs.set(obj, objSubs = new Map())
-		}
-
-		clearTailSubs(subs, subIndex++)
-		addSub(state, objSubs, key)
-	}
-
-	// 97 bc
-	let trackKey = (obj, key) => {
-		let objSubs = allSubs.get(obj)
-
-		let subs = state.subs
-		let sub = subs[subIndex]
-
-		if (sub && sub.objSubs === objSubs && sub.key === key) {
-			return subIndex++
-		}
-
-		return retrack(objSubs, obj, key, subs)
-	}
-
 	return $[ReactSym] = (currentState) => {
 		if (state) {
-			clearTailSubs(state.subs, subIndex)
+			clearTailSubsIfNeed(state, subIndex)
+		} else {
+			readUnsub = onRead(store, trackKey)
 		}
 
 		state = currentState
 		currentState.dirty = 0
 		subIndex = 0
 
-		readUnsub?.()
-		readUnsub = onRead(store, trackKey)
-
 		return () => {
-			if (readUnsub) {
+			if (state) {
 				readUnsub()
-				readUnsub = null
-				clearTailSubs(state.subs, subIndex)
+				clearTailSubsIfNeed(state, subIndex)
 				state = null
+				lastObj = null
+				lastObjSubs = null
 				unlock(store)
 			}
 		}
+	}
+}
+
+let clearTailSubsIfNeed = (state, from) => {
+	let subs = state.subs
+
+	if (subs.length > from) {
+		clearTailSubs(subs, from)
 	}
 }
 
