@@ -8,7 +8,7 @@ cd "$(dirname "$0")/.."
 
 banner='var __a = typeof scriptArgs !== "undefined" ? scriptArgs
   : typeof arguments !== "undefined" ? arguments : []
-globalThis.__perfArgs = Array.prototype.slice.call(__a);'
+globalThis.__perfArgs = globalThis.__perfArgs || Array.prototype.slice.call(__a);'
 
 esbuild=node_modules/.bin/esbuild
 if [ ! -x "$esbuild" ]; then
@@ -26,8 +26,11 @@ for f in perf/fill/*/*.js perf/update/*/*.js perf/read/*/*.js; do
   rel=${f#perf/}
   rel=${rel%.js}
   flat=$(echo "$rel" | tr / -)
+  # a shell without script arguments has no other way to learn which
+  # benchmark it is running, and the name is the same every time
   "$esbuild" --bundle --format=iife --log-level=error \
-    --banner:js="$banner" "$f" > "perf/bundles/$flat.js"
+    --banner:js="$banner
+globalThis.__perfBench = \"$rel\";" "$f" > "perf/bundles/$flat.js"
 done
 
 echo "bundled: $(ls perf/bundles | wc -l)"

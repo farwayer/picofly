@@ -5,8 +5,9 @@ import {loop, obs, sub, watch} from '../../utils.js'
 
 
 // show:
-//   // 100 components read it
 //   let store = create({})
+//   // 100 components read it
+//   for (let i = 0; i < 100; i++) onWrite(store, noop)
 //
 //   // bench
 //   store.x = 1

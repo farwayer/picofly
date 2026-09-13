@@ -18,14 +18,39 @@ let env = typeof process !== 'undefined' && process.env ? process.env : {}
 
 let pass = argv[0] || env.PERF_PASS || '1'
 let onlyLib = argv[1] || env.PERF_LIB || ''
-let benchId = argv[2] || env.PERF_BENCH || guessBench()
+let benchId = argv[2] || env.PERF_BENCH || globalThis.__perfBench || guessBench()
 let quick = env.PERF_QUICK
 
 let say = typeof print === 'function' ? print : console.log
 
+// hrtime in node, performance in jsc and js, Date in hermes — it has neither.
+// Date steps by a millisecond, so a region has to be long enough to hide it
 let now = typeof process !== 'undefined' && process.hrtime?.bigint
   ? () => Number(process.hrtime.bigint())
-  : () => performance.now() * 1e6
+  : typeof performance !== 'undefined'
+  ? () => performance.now() * 1e6
+  : () => Date.now() * 1e6
+
+// the step of the clock, not the api behind it: hermes counts in
+// milliseconds, jsc clamps performance.now() to 20 µs, node ticks in
+// nanoseconds. Anything worse than ten microseconds cannot measure a
+// short region on its own
+let tick = (() => {
+  let min = Infinity
+
+  for (let r = 0; r < 5; r++) {
+    let t0 = now()
+    let d = 0
+    let i = 0
+
+    while (!(d = now() - t0) && i++ < 1e6);
+    if (d && d < min) min = d
+  }
+
+  return min
+})()
+
+let coarse = tick > 10e3
 
 // the onWrite check useStore() runs on every change, once per subscriber
 export let watch = (store, subs = 1) => {
@@ -88,14 +113,16 @@ export let loop = name => {
   runner.picofly = add('picofly', `Picofly ${picoflyPkg.version}`)
   runner.valtio = add('valtio', `Valtio ${valtioPkg.version}`)
   runner.mobx = add('mobx', `MobX ${mobxPkg.version}`)
+  // the same app without any store, so the table shows what react costs
+  runner.basic = add('basic', 'React')
 
   // one library per process, so measure() stays monomorphic for everyone
   // and nobody pays for running second. run.sh rotates who goes first
-  runner.run = () => {
+  runner.run = async () => {
     let picked = onlyLib ? cases.filter(c => c.lib === onlyLib) : cases
 
     for (let {label, cfg} of picked) {
-      say(`${pass}\t${benchId}\t${label}\t${measure(cfg).toFixed(2)}`)
+      say(`${pass}\t${benchId}\t${label}\t${(await measure(cfg)).toFixed(2)}`)
     }
   }
 
@@ -107,9 +134,12 @@ export let loop = name => {
 // one timed region holds many operations, so the clock costs nothing per op
 // and the code runs warm; min over repeats keeps the cleanest run seen,
 // the spread between repeats is left to report.js. run with --expose-gc
-let measure = ({make, run, fresh, n, repeats, warm, enter = plain}) => {
+let measure = async ({make, run, fresh, n, repeats, warm, flush, enter = plain}) => {
   repeats ??= fresh ? 30 : 12
   warm ??= 1000
+
+  // hermes has no clock better than a millisecond and no jit to warm up
+  if (coarse) warm = Math.max(1, warm >> 2)
 
   if (quick) {
     n = Math.min(n ?? 50, 50)
@@ -122,22 +152,47 @@ let measure = ({make, run, fresh, n, repeats, warm, enter = plain}) => {
   // heat the whole path before the clock, or the first timed window pays
   // for the tier-up and the numbers drift from process to process
   if (fresh) {
-    for (let i = 0; i < warm; i++) run(make(), i)
+    for (let i = 0; i < warm; i++) await run(make(), i)
   } else {
     let subject = make()
-    for (let i = 0; i < warm; i++) run(subject, i)
+    for (let i = 0; i < warm; i++) await run(subject, i)
   }
 
   // fresh benches keep their subject count: growing it grows the working
   // set too, and cold reads start measuring cache misses instead
   n ??= fresh ? 2000 : pick(make, run, enter)
-  if (env.PERF_DEBUG) say(`# n=${n} repeats=${repeats}`)
+  if (env.PERF_DEBUG) say(`# n=${n} repeats=${repeats} tick=${tick}ns`)
+
+  // a coarse clock cannot see a single region: a fresh bench cannot grow
+  // its subject count without growing its working set, and the engine has
+  // nothing finer to offer. So the regions are summed until there is
+  // enough time to divide, and the answer is their average — a minimum
+  // over quantised regions would simply pick the shortest tick, or zero.
+  // The step of the answer is tick / (regions × n), so the count has to
+  // run high: on hermes 200 regions of 200 ops still quantise to 25 ns
+  if (coarse) {
+    let total = 0
+    let ops = 0
+
+    for (let r = 0; r < 200 && total < 100e6; r++) {
+      globalThis.gc?.()
+
+      total += (flush
+        ? await timedFlush(make, run, fresh, n)
+        : timed(make, run, fresh, n, enter)) * n
+      ops += n
+    }
+
+    return total / ops
+  }
 
   for (let r = 0; r < repeats; r++) {
     // every repeat starts from a comparable heap (needs --expose-gc)
     globalThis.gc?.()
 
-    let ns = timed(make, run, fresh, n, enter)
+    let ns = flush
+      ? await timedFlush(make, run, fresh, n)
+      : timed(make, run, fresh, n, enter)
     if (ns < best) best = ns
   }
 
@@ -145,6 +200,23 @@ let measure = ({make, run, fresh, n, repeats, warm, enter = plain}) => {
 }
 
 let plain = body => body()
+
+// an op that flushes for itself cannot run in a sync region: a library that
+// coalesces its notifications does it in a microtask, and only after that
+// does react have anything to commit. No enter here
+let timedFlush = async (make, run, fresh, n) => {
+  let all = fresh && Array.from({length: n}, make)
+  let one = fresh ? null : make()
+
+  // warm the shapes before the clock, fresh ones are warmed by measure()
+  if (one) await run(one, 0)
+
+  let t = now()
+
+  for (let i = 0; i < n; i++) await run(fresh ? all[i] : one, i)
+
+  return (now() - t) / n
+}
 
 // one timed region holds many operations, so the clock costs nothing per op
 // and the code runs warm
@@ -175,7 +247,9 @@ let timed = (make, run, fresh, n, enter) => {
 // a region should be long enough for the clock and for the tier-up to
 // disappear in it. grow n on the real loop until it is, no estimating
 let pick = (make, run, enter) => {
-  let want = 25e6 // ns in a region
+  // a millisecond clock over a 100 ms region is off by 1%, well under the
+  // spread between passes
+  let want = coarse ? 100e6 : 25e6 // ns in a region
   let cap = 5000000
   let n = 5000
 
