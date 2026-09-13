@@ -1,6 +1,6 @@
 import {suite, test} from 'node:test'
 import * as assert from 'node:assert/strict'
-import {create, markRaw, get$} from 'picofly'
+import {create, markRaw, get$, ICache} from 'picofly'
 
 
 suite('cache', () => {
@@ -17,7 +17,7 @@ suite('cache', () => {
   test('proxies are lazy, created on the first read', () => {
     let o = {nested: {n: 1}}
     let s = create(o)
-    let proxies = get$(s)[3]
+    let proxies = get$(s)[ICache]
 
     assert.equal(proxies.has(o.nested), false)
 

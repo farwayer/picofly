@@ -324,6 +324,48 @@ suite('map', () => {
     assert.deepEqual(hits, ['1'])
   })
 
+  test('forEach takes thisArg', () => {
+    let [, s] = booksStore()
+    let ctx = {}
+    let seen = []
+
+    s.forEach(function () {
+      seen.push(this)
+    }, ctx)
+
+    assert.deepEqual(seen, [ctx])
+  })
+
+  test('forEach without thisArg has no this', () => {
+    let [, s] = booksStore()
+    let seen = []
+
+    s.forEach(function () {
+      seen.push(this)
+    })
+
+    assert.deepEqual(seen, [undefined])
+  })
+
+  test('forEach hands the store over as the third argument', () => {
+    let [, s] = booksStore()
+    let seen = []
+
+    s.forEach((v, k, self) => seen.push(self))
+
+    assert.deepEqual(seen, [s])
+  })
+
+  test('forEach on a foreign receiver walks it', () => {
+    let [, s] = booksStore()
+    let other = new Map([['x', 1]])
+    let seen = []
+
+    s.forEach.call(other, (v, k, self) => seen.push([v, k, self]))
+
+    assert.deepEqual(seen, [[1, 'x', other]])
+  })
+
   test('keys', () => {
     let [m, s] = booksStore()
 

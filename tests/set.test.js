@@ -295,6 +295,48 @@ suite('set', () => {
     assert.deepEqual(hits, [SizeSym])
   })
 
+  test('forEach takes thisArg', () => {
+    let [, s] = colorStore()
+    let ctx = {}
+    let seen = []
+
+    s.forEach(function () {
+      seen.push(this)
+    }, ctx)
+
+    assert.deepEqual(seen, [ctx, ctx])
+  })
+
+  test('forEach without thisArg has no this', () => {
+    let [, s] = colorStore()
+    let seen = []
+
+    s.forEach(function () {
+      seen.push(this)
+    })
+
+    assert.deepEqual(seen, [undefined, undefined])
+  })
+
+  test('forEach hands the store over as the third argument', () => {
+    let [, s] = colorStore()
+    let seen = []
+
+    s.forEach((v, k, self) => seen.push(self))
+
+    assert.deepEqual(seen, [s, s])
+  })
+
+  test('forEach on a foreign receiver walks it', () => {
+    let [, s] = colorStore()
+    let other = new Set(['x'])
+    let seen = []
+
+    s.forEach.call(other, (v, k, self) => seen.push([v, k, self]))
+
+    assert.deepEqual(seen, [['x', 'x', other]])
+  })
+
   test('values', () => {
     let [m, s] = colorStore()
 
