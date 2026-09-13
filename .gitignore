@@ -6,3 +6,8 @@
 .pnp.*
 node_modules
 yarn.lock
+
+dist
+perf/results/
+perf/bundles/
+.tmp

@@ -9,8 +9,9 @@
   "sideEffects": false,
   "exports": {
     ".": "./src/index.js",
+    "./selectors": "./src/selectors.js",
     "./react": "./src/react/index.js",
-    "./utils": "./src/utils/index.js",
+    "./react/selectors": "./src/react/selectors.js",
     "./package.json": "./package.json"
   },
   "keywords": [
@@ -28,54 +29,80 @@
     "publish": "clean-publish"
   },
   "devDependencies": {
-    "@size-limit/preset-small-lib": "^13.0.3",
+    "@size-limit/preset-small-lib": "^13.1.1",
     "clean-publish": "^7.1.0",
+    "happy-dom": "^20.14.5",
     "mobx": "^7.0.3",
+    "mobx-react-lite": "^5.0.3",
     "picocolors": "^1.1.1",
-    "react": "^19.2.8",
-    "size-limit": "^13.0.3",
-    "tinybench": "^6.1.3",
+    "proxy-compare": "^3.0.1",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "size-limit": "^13.1.1",
     "valtio": "^2.3.2"
   },
+  "peerDependencies": {
+    "react": ">=19"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    }
+  },
   "workspaces": [
-    "examples/*"
+    "examples/*",
+    "site"
   ],
   "size-limit": [
     {
-      "name": "Store obj minimal",
+      "name": "Min",
       "import": {
-        "src/index.js": "{store, onWrite, obj}"
+        "src/index.js": "{store, obj, onWrite}"
       },
-      "limit": "513b"
+      "limit": "704b"
     },
     {
-      "name": "Store obj full",
-      "import": {
-        "src/index.js": "{store, obj, onWrite, onRead, lock, unlock}"
-      },
-      "limit": "534b"
-    },
-    {
-      "name": "React obj",
+      "name": "React min",
       "import": {
         "src/index.js": "{store, obj}",
-        "src/react/index.js": "{StoreProvider, useStore}"
+        "src/react/index.js": "{Picofly, useStore}"
       },
       "ignore": [
         "react"
       ],
-      "limit": "701b"
+      "limit": "1255b"
     },
     {
-      "name": "React default",
+      "name": "Full",
       "import": {
-        "src/index.js": "{create}",
-        "src/react/index.js": "{StoreProvider, useStore}"
+        "src/index.js": "{create, onWrite}"
       },
       "ignore": [
         "react"
       ],
-      "limit": "1600b"
+      "limit": "1693b"
+    },
+    {
+      "name": "React full",
+      "import": {
+        "src/index.js": "{create}",
+        "src/react/index.js": "{Picofly, useStore}"
+      },
+      "ignore": [
+        "react"
+      ],
+      "limit": "2240b"
+    },
+    {
+      "name": "React full select",
+      "import": {
+        "src/index.js": "{create}",
+        "src/react/index.js": "{Picofly, select}"
+      },
+      "ignore": [
+        "react"
+      ],
+      "limit": "2360b"
     }
   ],
   "clean-publish": {
