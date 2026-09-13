@@ -5,8 +5,8 @@ export let Cfg = {
   tagline: 'Tiny state manager, built with ❤️',
   install: ['npm i picofly', 'yarn add picofly'],
   size: {
-    min: '579 B',
-    react: '795 B',
+    min: '704 B',
+    react: '1.25 kB',
   },
   links: {
     github: 'https://github.com/farwayer/picofly',
@@ -53,17 +53,18 @@ export let Tabs: {id: TabId, name: string, code: string}[] = [
     code: `export type Key = 'a' | 'b'
 
 // describe the app state, a class or a plain object
+// getters, setters and methods keep working
 export class Calc {
   a = 0
   b = 0
   resetting = false
+
+  inc(key: Key) {
+    this[key]++
+  }
 }
 
 // write plain functions that read and change data
-export let inc = (calc: Calc, key: Key) => {
-  calc[key]++
-}
-
 // they can be async, generators, whatever
 export let reset = async (calc: Calc) => {
   calc.resetting = true
@@ -87,10 +88,9 @@ import {Reset} from './reset.tsx'
 import {CellA, CellB} from './cells.tsx'
 import {Inc} from './inc.tsx'
 
-// put the store in context, the rest takes it from there
+// create and put the store in context
 export function Calculator() {
-  let calcRef = useRef<Calc | null>(null)
-  let calc = calcRef.current ??= create(new Calc())
+  let calc = useRef().current ??= create(new Calc())
 
   return (
     <Picofly value={calc}>
@@ -153,13 +153,14 @@ import {select} from 'picofly/react'
 import type {Calc} from './calc.ts'
 
 // you can use selectors instead of the hook
-// it reads the store and feeds a component
+// selector reads the store and feeds a component
 let aValue = (calc: Calc) => ({value: calc.a})
 let bValue = (calc: Calc) => ({value: calc.b})
 
 export let CellA = select(aValue)(Cell) // renders only when a changes
 export let CellB = select(bValue)(Cell) // renders only when b changes
 
+// pure component
 function Cell({value}: {value: number}) {
   let renders = useRef(0)
   renders.current++
@@ -178,17 +179,17 @@ function Cell({value}: {value: number}) {
     code: `import {memo, useCallback} from 'react'
 import {select} from 'picofly/react'
 import type {Calc, Key} from './calc.ts'
-import {inc} from './calc.ts'
 
 // selectors can do more than read the store
-// they can attach callbacks and call hooks
+// they can attach callbacks and use hooks
 export let Inc = select(
   (calc: Calc, props: {cell: Key}) => ({
-    onClick: useCallback(() => inc(calc, props.cell), [props.cell]),
+    onClick: useCallback(() => calc.inc(props.cell), [props.cell]),
     children: \`\${props.cell}++\`,
   }),
 )(memo(Button))
 
+// memo is not really needed here, just for example
 function Button({onClick, children}: Props) {
   return <button onClick={onClick}>{children}</button>
 }`,
@@ -240,10 +241,10 @@ app.api.fetch('/videos')`],
       ['onWrite(store, cb)',
        `Subscribes to changes in \`store\`.
 
-        \`cb\`: \`(rawObj, prop) => void\` Called after every data change.
+        \`cb\`: \`(rawObj, key) => void\` Called after every data change.
 
-        **Returns:** \`() => void\` The unsubscribe function.`, `let unsub = onWrite(app, (obj, prop) => {
-  console.log('changed:', prop)
+        **Returns:** \`() => void\` The unsubscribe function.`, `let unsub = onWrite(app, (obj, key) => {
+  console.log('changed:', key)
 })
 
 app.user.name = 'Kim' // changed: name
@@ -251,10 +252,10 @@ unsub()`],
       ['onRead(store, cb)',
        `Subscribes to reads in \`store\`.
 
-        \`cb\`: \`(rawObj, prop) => void\` Called after every data read.
+        \`cb\`: \`(rawObj, key) => void\` Called after every data read.
 
-        **Returns:** \`() => void\` The unsubscribe function.`, `onRead(app, (obj, prop) => {
-  console.log('read:', prop)
+        **Returns:** \`() => void\` The unsubscribe function.`, `onRead(app, (obj, key) => {
+  console.log('read:', key)
 })
 
 app.user.name // read: name`],
@@ -360,7 +361,7 @@ item('video', {map: 'data.videos', idProp: 'params.id'})`],
 
         \`deps\`: \`(store, props) => unknown[]\` Extra dependencies.
 
-        **Returns:** \`(store, props) => {[name]: handler}\` The selector.`, `let onWatch = callback('onWatch', (app, id) => watchVideo(app, id))
+        **Returns:** \`(store, props) => {[name]: handler}\` The selector.`, `let onWatch = callback('onWatch', watchVideo)
 
 export default select(onWatch)(Video)`],
       ['effect(fns)',
@@ -372,7 +373,7 @@ export default select(onWatch)(Video)`],
 
         **Returns:** \`(store, props) => void\` The selector, it adds no props.`, `export default select(
   effect({
-    run: (app, props) => loadVideo(app, props.id),
+    run: loadVideo,
     deps: (app, props) => [props.id],
   }),
 )(Video)`],
@@ -381,7 +382,7 @@ export default select(onWatch)(Video)`],
 ]
 
 export let Rules: [string, number, string][] = [
-  ['raw', 10, `keeps whatever \`markRaw()\` marked`],
+  ['raw', 10, `never proxies what \`markRaw()\` marked, for api clients, sockets and other service objects`],
   ['map', 20, `proxies a \`Map\``],
   ['set', 30, `proxies a \`Set\``],
   ['builtins', 40, `leaves \`Date\`, \`Error\`, \`RegExp\`, boxed primitives and everything carrying \`Symbol.toStringTag\` (\`Promise\`, \`Blob\`, DOM nodes etc.) as is`],
@@ -400,26 +401,22 @@ let date = next => !next ? 35 : ($, val) =>
 
 let app = store({}, [obj, builtins, date])`
 
-export let Setup: [string, string][] = [
-  ['picofly', `0.1.0`],
-  ['valtio', `2.3.2`],
-  ['mobx', `7.0.3`],
-  ['node', `24.18.1 on Linux, i9-13900`],
-  ['measured', `2026-09-07`],
-  ['run', `\`./perf/run.sh\``],
+export let Libs: [string, string][] = [
+  ['picofly', '0.1.0'],
+  ['valtio', '2.3.2'],
+  ['mobx', '7.0.3'],
 ]
 
 export let Verdict: [string, string][] = [
   ['Putting data in',
-   `==422x== vs valtio, ==508x== vs mobx. *Picofly* wraps the root and
-    stops there, so ==10k== objects land in ==864 ns== against ==21–26 ms==.`],
+   `==410x== vs valtio, ==492x== vs mobx. *Picofly* wraps the root and
+    stops there, so ==10k== objects land in ==812 ns== against ==21–26 ms==.`],
   ['Updating',
-   `==7.3x== vs valtio, ==4.8x== vs mobx. The lead grows wherever the value is
+   `==6.6x== vs valtio, ==3.5x== vs mobx. The lead grows wherever the value is
     an object, it is not proxied on the way in, no matter how big it is.`],
   ['Reading',
-   `==4.2x== vs valtio, ==1.0x== vs mobx. The first read pays a small penalty
-    for lazy proxies. And *Picofly* uses a real \`Map\` and \`Set\`, while
-    *Valtio* and *MobX* replace them with emulations.`],
+   `==4.6x== vs valtio, ==1.1x== vs mobx. The first read pays a small penalty
+    for lazy proxies.`],
 ]
 
 export let Caveats: [string, string][] = [
@@ -437,205 +434,342 @@ export let Caveats: [string, string][] = [
     \`subscribe\` in *Valtio*, \`observe\` in *MobX*.`],
 ]
 
-export type Bench = [string, [string, string, string, string][]][]
+// a bench row can carry a footnote, numbered in the order they are listed
+export let Notes: [string[], string][] = [
+  [
+    ['update/arr/length-cut', 'update/arr/length-cut-holes'],
+    `*Valtio* and *MobX* notify once for the whole array, *Picofly* once per
+     dropped index, so a reader of \`list[7]\` learns about the cut.`,
+  ],
+  [
+    ['read/map/iterate-keys'],
+    `*Picofly* proxies object keys as well, so a component that read one is
+     subscribed to it. *Valtio* keeps its keys outside the proxy and *MobX*
+     enhances values only, so both hand back the raw object. The keys here are
+     numbers, and they still go through the same wrapped iterator, so the
+     check is paid on every one of them.`,
+  ],
+]
+
+export type Bench = [string, [string, ...string[]][]][]
 
 let V8: Bench = [
   ['fill', [
-    ['arr/num-100', '336', '43,330', '3,138'],
-    ['arr/obj-100', '334', '147,009', '169,850'],
-    ['arr/push-obj-100', '77,010', '173,596', '218,755'],
-    ['map/num-100', '342', '53,643', '9,712'],
-    ['map/obj-100', '349', '164,954', '197,663'],
-    ['obj/num-100', '335', '37,057', '45,504'],
-    ['obj/obj-100', '336', '141,910', '226,574'],
-    ['obj/obj-10k', '864', '20,955,428', '26,496,477'],
-    ['set/num-100', '340', '54,942', '5,138'],
-    ['set/obj-100', '343', '268,628', '179,069'],
+    ['obj/num-100', '339', '36,895', '46,772'],
+    ['obj/obj-100', '344', '142,419', '224,406'],
+    ['obj/obj-10k', '812', '21,067,743', '26,384,894'],
+    ['arr/num-100', '338', '41,138', '3,014'],
+    ['arr/obj-100', '339', '147,321', '169,896'],
+    ['map/num-100', '351', '53,544', '10,128'],
+    ['map/obj-100', '353', '165,230', '201,003'],
+    ['set/num-100', '344', '54,996', '5,643'],
+    ['set/obj-100', '352', '271,118', '177,315'],
   ]],
   ['update', [
-    ['arr/push-num', '860', '774', '234'],
-    ['arr/push-obj', '807', '1,811', '2,435'],
-    ['arr/set-num', '185', '346', '148'],
-    ['arr/set-obj', '159', '1,494', '2,177'],
-    ['map/clear-num', '339', '1,505', '8,125'],
-    ['map/clear-obj', '397', '2,542', '8,880'],
-    ['map/delete', '126', '1,420', '291'],
-    ['map/set-num', '33.3', '1,415', '159'],
-    ['map/set-obj', '34.2', '2,646', '2,348'],
-    ['obj/delete', '103', '172', '489'],
-    ['obj/set-100subs', '201', '2,160', '728'],
-    ['obj/set-deep', '207', '3,091', '5,517'],
-    ['obj/set-num', '224', '342', '385'],
-    ['obj/set-obj', '211', '1,151', '2,264'],
-    ['obj/set-same', '25.6', '25.2', '28.9'],
-    ['set/add-num', '32.4', '1,556', '58.6'],
-    ['set/add-obj', '37.4', '3,608', '2,198'],
-    ['set/clear-num', '296', '1,601', '4,279'],
-    ['set/clear-obj', '339', '2,472', '7,428'],
-    ['set/delete', '71.4', '1,369', '164'],
+    ['obj/set-100subs', '198', '2,173', '717'],
+    ['obj/set-deep', '205', '3,060', '5,487'],
+    ['obj/set-num', '199', '326', '375'],
+    ['obj/set-obj', '208', '1,167', '2,310'],
+    ['obj/set-same', '26.9', '24.5', '29.4'],
+    ['obj/delete', '116', '174', '501'],
+    ['arr/set-num', '226', '337', '146'],
+    ['arr/set-obj', '180', '1,486', '2,183'],
+    ['arr/push-num', '830', '774', '226'],
+    ['arr/push-obj', '865', '1,874', '2,424'],
+    ['arr/length-cut', '1,324', '292', '281'],
+    ['arr/length-cut-holes', '329', '255', '268'],
+    ['map/set-num', '39.5', '1,361', '59.7'],
+    ['map/set-obj', '40.7', '2,574', '1,625'],
+    ['map/delete', '123', '1,458', '291'],
+    ['map/clear-num', '302', '1,464', '8,094'],
+    ['map/clear-obj', '379', '2,549', '8,802'],
+    ['set/add-num', '36.2', '1,462', '33.4'],
+    ['set/add-obj', '40.1', '3,556', '1,618'],
+    ['set/delete', '102', '1,454', '165'],
+    ['set/clear-num', '333', '1,581', '4,279'],
+    ['set/clear-obj', '344', '2,493', '7,587'],
   ]],
   ['read', [
-    ['arr/get-num', '94.1', '142', '80.1'],
-    ['arr/get-obj-cached', '102', '145', '79.7'],
-    ['arr/get-obj-cold', '273', '599', '166'],
-    ['arr/iterate-num', '8,430', '16,171', '6,346'],
-    ['arr/iterate-obj-cached', '11,748', '23,802', '10,259'],
-    ['arr/iterate-obj-cold', '19,864', '67,325', '20,606'],
-    ['map/get-num', '21.0', '275', '11.7'],
-    ['map/get-obj-cached', '26.5', '276', '11.9'],
-    ['map/get-obj-cold', '81.9', '1,652', '226'],
-    ['map/has', '20.1', '84.8', '6.9'],
-    ['map/iterate-entries', '938', '26,181', '2,252'],
-    ['map/iterate-keys', '302', '1,484', '168'],
-    ['map/iterate-num', '303', '25,459', '1,982'],
-    ['map/iterate-obj-cached', '3,131', '32,191', '6,483'],
-    ['map/iterate-obj-cold', '11,091', '90,860', '39,026'],
-    ['map/size', '15.8', '49.5', '2.7'],
-    ['obj/get-deep-cached', '105', '184', '139'],
-    ['obj/get-deep-cold', '271', '1,836', '283'],
-    ['obj/get-num', '24.5', '43.8', '30.0'],
-    ['obj/get-obj-cached', '28.4', '46.0', '30.5'],
-    ['obj/get-obj-cold', '109', '212', '118'],
-    ['set/has', '20.9', '86.6', '4.3'],
-    ['set/iterate-num', '307', '25,632', '692'],
-    ['set/iterate-obj-cached', '3,088', '32,460', '3,898'],
-    ['set/iterate-obj-cold', '10,850', '92,264', '12,912'],
-    ['set/size', '15.8', '50.4', '2.7'],
+    ['obj/get-deep-cold', '315', '1,817', '271'],
+    ['obj/get-deep-cached', '106', '178', '137'],
+    ['obj/get-num', '23.4', '45.4', '30.0'],
+    ['obj/get-obj-cold', '70.6', '178', '82.2'],
+    ['obj/get-obj-cached', '28.3', '45.8', '29.6'],
+    ['arr/get-num', '96.5', '142', '80.0'],
+    ['arr/get-obj-cold', '161', '495', '169'],
+    ['arr/get-obj-cached', '102', '143', '79.2'],
+    ['arr/iterate-num', '8,560', '16,159', '6,340'],
+    ['arr/iterate-obj-cold', '19,635', '67,069', '20,076'],
+    ['arr/iterate-obj-cached', '11,801', '23,627', '10,049'],
+    ['map/foreach-num', '824', '23,460', '2,662'],
+    ['map/get-num', '20.6', '275', '11.7'],
+    ['map/get-obj-cold', '95.2', '1,573', '186'],
+    ['map/get-obj-cached', '26.4', '278', '11.9'],
+    ['map/has', '19.7', '84.5', '6.8'],
+    ['map/iterate-entries', '982', '26,283', '2,249'],
+    ['map/iterate-keys', '321', '1,479', '168'],
+    ['map/iterate-num', '323', '25,161', '1,978'],
+    ['map/iterate-obj-cold', '11,475', '91,017', '39,611'],
+    ['map/iterate-obj-cached', '3,491', '32,279', '6,498'],
+    ['map/size', '15.5', '49.6', '2.8'],
+    ['set/foreach-num', '335', '46,650', '768'],
+    ['set/has', '20.5', '87.9', '4.3'],
+    ['set/iterate-num', '328', '25,447', '696'],
+    ['set/iterate-obj-cold', '10,273', '96,676', '12,334'],
+    ['set/iterate-obj-cached', '3,479', '32,514', '3,906'],
+    ['set/size', '15.6', '51.6', '2.7'],
   ]],
 ]
 
 let JSC: Bench = [
   ['fill', [
-    ['arr/num-100', '100', '20,200', '1,700'],
-    ['arr/obj-100', '100', '80,900', '114,500'],
-    ['arr/push-obj-100', '37,400', '96,300', '141,800'],
-    ['map/num-100', '100', '31,100', '9,600'],
-    ['map/obj-100', '200', '94,500', '97,500'],
-    ['obj/num-100', '100', '25,400', '32,700'],
-    ['obj/obj-100', '100', '82,000', '148,900'],
-    ['obj/obj-10k', '1,000', '11,278,000', '16,875,000'],
-    ['set/num-100', '100', '28,800', '4,700'],
-    ['set/obj-100', '200', '136,300', '88,100'],
+    ['obj/num-100', '130', '25,675', '34,047'],
+    ['obj/obj-100', '134', '93,617', '130,525'],
+    ['obj/obj-10k', '580', '12,546,000', '17,351,000'],
+    ['arr/num-100', '135', '20,516', '1,548'],
+    ['arr/obj-100', '135', '94,183', '89,450'],
+    ['map/num-100', '139', '32,481', '10,176'],
+    ['map/obj-100', '151', '116,280', '107,980'],
+    ['set/num-100', '137', '29,859', '4,729'],
+    ['set/obj-100', '144', '202,167', '135,875'],
   ]],
   ['update', [
-    ['arr/push-num', '400', '370', '170'],
-    ['arr/push-obj', '410', '860', '1,100'],
-    ['arr/set-num', '80.0', '230', '60.0'],
-    ['arr/set-obj', '70.0', '740', '1,230'],
-    ['map/clear-num', '940', '970', '8,390'],
-    ['map/clear-obj', '960', '2,450', '8,340'],
-    ['map/delete', '170', '1,100', '370'],
-    ['map/set-num', '70.0', '820', '130'],
-    ['map/set-obj', '70.0', '1,490', '1,230'],
-    ['obj/delete', '80.0', '110', '280'],
-    ['obj/set-100subs', '110', '3,520', '280'],
-    ['obj/set-deep', '130', '1,750', '3,830'],
-    ['obj/set-num', '110', '180', '160'],
-    ['obj/set-obj', '120', '640', '1,280'],
-    ['obj/set-same', '21.5', '5.7', '10.7'],
-    ['set/add-num', '70.0', '810', '70.0'],
-    ['set/add-obj', '70.0', '1,840', '1,190'],
-    ['set/clear-num', '930', '990', '6,760'],
-    ['set/clear-obj', '960', '2,690', '7,280'],
-    ['set/delete', '170', '880', '200'],
+    ['obj/set-100subs', '104', '4,172', '298'],
+    ['obj/set-deep', '121', '2,117', '4,028'],
+    ['obj/set-num', '102', '198', '180'],
+    ['obj/set-obj', '106', '659', '1,422'],
+    ['obj/set-same', '25.9', '6.0', '11.5'],
+    ['obj/delete', '92.0', '124', '286'],
+    ['arr/set-num', '147', '244', '65.8'],
+    ['arr/set-obj', '133', '823', '1,312'],
+    ['arr/push-num', '462', '405', '172'],
+    ['arr/push-obj', '464', '912', '1,179'],
+    ['arr/length-cut', '364', '240', '376'],
+    ['arr/length-cut-holes', '266', '243', '232'],
+    ['map/set-num', '76.3', '856', '138'],
+    ['map/set-obj', '79.3', '1,658', '1,327'],
+    ['map/delete', '186', '1,192', '416'],
+    ['map/clear-num', '959', '1,051', '9,713'],
+    ['map/clear-obj', '1,347', '2,799', '10,204'],
+    ['set/add-num', '71.4', '887', '75.0'],
+    ['set/add-obj', '74.3', '2,088', '1,298'],
+    ['set/delete', '197', '1,074', '216'],
+    ['set/clear-num', '951', '1,109', '7,766'],
+    ['set/clear-obj', '969', '16,278', '8,683'],
   ]],
   ['read', [
-    ['arr/get-num', '46.7', '51.9', '19.1'],
-    ['arr/get-obj-cached', '48.0', '51.7', '18.9'],
-    ['arr/get-obj-cold', '190', '440', '20.0'],
-    ['arr/iterate-num', '7,348', '9,352', '3,071'],
-    ['arr/iterate-obj-cached', '10,064', '14,416', '4,636'],
-    ['arr/iterate-obj-cold', '21,600', '52,800', '4,400'],
-    ['map/get-num', '32.2', '114', '9.9'],
-    ['map/get-obj-cached', '33.6', '107', '10.0'],
-    ['map/get-obj-cold', '180', '1,240', '150'],
-    ['map/has', '23.2', '39.3', '6.1'],
-    ['map/iterate-entries', '2,395', '11,948', '2,702'],
-    ['map/iterate-keys', '1,045', '880', '392'],
-    ['map/iterate-num', '1,123', '10,332', '2,224'],
-    ['map/iterate-obj-cached', '4,600', '16,020', '3,428'],
-    ['map/iterate-obj-cold', '14,000', '67,600', '18,800'],
-    ['map/size', '20.9', '22.8', '5.4'],
-    ['obj/get-deep-cached', '118', '122', '48.7'],
-    ['obj/get-deep-cold', '540', '1,500', '140'],
-    ['obj/get-num', '26.7', '23.2', '10.5'],
-    ['obj/get-obj-cached', '28.3', '24.4', '10.5'],
-    ['obj/get-obj-cold', '170', '350', '20.0'],
-    ['set/has', '23.6', '36.4', '4.0'],
-    ['set/iterate-num', '1,137', '9,864', '975'],
-    ['set/iterate-obj-cached', '4,556', '15,548', '1,938'],
-    ['set/iterate-obj-cold', '14,000', '67,600', '2,400'],
-    ['set/size', '21.7', '22.7', '5.5'],
+    ['obj/get-deep-cold', '593', '1,731', '164'],
+    ['obj/get-deep-cached', '94.0', '124', '61.6'],
+    ['obj/get-num', '21.3', '23.6', '10.8'],
+    ['obj/get-obj-cold', '191', '337', '33.0'],
+    ['obj/get-obj-cached', '23.1', '24.8', '11.2'],
+    ['arr/get-num', '38.4', '69.3', '19.2'],
+    ['arr/get-obj-cold', '205', '441', '25.4'],
+    ['arr/get-obj-cached', '39.5', '54.1', '19.2'],
+    ['arr/iterate-num', '6,442', '9,584', '3,092'],
+    ['arr/iterate-obj-cold', '24,405', '59,082', '5,384'],
+    ['arr/iterate-obj-cached', '9,245', '15,072', '4,705'],
+    ['map/foreach-num', '2,153', '10,318', '2,588'],
+    ['map/get-num', '29.2', '114', '10.2'],
+    ['map/get-obj-cold', '195', '1,535', '161'],
+    ['map/get-obj-cached', '29.7', '108', '10.3'],
+    ['map/has', '20.9', '39.9', '6.5'],
+    ['map/iterate-entries', '1,979', '11,022', '2,565'],
+    ['map/iterate-keys', '515', '885', '397'],
+    ['map/iterate-num', '522', '10,000', '2,221'],
+    ['map/iterate-obj-cold', '17,770', '76,400', '20,080'],
+    ['map/iterate-obj-cached', '3,977', '17,542', '3,572'],
+    ['map/size', '16.9', '27.6', '5.3'],
+    ['set/foreach-num', '1,162', '20,060', '986'],
+    ['set/has', '21.5', '41.2', '4.0'],
+    ['set/iterate-num', '1,224', '10,293', '1,034'],
+    ['set/iterate-obj-cold', '17,864', '77,538', '2,974'],
+    ['set/iterate-obj-cached', '4,181', '16,490', '1,950'],
+    ['set/size', '16.8', '27.5', '5.5'],
   ]],
 ]
 
 let SM: Bench = [
   ['fill', [
-    ['arr/num-100', '225', '25,980', '2,326'],
-    ['arr/obj-100', '230', '155,071', '178,460'],
-    ['arr/push-obj-100', '48,195', '172,019', '198,986'],
-    ['map/num-100', '234', '40,093', '20,319'],
-    ['map/obj-100', '250', '175,500', '205,560'],
-    ['obj/num-100', '225', '25,460', '32,270'],
-    ['obj/obj-100', '229', '149,971', '205,655'],
-    ['obj/obj-10k', '960', '19,921,702', '26,468,659'],
-    ['set/num-100', '236', '40,925', '12,531'],
-    ['set/obj-100', '244', '414,501', '200,380'],
+    ['obj/num-100', '214', '25,321', '32,279'],
+    ['obj/obj-100', '225', '153,151', '204,950'],
+    ['obj/obj-10k', '794', '20,088,192', '26,223,744'],
+    ['arr/num-100', '215', '25,866', '2,250'],
+    ['arr/obj-100', '215', '153,326', '176,301'],
+    ['map/num-100', '219', '40,170', '20,521'],
+    ['map/obj-100', '220', '175,398', '206,025'],
+    ['set/num-100', '219', '41,085', '12,554'],
+    ['set/obj-100', '220', '419,766', '203,945'],
   ]],
   ['update', [
-    ['arr/push-num', '455', '380', '204'],
-    ['arr/push-obj', '460', '1,405', '1,616'],
-    ['arr/set-num', '122', '261', '120'],
-    ['arr/set-obj', '128', '1,364', '1,538'],
-    ['map/clear-num', '1,762', '2,140', '17,347'],
-    ['map/clear-obj', '2,183', '3,300', '20,248'],
-    ['map/delete', '135', '1,114', '461'],
-    ['map/set-num', '69.9', '1,191', '167'],
-    ['map/set-obj', '73.0', '2,412', '1,498'],
-    ['obj/delete', '117', '165', '228'],
-    ['obj/set-100subs', '202', '4,048', '738'],
-    ['obj/set-deep', '204', '4,536', '4,336'],
-    ['obj/set-num', '196', '254', '404'],
-    ['obj/set-obj', '200', '1,272', '1,731'],
-    ['obj/set-same', '71.1', '50.8', '73.5'],
-    ['set/add-num', '67.5', '1,242', '91.0'],
-    ['set/add-obj', '74.5', '3,624', '1,450'],
-    ['set/clear-num', '1,570', '2,305', '13,328'],
-    ['set/clear-obj', '1,927', '4,134', '15,042'],
-    ['set/delete', '88.5', '1,343', '164'],
+    ['obj/set-100subs', '189', '4,118', '735'],
+    ['obj/set-deep', '192', '4,600', '4,315'],
+    ['obj/set-num', '184', '252', '401'],
+    ['obj/set-obj', '188', '1,279', '1,730'],
+    ['obj/set-same', '74.0', '50.8', '74.2'],
+    ['obj/delete', '117', '167', '227'],
+    ['arr/set-num', '131', '260', '120'],
+    ['arr/set-obj', '140', '1,344', '1,532'],
+    ['arr/push-num', '472', '378', '204'],
+    ['arr/push-obj', '486', '1,420', '1,630'],
+    ['arr/length-cut', '479', '366', '311'],
+    ['arr/length-cut-holes', '443', '346', '306'],
+    ['map/set-num', '69.4', '1,199', '168'],
+    ['map/set-obj', '73.5', '2,420', '1,491'],
+    ['map/delete', '137', '1,093', '465'],
+    ['map/clear-num', '2,346', '2,145', '17,190'],
+    ['map/clear-obj', '2,585', '3,311', '21,673'],
+    ['set/add-num', '68.5', '1,237', '91.0'],
+    ['set/add-obj', '73.0', '3,572', '1,447'],
+    ['set/delete', '101', '1,304', '162'],
+    ['set/clear-num', '1,409', '2,305', '13,470'],
+    ['set/clear-obj', '1,739', '3,987', '14,801'],
   ]],
   ['read', [
-    ['arr/get-num', '38.1', '85.4', '21.9'],
-    ['arr/get-obj-cached', '48.7', '119', '22.0'],
-    ['arr/get-obj-cold', '234', '818', '53.1'],
-    ['arr/iterate-num', '7,927', '18,187', '4,474'],
-    ['arr/iterate-obj-cached', '14,071', '34,006', '9,130'],
-    ['arr/iterate-obj-cold', '32,901', '148,961', '10,880'],
-    ['map/get-num', '40.0', '296', '34.0'],
-    ['map/get-obj-cached', '51.4', '298', '34.2'],
-    ['map/get-obj-cold', '239', '2,008', '194'],
-    ['map/has', '39.2', '100', '18.6'],
-    ['map/iterate-entries', '2,294', '32,399', '5,652'],
-    ['map/iterate-keys', '1,396', '4,849', '786'],
-    ['map/iterate-num', '1,409', '29,430', '5,348'],
-    ['map/iterate-obj-cached', '7,284', '45,134', '10,003'],
-    ['map/iterate-obj-cold', '24,960', '184,264', '43,843'],
-    ['map/size', '36.1', '78.4', '13.3'],
-    ['obj/get-deep-cached', '184', '442', '146'],
-    ['obj/get-deep-cold', '617', '1,976', '223'],
-    ['obj/get-num', '38.0', '78.3', '42.6'],
-    ['obj/get-obj-cached', '48.5', '112', '36.3'],
-    ['obj/get-obj-cold', '229', '701', '55.4'],
-    ['set/has', '39.4', '104', '15.4'],
-    ['set/iterate-num', '1,276', '29,698', '1,290'],
-    ['set/iterate-obj-cached', '6,765', '45,903', '5,334'],
-    ['set/iterate-obj-cold', '24,740', '115,676', '7,736'],
-    ['set/size', '37.0', '77.1', '13.3'],
+    ['obj/get-deep-cold', '667', '1,940', '222'],
+    ['obj/get-deep-cached', '190', '442', '146'],
+    ['obj/get-num', '37.9', '79.6', '42.6'],
+    ['obj/get-obj-cold', '259', '679', '55.4'],
+    ['obj/get-obj-cached', '49.3', '103', '33.4'],
+    ['arr/get-num', '37.9', '86.5', '22.0'],
+    ['arr/get-obj-cold', '269', '808', '54.0'],
+    ['arr/get-obj-cached', '49.9', '102', '21.1'],
+    ['arr/iterate-num', '7,942', '18,450', '4,480'],
+    ['arr/iterate-obj-cold', '35,282', '151,055', '10,860'],
+    ['arr/iterate-obj-cached', '14,260', '33,993', '9,120'],
+    ['map/foreach-num', '1,492', '21,322', '5,816'],
+    ['map/get-num', '39.9', '300', '34.0'],
+    ['map/get-obj-cold', '279', '2,034', '190'],
+    ['map/get-obj-cached', '52.1', '306', '33.9'],
+    ['map/has', '39.2', '104', '18.6'],
+    ['map/iterate-entries', '2,368', '32,009', '5,650'],
+    ['map/iterate-keys', '1,442', '4,648', '750'],
+    ['map/iterate-num', '1,451', '29,483', '5,329'],
+    ['map/iterate-obj-cold', '27,500', '180,838', '56,617'],
+    ['map/iterate-obj-cached', '7,855', '44,800', '9,926'],
+    ['map/size', '36.2', '77.8', '13.3'],
+    ['set/foreach-num', '836', '41,395', '1,390'],
+    ['set/has', '39.5', '103', '15.4'],
+    ['set/iterate-num', '1,317', '29,550', '1,291'],
+    ['set/iterate-obj-cold', '27,525', '121,820', '7,700'],
+    ['set/iterate-obj-cached', '7,665', '45,471', '5,328'],
+    ['set/size', '37.2', '77.3', '13.3'],
   ]],
 ]
 
-export let Engines: {id: EngineId, name: string, bench: Bench}[] = [
-  {id: 'v8', name: 'V8', bench: V8},
-  {id: 'jsc', name: 'JSC', bench: JSC},
-  {id: 'sm', name: 'SpiderMonkey', bench: SM},
+// a whole app instead of a store: react-dom rendering a list of rows into
+// happy-dom, every library with its own binding
+let Hermes: Bench = [
+  ['fill', [
+    ['obj/num-100', '1,350', '152,500', '327,500'],
+    ['obj/obj-100', '1,425', '775,000', '1,469,999'],
+    ['obj/obj-10k', '2,750', '96,000,000', '145,350,003'],
+    ['arr/num-100', '1,350', '163,750', '34,667'],
+    ['arr/obj-100', '1,375', '794,999', '1,069,999'],
+    ['map/num-100', '1,400', '240,000', '151,250'],
+    ['map/obj-100', '1,450', '940,001', '1,260,000'],
+    ['set/num-100', '1,325', '240,000', '90,833'],
+    ['set/obj-100', '1,300', '1,714,999', '1,195,000'],
+  ]],
+  ['update', [
+    ['obj/set-100subs', '1,355', '17,833', '7,643'],
+    ['obj/set-deep', '1,515', '17,333', '33,500'],
+    ['obj/set-num', '1,365', '1,316', '3,000'],
+    ['obj/set-obj', '1,471', '6,312', '13,125'],
+    ['obj/set-same', '678', '314', '642'],
+    ['obj/delete', '1,041', '757', '1,578'],
+    ['arr/set-num', '1,500', '1,282', '1,329'],
+    ['arr/set-obj', '1,594', '6,813', '12,000'],
+    ['arr/push-num', '3,679', '1,889', '2,711'],
+    ['arr/push-obj', '3,786', '6,875', '13,125'],
+    ['arr/length-cut', '10,800', '1,010', '4,500'],
+    ['arr/length-cut-holes', '8,667', '1,010', '4,500'],
+    ['map/set-num', '1,041', '4,636', '2,060'],
+    ['map/set-obj', '1,148', '10,000', '12,300'],
+    ['map/delete', '1,041', '3,029', '1,741'],
+    ['map/clear-num', '23,000', '4,500', '140,500'],
+    ['map/clear-obj', '23,500', '7,214', '144,000'],
+    ['set/add-num', '971', '4,682', '1,163'],
+    ['set/add-obj', '1,052', '14,625', '11,600'],
+    ['set/delete', '981', '2,941', '1,074'],
+    ['set/clear-num', '23,000', '4,417', '119,000'],
+    ['set/clear-obj', '23,833', '7,857', '120,500'],
+  ]],
+  ['read', [
+    ['obj/get-deep-cold', '7,500', '13,875', '4,333'],
+    ['obj/get-deep-cached', '2,940', '3,332', '2,704'],
+    ['obj/get-num', '704', '624', '684'],
+    ['obj/get-obj-cold', '2,146', '4,000', '1,052'],
+    ['obj/get-obj-cached', '753', '900', '680'],
+    ['arr/get-num', '784', '665', '672'],
+    ['arr/get-obj-cold', '2,295', '4,292', '1,010'],
+    ['arr/get-obj-cached', '832', '940', '672'],
+    ['arr/iterate-num', '179,600', '163,800', '133,600'],
+    ['arr/iterate-obj-cold', '416,000', '605,002', '246,667'],
+    ['arr/iterate-obj-cached', '257,800', '258,400', '207,800'],
+    ['map/foreach-num', '32,400', '180,000', '115,000'],
+    ['map/get-num', '776', '2,332', '672'],
+    ['map/get-obj-cold', '2,763', '9,750', '2,889'],
+    ['map/get-obj-cached', '830', '2,600', '660'],
+    ['map/has', '784', '1,236', '337'],
+    ['map/iterate-entries', '39,400', '237,400', '113,000'],
+    ['map/iterate-keys', '23,800', '36,400', '15,798'],
+    ['map/iterate-num', '23,600', '213,400', '102,800'],
+    ['map/iterate-obj-cold', '252,498', '753,333', '431,999'],
+    ['map/iterate-obj-cached', '98,400', '306,800', '173,400'],
+    ['map/size', '697', '624', '242'],
+    ['set/foreach-num', '20,200', '353,000', '39,200'],
+    ['set/has', '764', '1,224', '214'],
+    ['set/iterate-num', '24,000', '213,200', '37,000'],
+    ['set/iterate-obj-cold', '254,999', '840,001', '145,714'],
+    ['set/iterate-obj-cached', '98,600', '307,600', '107,200'],
+    ['set/size', '704', '624', '238'],
+  ]],
+]
+
+let ReactApp: Bench = [
+  ['app', [
+    ['obj/mount-page', '804 (101)', '3,214 (101)', '1,101 (101)'],
+    ['obj/patch', '206 (100)', '1,300 (100)', '233 (100)'],
+    ['obj/add-drop', '317 (2)', '1,913 (2)', '538 (2)'],
+    ['arr/mount', '6,943 (1001)', '12,978 (1001)', '6,441 (1001)'],
+    ['arr/mount-page', '744 (101)', '3,201 (101)', '778 (101)'],
+    ['arr/toggle-one', '50.0 (1)', '906 (1)', '47.5 (1)'],
+    ['arr/rename-one', '47.6 (1)', '888 (1)', '46.1 (1)'],
+    ['arr/push-pop', '262 (3)', '2,047 (3)', '2,127 (2003)'],
+    ['arr/replace-all-new', '2,167 (1001)', '4,930 (1000)', '4,326 (1001)'],
+    ['arr/replace-all-same', '1,377 (1001)', '425 (0)', '3,309 (1001)'],
+    ['map/mount-page', '747 (101)', '3,171 (101)', '809 (101)'],
+    ['map/fill-10k', '2,519 (101)', '53,353 (101)', '21,794 (101)'],
+    ['map/patch', '191 (100)', '1,501 (100)', '191 (100)'],
+    ['map/switch-page', '407 (101)', '657 (101)', '471 (101)'],
+    ['map/add-drop', '25.7 (2)', '1,467 (2)', '27.1 (2)'],
+  ]],
+]
+
+export let Engines: {
+  id: EngineId
+  name: string
+  env: string
+  bench: Bench
+  unit?: string
+  renders?: boolean
+}[] = [
+  {id: 'v8', name: 'V8', env: 'node v24.18.1', bench: V8},
+  {id: 'jsc', name: 'JSC', env: 'webkit2gtk 2.48.7', bench: JSC},
+  {id: 'sm', name: 'SpiderMonkey', env: 'JavaScript-C140.11.0', bench: SM},
+  {
+    id: 'hermes',
+    name: 'Hermes',
+    env: 'Hermes 260318099.0.1 (React Native 0.88, -Os)',
+    bench: Hermes,
+  },
+  {
+    id: 'react',
+    name: 'React (V8)',
+    env: 'node v24.18.1, react-dom 19.3.0 into happy-dom, production build',
+    bench: ReactApp,
+    unit: 'µs',
+    renders: true,
+  },
 ]

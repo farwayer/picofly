@@ -38,6 +38,18 @@
   box-sizing: border-box;
 }
 
+/* Geist Sans 1.7.2, the variable file subset to what the site prints:
+   latin-1, the dashes, the arrows and µ. 69 kB became 26 kB
+   pyftsubset Geist-Variable.ttf --layout-features+=tnum \
+     --unicodes="U+0000-00FF,U+2013-2014,U+2018-201A,U+201C-201E,
+       U+2026,U+2190-2193,U+2212,U+2260,U+2264-2265" */
+@font-face {
+  font-family: Geist;
+  src: url(/fonts/geist-sans.woff2) format('woff2');
+  font-weight: 100 900;
+  font-display: swap;
+}
+
 html {
   scrollbar-gutter: stable;
   scrollbar-width: thin;
@@ -48,7 +60,7 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--fg);
-  font: 16px/1.6 system-ui, sans-serif;
+  font: 16px/1.6 Geist, system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -110,6 +122,12 @@ main {
   gap: .5rem;
   color: var(--fg);
   text-decoration: none;
+}
+
+/* the logo carries the name itself now, so the header needs no text */
+.home img {
+  height: 26px;
+  width: auto;
 }
 
 .ver {
@@ -481,9 +499,9 @@ pre {
 }
 
 .page h2 {
-  margin: .8rem 0 0;
+  margin: 1.4rem 0 0;
   scroll-margin-top: 5rem;
-  font-size: 1.05rem;
+  font-size: 1.15rem;
   font-weight: 600;
 }
 
@@ -675,6 +693,20 @@ pre {
   margin-top: -1.2rem;
 }
 
+/* a footnote under the table, tied to a bench row by its number */
+.bench-note {
+  margin-top: -.4rem;
+  padding-left: .6rem;
+  font-size: .85rem;
+  opacity: .75;
+}
+
+/* what the numbers below were measured on */
+.bench-env {
+  margin: -.6rem 0 -.4rem;
+  padding-left: .6rem;
+}
+
 .spec {
   margin: 0;
   display: grid;
@@ -722,11 +754,44 @@ pre {
   padding: .35rem .6rem;
   font-weight: 400;
   color: var(--fg2);
+  vertical-align: bottom;
+}
+
+.bench th .lib {
+  display: inline-block;
+  text-align: center;
+}
+
+.bench th .lib-ver {
+  display: block;
+  font-size: .75rem;
+  opacity: .6;
 }
 
 .bench td {
   padding: .3rem .6rem;
   white-space: nowrap;
+}
+
+/* the time keeps the right edge of the column, so it is the box that
+   holds it: a number wider than the box grows it, a shorter one still
+   ends on the same line as the rest */
+.bench .time {
+  display: inline-block;
+  min-width: 6ch;
+  text-align: right;
+}
+
+/* how many components rendered, quieter and ahead of the time they took.
+   Its own box is fixed, so the counts line up too */
+.bench .renders {
+  display: inline-block;
+  width: 4ch;
+  /* jsx eats the newline after the span, so the gap lives here */
+  margin-right: .3rem;
+  text-align: right;
+  font-size: .75rem;
+  opacity: .6;
 }
 
 .bench th,
@@ -741,11 +806,30 @@ pre {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
+/* a value can carry a second line with the render count, and the name
+   should sit on the number, not float between the two */
+.bench td:first-child {
+  vertical-align: top;
+}
+
+.bench tbody:first-of-type th.group {
+  padding-top: 1rem;
+}
+
 .bench th.group {
   padding-top: 1.4rem;
   text-align: left;
   color: var(--fg);
   font-weight: 600;
+}
+
+/* the unit follows the category, quieter than it */
+.bench th.group .unit {
+  /* jsx eats the newline between them, so the gap lives here */
+  margin-left: .35rem;
+  font-size: .75rem;
+  font-weight: 400;
+  opacity: .6;
 }
 
 .bench .win {

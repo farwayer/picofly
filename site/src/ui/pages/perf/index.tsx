@@ -6,7 +6,7 @@ import {BenchCode} from 'virtual:bench-code'
 import type App from '~/store/state'
 import type {EngineId} from '~/store/state'
 import {setEngine} from '~/store/actions'
-import {Caveats, Engines, Setup, Verdict} from '~/const'
+import {Caveats, Engines, Libs, Notes, Verdict} from '~/const'
 import {cn} from '~/lib/cn'
 import {hl} from '~/lib/hl'
 import {md} from '~/lib/md'
@@ -28,14 +28,12 @@ function Perf({engine, onEngine}: Props) {
   let measured = Engines.filter(({bench}) => bench.length)
   let current = measured.find(({id}) => id === engine) ?? measured[0]
 
+  let libs = Libs
+  let cols = libs.length + 1
+
   return (
     <section class="page">
       <h1>Performance</h1>
-
-      <div class="two-up">
-        <Spec rows={Setup.slice(0, 3)}/>
-        <Spec rows={Setup.slice(3)}/>
-      </div>
 
       <h2>Summary</h2>
       <p class="text">
@@ -45,40 +43,42 @@ function Perf({engine, onEngine}: Props) {
       <Points items={Verdict}/>
 
       <h2>All benchmarks</h2>
-      <p class="text">
-        Nanoseconds per operation, less is better. Green marks the fastest of
-        the row.
-      </p>
-
       {measured.length > 1 && (
         <Tabs items={measured} current={current.id} onTab={onEngine}/>
       )}
 
+      <p class="text bench-env">{current.env}, Linux, i9-13900, P-cores only</p>
+
       <div class="scroll">
         <table class="bench">
           <colgroup>
-            <col/>
-            <col/>
-            <col/>
-            <col/>
+            {Array.from({length: cols}, (_, i) => <col key={i}/>)}
           </colgroup>
 
           {current.bench.map(([group, rows]) => (
             <tbody key={group}>
               <tr>
-                <th class="group" colSpan={4}>{group}</th>
-              </tr>
-              <tr>
-                <th>bench</th>
-                <th>picofly</th>
-                <th>valtio</th>
-                <th>mobx</th>
+                <th class="group">
+                  {group}
+                  <span class="unit">
+                    ({current.renders && 'renders, '}{current.unit ?? 'ns'}/op)
+                  </span>
+                </th>
+                {libs.map(([lib, version]) => (
+                  <th key={lib}>
+                    <span class="lib">
+                      <span class="lib-ver">{version}</span>
+                      {lib}
+                    </span>
+                  </th>
+                ))}
               </tr>
               {rows.map(([name, ...run]) => {
                 let all = run.map(ns)
-                let best = Math.min(...all)
+                let best = Math.min(...all.filter(v => v === v))
                 let id = `${group}/${name}`
                 let code = BenchCode[id]
+                let note = Notes.findIndex(([ids]) => ids.includes(id)) + 1
 
                 return (
                   <Fragment key={name}>
@@ -86,26 +86,42 @@ function Perf({engine, onEngine}: Props) {
                       <td>
                         <details
                           open={open === id}
-                          onToggle={e => setOpen(
-                            (e.currentTarget as HTMLDetailsElement).open ? id : ''
-                          )}
+                          onToggle={e => {
+                            let {open} = e.currentTarget as HTMLDetailsElement
+
+                            // the one closing may be the previous row, losing
+                            // the race with the one just opened
+                            setOpen(was => open ? id : was === id ? '' : was)
+                          }}
                         >
-                          <summary>{name}</summary>
+                          <summary>
+                            {name}
+                            {note > 0 && <sup>{note}</sup>}
+                          </summary>
                         </details>
                       </td>
-                      {all.map((v, i) => (
-                        <td
-                          key={i}
-                          class={cn(v === best && 'win')}
-                        >
-                          {run[i]}
-                        </td>
-                      ))}
+                      {run.map((v, i) => {
+                        let [value, renders] = v.split(' (')
+
+                        return (
+                          <td
+                            key={i}
+                            class={cn(ns(v) === best && 'win')}
+                          >
+                            {renders && (
+                              <span class="renders">
+                                {renders.replace(')', '')}
+                              </span>
+                            )}
+                            <span class="time">{value}</span>
+                          </td>
+                        )
+                      })}
                     </tr>
 
                     {open === id && code && (
                       <tr class="snippet">
-                        <td colSpan={4}>
+                        <td colSpan={cols}>
                           <pre>{hl(code)}</pre>
                         </td>
                       </tr>
@@ -117,6 +133,12 @@ function Perf({engine, onEngine}: Props) {
           ))}
         </table>
       </div>
+
+      {Notes.map(([, text], i) => (
+        <p class="text bench-note" key={i}>
+          <sup>{i + 1}</sup> {md(text)}
+        </p>
+      ))}
 
       <h2>Method</h2>
       <p class="text">
@@ -132,16 +154,3 @@ function Perf({engine, onEngine}: Props) {
 
 let ns = (v: string) =>
   parseFloat(v.replace(/,/g, ''))
-
-function Spec({rows}: {rows: [string, string][]}) {
-  return (
-    <dl class="spec">
-      {rows.map(([key, value]) => (
-        <Fragment key={key}>
-          <dt>{key}</dt>
-          <dd>{md(value)}</dd>
-        </Fragment>
-      ))}
-    </dl>
-  )
-}

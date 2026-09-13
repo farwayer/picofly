@@ -1,11 +1,11 @@
-import {useEffect, useMemo} from 'preact/hooks'
+import {useEffect, useRef} from 'preact/hooks'
 import {Picofly} from 'picofly/react'
-import {createStore} from '~/store'
+import {createStore, type App} from '~/store'
 import {init} from '~/store/router'
 import UI from '~/ui'
 
-export default function App() {
-  let app = useMemo(createStore, [])
+export default function () {
+  let app = useRef<App>(null).current ??= createStore()
 
   useEffect(() => init(app), [])
 

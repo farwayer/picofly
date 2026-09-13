@@ -2,7 +2,7 @@ export type TabId =
   'store' | 'app' | 'hooks' | 'reset' | 'selectors' | 'inc'
 export type Key = 'a' | 'b'
 export type ApiTab = 'core' | 'selectors' | 'react' | 'react-selectors'
-export type EngineId = 'v8' | 'jsc' | 'sm'
+export type EngineId = 'v8' | 'jsc' | 'sm' | 'hermes' | 'react'
 export type Page = 'main' | 'why' | 'architecture' | 'hook-vs-selectors' | 'api' | 'performance'
 
 export class Demo {
@@ -20,7 +20,7 @@ export class Ui {
   menu = false
 }
 
-export default class App {
+export class App {
   ui = new Ui()
   demo = new Demo()
 }

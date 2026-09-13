@@ -2,7 +2,7 @@ import {fileURLToPath} from 'node:url'
 import {defineConfig} from 'vite'
 import preact from '@preact/preset-vite'
 import mdx from '@mdx-js/rollup'
-import {benchCode} from './vite/bench-code'
+import {benchCode} from './vite/bench-code.js'
 
 export default defineConfig({
   base: '/',
