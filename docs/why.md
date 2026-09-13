@@ -2,18 +2,18 @@
 
 *In short: because the others weren't ideal enough for me* 😮‍💨
 
-*Picofly* is the result of 12+ years of using different state managers,
-optimizing architecture and polishing web apps down to the smallest detail.
+*Picofly* is 12+ years of using state managers, reworking architecture
+and polishing apps to the last detail.
 
 A state manager with no compromises between usability, size and speed:
 
 - `create(state)` once, `useStore()` in a component, the whole API
-- [From](#very-small) <Hi>795 B</Hi> with the React binding
-- [Very fast](#very-fast): lazy proxies, hand-tuned hot paths
+- [From](#very-small) <Hi>1.25 kB</Hi> with the *React* binding
+- [Very fast](#very-fast-with-lazy-proxies): lazy proxies, hand-tuned hot paths
 - Renders only what changed
 - Plays by the spec, your objects stays untouched
 - App business logic is just plain JS functions, async, generators, whatever
-- Framework agnostic, but with React batteries included
+- Framework agnostic, but with *React* batteries included
 - `Map` and `Set` support, [selectors](/hook-vs-selectors) for more complex apps
 
 Why a state manager at all, and not `useState` and `useContext`? That is a
@@ -21,11 +21,11 @@ separate story: [The Good, the Bad, the Ugly architecture](/architecture).
 
 ## History
 
-Once upon a time, when React was still green... Relax, no history tour. Nobody
+Once upon a time, when *React* was still green... Relax, no history tour. Nobody
 ever cared what came before anyway.
 
 Here are just the milestones I walked through, starting from the very first
-React versions.
+*React* versions.
 
 ### Flux and Redux, the first for many
 
@@ -53,14 +53,14 @@ The bill:
 *Valtio* kept the *MobX* model and simplified nearly everything:
 
 - Proxies instead of decorators
-- Fast enough, small enough
+- Small enough
 - Minimal API, simple mental model
-- Modern React through `useSyncExternalStore`
+- Modern *React* through `useSyncExternalStore`
 
 So why not stop? *Valtio* looks simple from the outside, but inside it is built
 in a complicated way. Much more complicated than it could be.
 
-*Valtio*, core with React binding, is <Hi>560 lines of code</Hi> (no comments, no
+*Valtio*, core with *React* binding, is <Hi>560 lines of code</Hi> (no comments, no
 empty lines).
 
 <Small>
@@ -71,13 +71,13 @@ empty lines).
 
 </Small>
 
-*Picofly* with the hook, <Hi>174 lines</Hi>.
+*Picofly* with *React* hook, <Hi>300 lines</Hi>.
 
 <Small>
 
-- **`store.js`** — 48
-- **`rules/obj.js`** — 78
-- **`react/use-store.js`** — 48
+- **`store.js`** — 51
+- **`rules/obj.js`** — 107
+- **`react/use-store.js`** — 142
 
 </Small>
 
@@ -145,10 +145,10 @@ well. If you are curious where my own search landed, read
 
 Hand-crafted, simple, readable, byte-counted, covered end to end by tests.
 
-- **picofly** — <Hi>579 B</Hi> (core),
-  <Hi>795 B</Hi> (core + react)
-- **picofly (full)** — <Hi>1.47 kB</Hi> (core + map + set),
-  <Hi>1.69 kB</Hi> (core + map + set + react)
+- **picofly** — <Hi>704 B</Hi> (core),
+  <Hi>1.25 kB</Hi> (core + react)
+- **picofly (full)** — <Hi>1.69 kB</Hi> (core + map + set),
+  <Hi>2.24 kB</Hi> (core + map + set + react)
 - **valtio** — <Hi>2.16 kB</Hi> (core + react),
   <Hi>3.29 kB</Hi> (core + react + map + set)
 - **mobx** — <Hi>10.7 kB</Hi> (core), <Hi>14 kB</Hi> (core + react)
@@ -156,25 +156,25 @@ Hand-crafted, simple, readable, byte-counted, covered end to end by tests.
 <Note>
 
 \* Every number from [size-limit](https://evilmartians.com/opensource/size-limit), minified
-and brotlied, React itself not counted.
+and brotlied, *React* itself not counted.
 
 </Note>
 
 A whole site in tens of kB with *Picofly* and *Preact*? Easy.
 
-## Very fast
+## Very fast with lazy proxies
 
 The full story is on the [performance](/performance) page.
 
 Proxies are created lazily, on first read. The backend sends 10,000 records,
-the screen shows 10. *Picofly* stores the payload instantly. *Valtio* and *MobX* pay
+the page shows 10. *Picofly* stores the payload instantly. *Valtio* and *MobX* pay
 for 10,000 proxies up front.
 
 Median over the benchmarks of each category:
 
-- **putting data in** — <Hi>422x</Hi> vs valtio, <Hi>508x</Hi> vs mobx
-- **updating** — <Hi>7.3x</Hi> vs valtio, <Hi>4.8x</Hi> vs mobx
-- **reading** — <Hi>4.2x</Hi> vs valtio, <Hi>1.0x</Hi> vs mobx *
+- **putting data in** — <Hi>410x</Hi> vs valtio, <Hi>492x</Hi> vs mobx
+- **updating** — <Hi>6.6x</Hi> vs valtio, <Hi>3.5x</Hi> vs mobx
+- **reading** — <Hi>4.6x</Hi> vs valtio, <Hi>1.1x</Hi> vs mobx *
 
 <Note>
 
@@ -194,13 +194,13 @@ Nothing to declare, nothing to subscribe to. It just works.
 
 ## The store locks during render
 
-Writing to state from a render is one of the most common React mistakes.
+Writing to state from a render is one of the most common *React* mistakes.
 *Picofly* locks the store while a component renders, so the mistake throws right
 away instead of looping quietly.
 
 ## Batteries included
 
-- React/React Native/Preact binding
+- *React*/*React Native*/*Preact* binding
 - Native `Map` and `Set` support out of the box, not emulations *
 - Ready-made [selectors](/api#spec)
 
