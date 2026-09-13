@@ -19,67 +19,18 @@ export let useStore = (store = useContextStore() || "use <Picofly>"()) => {
 
 	let state = useRef().current ??= {
 		epoch: 0,
-		writeUnsubs: [],
-	}
-	let writeUnsubs = state.writeUnsubs
-	let tracked = new WeakMap()
-
-	let $react = attachWriteBroker(store)
-	let brokerWriteSubs = $react.brokerWriteSubs
-
-	// tracking
-	let stopTrackRead = () => {
-		if ($react.readUnsub) {
-			$react.readUnsub()
-			$react.readUnsub = null
-			unlock(store)
-		}
+		subs: [],
 	}
 
-	let stopTrackWrite = () => {
-		let len = writeUnsubs.length
-		if (len) {
-			for (let i = 0; i < len; i++) {
-				writeUnsubs[i]()
-			}
-			writeUnsubs.length = 0
-		}
-	}
-
-	let updateIfTrackedKey = (obj, key) => {
-		if (tracked.get(obj).has(key)) {
-			stopTrackWrite()
-			state.epoch++
-			state.onChange?.()
-		}
-	}
-
-	// 93 bc
-	let trackKey = (obj, key) => {
-		let trackedKeys = tracked.get(obj)
-
-		if (!trackedKeys) {
-			tracked.set(obj, trackedKeys = new Set())
-
-			let unsub = onObjWrite(brokerWriteSubs, obj, updateIfTrackedKey)
-			writeUnsubs.push(unsub)
-		}
-
-		trackedKeys.add(key)
-	}
-
-	stopTrackWrite()
-
-	// remove previous component read callback (if exists) and attach our
-	$react.readUnsub?.()
-	$react.readUnsub = onRead(store, trackKey)
+	let trackRead = attachTracker(store)
+	let stopTrackRead = trackRead(state)
 
 	let subscribe = useCallback(onChange => {
-		state.onChange = onChange
+		state.notify = onChange
 
 		return () => {
-			stopTrackWrite()
 			state.epoch++
+			clearTailSubs(state.subs, 0)
 		}
 	}, [])
 
@@ -96,47 +47,128 @@ export let useStore = (store = useContextStore() || "use <Picofly>"()) => {
 	return store
 }
 
-
-// attach the store write broker (one for all components)
-let attachWriteBroker = (store) => {
+// one tracker for all components
+let attachTracker = (store) => {
 	let $ = get$(store)
-	let $react = $[ReactSym]
+	let trackRead = $[ReactSym]
 
-	if (!$react) {
-		let brokerWriteSubs = new WeakMap()
-		$react = $[ReactSym] = {brokerWriteSubs}
+	if (trackRead) {
+		return trackRead
+	}
 
-		// 39 bc
-		onWrite(store, (obj, key) => {
-			let objSubs = brokerWriteSubs.get(obj)
-			if (objSubs) {
-				notifyKey(objSubs, obj, key)
+	let readUnsub, state, subIndex
+	let allSubs = new WeakMap()
+
+	// 93 bc
+	onWrite(store, (obj, key) => {
+		let objSubs = allSubs.get(obj)
+
+		if (objSubs?.size) {
+			let sub = objSubs.get(key)
+
+			if (sub) {
+				do {
+					let state = sub.state
+					if (state.dirty) continue
+
+					state.epoch++
+
+					let notify = state.notify
+					if (notify) {
+						state.dirty = 1
+						notify()
+					}
+				} while (sub = sub.next)
 			}
-		})
+		}
+	})
+
+	let retrack = (objSubs, obj, key, subs) => {
+		if (!objSubs) {
+			allSubs.set(obj, objSubs = new Map())
+		}
+
+		clearTailSubs(subs, subIndex++)
+		addSub(state, objSubs, key)
 	}
 
-	return $react
-}
+	// 97 bc
+	let trackKey = (obj, key) => {
+		let objSubs = allSubs.get(obj)
 
-let notifyKey = (subs, obj, key) => {
-	for (let cb of subs) {
-		cb(obj, key)
+		let subs = state.subs
+		let sub = subs[subIndex]
+
+		if (sub && sub.objSubs === objSubs && sub.key === key) {
+			return subIndex++
+		}
+
+		return retrack(objSubs, obj, key, subs)
 	}
-}
 
-let onObjWrite = (writeSubs, obj, cb) => {
-	let objSubs = writeSubs.get(obj)
+	return $[ReactSym] = (currentState) => {
+		if (state) {
+			clearTailSubs(state.subs, subIndex)
+		}
 
-	if (!objSubs) {
-		writeSubs.set(obj, objSubs = new Set())
-	}
-	objSubs.add(cb)
+		state = currentState
+		currentState.dirty = 0
+		subIndex = 0
 
-	return () => {
-		objSubs.delete(cb)
+		readUnsub?.()
+		readUnsub = onRead(store, trackKey)
 
-		if (!objSubs.size) {
-			writeSubs.delete(obj)
+		return () => {
+			if (readUnsub) {
+				readUnsub()
+				readUnsub = null
+				clearTailSubs(state.subs, subIndex)
+				state = null
+				unlock(store)
+			}
 		}
 	}
+}
+
+let clearTailSubs = (subs, from) => {
+	let i = subs.length
+
+	while (--i >= from) {
+		let sub = subs[i]
+		let prev = sub.prev
+		let next = sub.next
+
+		if (next) {
+			next.prev = prev
+		}
+
+		if (prev) {
+			prev.next = next
+			continue
+		}
+
+		let objSubs = sub.objSubs
+		let key = sub.key
+
+		if (next) {
+			objSubs.set(key, next)
+		}
+		else {
+			objSubs.delete(key)
+		}
+	}
+
+	subs.length = from
+}
+
+let addSub = (state, objSubs, key) => {
+	let next = objSubs.get(key)
+	let sub = {state, objSubs, key, next, prev: null}
+
+	if (next) {
+		next.prev = sub
+	}
+
+	objSubs.set(key, sub)
+	state.subs.push(sub)
 }
