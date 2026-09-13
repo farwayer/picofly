@@ -30,6 +30,7 @@ export const NakedSym: unique symbol
 export const RawSym: unique symbol
 export const SizeSym: unique symbol
 export const ValuesSym: unique symbol
+export const KeysSym: unique symbol
 export function get$<S>(store: S): $
 export function naked<V>($: $, val: V): V
 
