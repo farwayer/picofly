@@ -225,6 +225,30 @@ suite('react', () => {
     assert.equal(app.text(), '1')
   })
 
+  // the same window on a re-render: the component is subscribed by now, so
+  // what saves the write is the notification, not react's mount-time check
+  test('write from a layout effect on update is not lost', () => {
+    let store = create({a: 0, b: 0})
+
+    let Child = ({a}) => {
+      useLayoutEffect(() => {
+        if (a) store.b = a + 1
+      }, [a])
+
+      return null
+    }
+    let C = () => {
+      let s = useStore(store)
+      return h('div', null, `${s.a}:${s.b}`, h(Child, {a: s.a}))
+    }
+
+    let app = mount(h(C))
+    assert.equal(app.text(), '0:0')
+
+    write(() => {store.a = 1})
+    assert.equal(app.text(), '1:2')
+  })
+
   test('strict mode keeps tracking', () => {
     let store = create({n: 0})
     let C = () => {

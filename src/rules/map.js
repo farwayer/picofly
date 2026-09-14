@@ -263,8 +263,7 @@ let proxifyMap = ($, map) => {
 				Reflect.getOwnPropertyDescriptor(map, prop)?.writable
 			) {
 				map[prop] = value
-			}
-			else {
+			} else {
 				if (!Reflect.set(map, prop, value, receiver)) {
 					return false
 				}

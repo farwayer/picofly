@@ -99,8 +99,7 @@ let proxifyObj = ($, obj) => {
 				Reflect.getOwnPropertyDescriptor(obj, prop)?.writable
 			) {
 				obj[prop] = value
-			}
-			else {
+			}	else {
 				if (!Reflect.set(obj, prop, value, receiver)) {
 					return false
 				}

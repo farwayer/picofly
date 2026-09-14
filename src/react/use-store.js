@@ -1,7 +1,4 @@
-import {
-	createContext, useContext, useCallback, useRef, useInsertionEffect,
-	useSyncExternalStore,
-} from 'react'
+import {createContext, useContext, useRef, useInsertionEffect, useReducer} from 'react'
 import {onWrite, onRead, lock, unlock, get$} from '../store.js'
 
 export let ReactSym = /* @__PURE__ */ Symbol()
@@ -12,39 +9,25 @@ export let Picofly = /* @__PURE__ */ (() => (
 ).Provider)()
 export let useContextStore = () => useContext(PicoflyContext)
 
-export let useStore = (store = useContextStore() || "use <Picofly>"()) => {
-	// store will be locked to change immediately after the call
-	// and unlocked at any (!) component commit stage
-	lock(store)
-
+// store will be locked after the call and before any component commit stage
+export let useStore = (store = useContextStore() || "use <Picofly>!"()) => {
 	let state = useRef().current ??= {
-		epoch: 0,
-		dirty: 0,
 		subs: [],
 		notify: null,
 	}
+	state.notify = useReducer(epoch => ++epoch, 0)[1]
 
 	let trackRead = attachTracker(store)
 	let stopTrackRead = trackRead(state)
 
-	let subscribe = useCallback(onChange => {
-		state.notify = onChange
-
-		return () => {
-			state.epoch++
-			clearTailSubsIfNeed(state, 0)
-		}
-	}, [])
-
-	let getEpoch = () => state.epoch
-
-	useSyncExternalStore(subscribe, getEpoch, getEpoch)
 	useInsertionEffect(stopTrackRead)
 	// due to the asynchronous nature of rendering
 	// useInsertionEffect may not always be called after each render
 	// (for ex. when the data was updated between the render and commit stages)
 	// we should schedule cleanup so as not to miss such a situation
 	queueMicrotask(stopTrackRead)
+
+	useInsertionEffect(() => () => cutSubsTailIfNeed(state, 0), [])
 
 	return store
 }
@@ -61,7 +44,24 @@ let attachTracker = (store) => {
 	let state, readUnsub, subIndex, lastObj, lastObjSubs
 	let allSubs = new WeakMap()
 
-	let upLastObjSubs = obj => {
+	// 67 bc
+	onWrite(store, (obj, key) => {
+		let sub = allSubs.get(obj)?.get(key)
+
+		while (sub) {
+			let state = sub.state
+			let notify = state.notify
+
+			if (notify) {
+				notify()
+				state.notify = null
+			}
+
+			sub = sub.next
+		}
+	})
+
+	let upLastObjSubs = (obj) => {
 		if (obj !== lastObj) {
 			lastObj = obj
 			lastObjSubs = allSubs.get(obj)
@@ -73,7 +73,7 @@ let attachTracker = (store) => {
 	}
 
 	let retrack = (key) => {
-		clearTailSubsIfNeed(state, subIndex)
+		cutSubsTailIfNeed(state, subIndex)
 		addSub(state, lastObjSubs, key)
 	}
 
@@ -85,73 +85,55 @@ let attachTracker = (store) => {
 		let sub = subs[subIndex]
 
 		if (!sub || sub.objSubs !== lastObjSubs || sub.key !== key) {
+			// reader subscription list changed
 			retrack(key)
 		}
 
 		subIndex++
 	}
 
-	// 93 bc
-	onWrite(store, (obj, key) => {
-		let objSubs = allSubs.get(obj)
-
-		if (objSubs?.size) {
-			let sub = objSubs.get(key)
-
-			if (sub) {
-				do {
-					let state = sub.state
-					if (state.dirty) continue
-
-					state.epoch++
-
-					let notify = state.notify
-					if (notify) {
-						state.dirty = 1
-						notify()
-					}
-				} while (sub = sub.next)
-			}
-		}
-	})
-
-	return $[ReactSym] = (currentState) => {
+	// can be called twice: useInsertionEffect + queueMicrotask
+	let stopTrackRead = () => {
 		if (state) {
-			clearTailSubsIfNeed(state, subIndex)
+			cutSubsTailIfNeed(state, subIndex)
+			readUnsub()
+			state = null
+			lastObj = null
+			lastObjSubs = null
+			unlock(store)
+		}
+	}
+
+	return $[ReactSym] = (readerState) => {
+		lock(store)
+
+		if (state) {
+			// cut previous reader subs tail
+			cutSubsTailIfNeed(state, subIndex)
 		} else {
+			// we are the first in the render queue
 			readUnsub = onRead(store, trackKey)
 		}
 
-		state = currentState
-		currentState.dirty = 0
+		state = readerState
 		subIndex = 0
 
-		return () => {
-			if (state) {
-				readUnsub()
-				clearTailSubsIfNeed(state, subIndex)
-				state = null
-				lastObj = null
-				lastObjSubs = null
-				unlock(store)
-			}
-		}
+		return stopTrackRead
 	}
 }
 
-let clearTailSubsIfNeed = (state, from) => {
+let cutSubsTailIfNeed = (state, from) => {
 	let subs = state.subs
+	let len = subs.length
 
-	if (subs.length > from) {
-		clearTailSubs(subs, from)
+	if (len > from) {
+		cutSubsTail(subs, from, len)
 	}
 }
 
-let clearTailSubs = (subs, from) => {
-	let i = subs.length
-
-	while (--i >= from) {
-		let sub = subs[i]
+let cutSubsTail = (subs, from, len) => {
+	while (--len >= from) {
+		let sub = subs[len]
 		let prev = sub.prev
 		let next = sub.next
 
@@ -169,8 +151,7 @@ let clearTailSubs = (subs, from) => {
 
 		if (next) {
 			objSubs.set(key, next)
-		}
-		else {
+		}	else {
 			objSubs.delete(key)
 		}
 	}
