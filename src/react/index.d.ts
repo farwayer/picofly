@@ -29,6 +29,8 @@ type Mismatch<PE, FP> = {
 	[K in keyof PE & keyof FP]: PE[K] extends FP[K] ? never : K
 }[keyof PE & keyof FP]
 
+type Own<P, Provided> = Omit<P, keyof Provided>
+
 export type Select<S, PE, P0> = <FP>(
 	Component: ComponentType<FP> & (
 		[Exclude<keyof PE, keyof FP>] extends [never]
@@ -49,83 +51,159 @@ export function select<S, P0, E0>(
 	s0: Selector<S, P0, E0>,
 ): Select<S, Norm<E0>, P0>
 
-export function select<S, P0, E0, E1>(
+export function select<S, P0, P1, E0, E1>(
 	s0: Selector<S, P0, E0>,
-	s1: Selector<S, P0 & Norm<E0>, E1>,
-): Select<S, Norm<E0> & Norm<E1>, P0>
+	s1: Selector<S, P1 & Norm<E0>, E1>,
+): Select<S, Norm<E0> & Norm<E1>, P0 & Own<P1, Norm<E0>>>
 
-export function select<S, P0, E0, E1, E2>(
+export function select<S, P0, P1, P2, E0, E1, E2>(
 	s0: Selector<S, P0, E0>,
-	s1: Selector<S, P0 & Norm<E0>, E1>,
-	s2: Selector<S, P0 & Norm<E0> & Norm<E1>, E2>,
-): Select<S, Norm<E0> & Norm<E1> & Norm<E2>, P0>
+	s1: Selector<S, P1 & Norm<E0>, E1>,
+	s2: Selector<S, P2 & Norm<E0> & Norm<E1>, E2>,
+): Select<
+	S,
+	Norm<E0> & Norm<E1> & Norm<E2>,
+	P0
+		& Own<P1, Norm<E0>>
+		& Own<P2, Norm<E0> & Norm<E1>>
+>
 
-export function select<S, P0, E0, E1, E2, E3>(
+export function select<S, P0, P1, P2, P3, E0, E1, E2, E3>(
 	s0: Selector<S, P0, E0>,
-	s1: Selector<S, P0 & Norm<E0>, E1>,
-	s2: Selector<S, P0 & Norm<E0> & Norm<E1>, E2>,
-	s3: Selector<S, P0 & Norm<E0> & Norm<E1> & Norm<E2>, E3>,
-): Select<S, Norm<E0> & Norm<E1> & Norm<E2> & Norm<E3>, P0>
+	s1: Selector<S, P1 & Norm<E0>, E1>,
+	s2: Selector<S, P2 & Norm<E0> & Norm<E1>, E2>,
+	s3: Selector<S, P3 & Norm<E0> & Norm<E1> & Norm<E2>, E3>,
+): Select<
+	S,
+	Norm<E0> & Norm<E1> & Norm<E2> & Norm<E3>,
+	P0
+		& Own<P1, Norm<E0>>
+		& Own<P2, Norm<E0> & Norm<E1>>
+		& Own<P3, Norm<E0> & Norm<E1> & Norm<E2>>
+>
 
-export function select<S, P0, E0, E1, E2, E3, E4>(
+export function select<S, P0, P1, P2, P3, P4, E0, E1, E2, E3, E4>(
 	s0: Selector<S, P0, E0>,
-	s1: Selector<S, P0 & Norm<E0>, E1>,
-	s2: Selector<S, P0 & Norm<E0> & Norm<E1>, E2>,
-	s3: Selector<S, P0 & Norm<E0> & Norm<E1> & Norm<E2>, E3>,
-	s4: Selector<S, P0 & Norm<E0> & Norm<E1> & Norm<E2> & Norm<E3>, E4>,
-): Select<S, Norm<E0> & Norm<E1> & Norm<E2> & Norm<E3> & Norm<E4>, P0>
+	s1: Selector<S, P1 & Norm<E0>, E1>,
+	s2: Selector<S, P2 & Norm<E0> & Norm<E1>, E2>,
+	s3: Selector<S, P3 & Norm<E0> & Norm<E1> & Norm<E2>, E3>,
+	s4: Selector<S, P4 & Norm<E0> & Norm<E1> & Norm<E2> & Norm<E3>, E4>,
+): Select<
+	S,
+	Norm<E0> & Norm<E1> & Norm<E2> & Norm<E3> & Norm<E4>,
+	P0
+		& Own<P1, Norm<E0>>
+		& Own<P2, Norm<E0> & Norm<E1>>
+		& Own<P3, Norm<E0> & Norm<E1> & Norm<E2>>
+		& Own<P4, Norm<E0> & Norm<E1> & Norm<E2> & Norm<E3>>
+>
 
-export function select<S, P0, E0, E1, E2, E3, E4, E5>(
+export function select<S, P0, P1, P2, P3, P4, P5, E0, E1, E2, E3, E4, E5>(
 	s0: Selector<S, P0, E0>,
-	s1: Selector<S, P0 & Norm<E0>, E1>,
-	s2: Selector<S, P0 & Norm<E0> & Norm<E1>, E2>,
-	s3: Selector<S, P0 & Norm<E0> & Norm<E1> & Norm<E2>, E3>,
-	s4: Selector<S, P0 & Norm<E0> & Norm<E1> & Norm<E2> & Norm<E3>, E4>,
-	s5: Selector<S, P0 & Norm<E0> & Norm<E1> & Norm<E2> & Norm<E3> & Norm<E4>, E5>,
-): Select<S, Norm<E0> & Norm<E1> & Norm<E2> & Norm<E3> & Norm<E4> & Norm<E5>, P0>
+	s1: Selector<S, P1 & Norm<E0>, E1>,
+	s2: Selector<S, P2 & Norm<E0> & Norm<E1>, E2>,
+	s3: Selector<S, P3 & Norm<E0> & Norm<E1> & Norm<E2>, E3>,
+	s4: Selector<S, P4 & Norm<E0> & Norm<E1> & Norm<E2> & Norm<E3>, E4>,
+	s5: Selector<S, P5 & Norm<E0> & Norm<E1> & Norm<E2> & Norm<E3> & Norm<E4>, E5>,
+): Select<
+	S,
+	Norm<E0> & Norm<E1> & Norm<E2> & Norm<E3> & Norm<E4> & Norm<E5>,
+	P0
+		& Own<P1, Norm<E0>>
+		& Own<P2, Norm<E0> & Norm<E1>>
+		& Own<P3, Norm<E0> & Norm<E1> & Norm<E2>>
+		& Own<P4, Norm<E0> & Norm<E1> & Norm<E2> & Norm<E3>>
+		& Own<P5, Norm<E0> & Norm<E1> & Norm<E2> & Norm<E3> & Norm<E4>>
+>
 
-export function select<S, P0, E0, E1, E2, E3, E4, E5, E6>(
+export function select<S, P0, P1, P2, P3, P4, P5, P6, E0, E1, E2, E3, E4, E5, E6>(
 	s0: Selector<S, P0, E0>,
-	s1: Selector<S, P0 & Norm<E0>, E1>,
-	s2: Selector<S, P0 & Norm<E0> & Norm<E1>, E2>,
-	s3: Selector<S, P0 & Norm<E0> & Norm<E1> & Norm<E2>, E3>,
-	s4: Selector<S, P0 & Norm<E0> & Norm<E1> & Norm<E2> & Norm<E3>, E4>,
-	s5: Selector<S, P0 & Norm<E0> & Norm<E1> & Norm<E2> & Norm<E3> & Norm<E4>, E5>,
-	s6: Selector<S, P0 & Norm<E0> & Norm<E1> & Norm<E2> & Norm<E3> & Norm<E4> & Norm<E5>, E6>,
-): Select<S, Norm<E0> & Norm<E1> & Norm<E2> & Norm<E3> & Norm<E4> & Norm<E5> & Norm<E6>, P0>
+	s1: Selector<S, P1 & Norm<E0>, E1>,
+	s2: Selector<S, P2 & Norm<E0> & Norm<E1>, E2>,
+	s3: Selector<S, P3 & Norm<E0> & Norm<E1> & Norm<E2>, E3>,
+	s4: Selector<S, P4 & Norm<E0> & Norm<E1> & Norm<E2> & Norm<E3>, E4>,
+	s5: Selector<S, P5 & Norm<E0> & Norm<E1> & Norm<E2> & Norm<E3> & Norm<E4>, E5>,
+	s6: Selector<S, P6 & Norm<E0> & Norm<E1> & Norm<E2> & Norm<E3> & Norm<E4> & Norm<E5>, E6>,
+): Select<
+	S,
+	Norm<E0> & Norm<E1> & Norm<E2> & Norm<E3> & Norm<E4> & Norm<E5> & Norm<E6>,
+	P0
+		& Own<P1, Norm<E0>>
+		& Own<P2, Norm<E0> & Norm<E1>>
+		& Own<P3, Norm<E0> & Norm<E1> & Norm<E2>>
+		& Own<P4, Norm<E0> & Norm<E1> & Norm<E2> & Norm<E3>>
+		& Own<P5, Norm<E0> & Norm<E1> & Norm<E2> & Norm<E3> & Norm<E4>>
+		& Own<P6, Norm<E0> & Norm<E1> & Norm<E2> & Norm<E3> & Norm<E4> & Norm<E5>>
+>
 
-export function select<S, P0, E0, E1, E2, E3, E4, E5, E6, E7>(
+export function select<S, P0, P1, P2, P3, P4, P5, P6, P7, E0, E1, E2, E3, E4, E5, E6, E7>(
 	s0: Selector<S, P0, E0>,
-	s1: Selector<S, P0 & Norm<E0>, E1>,
-	s2: Selector<S, P0 & Norm<E0> & Norm<E1>, E2>,
-	s3: Selector<S, P0 & Norm<E0> & Norm<E1> & Norm<E2>, E3>,
-	s4: Selector<S, P0 & Norm<E0> & Norm<E1> & Norm<E2> & Norm<E3>, E4>,
-	s5: Selector<S, P0 & Norm<E0> & Norm<E1> & Norm<E2> & Norm<E3> & Norm<E4>, E5>,
-	s6: Selector<S, P0 & Norm<E0> & Norm<E1> & Norm<E2> & Norm<E3> & Norm<E4> & Norm<E5>, E6>,
-	s7: Selector<S, P0 & Norm<E0> & Norm<E1> & Norm<E2> & Norm<E3> & Norm<E4> & Norm<E5> & Norm<E6>, E7>,
-): Select<S, Norm<E0> & Norm<E1> & Norm<E2> & Norm<E3> & Norm<E4> & Norm<E5> & Norm<E6> & Norm<E7>, P0>
+	s1: Selector<S, P1 & Norm<E0>, E1>,
+	s2: Selector<S, P2 & Norm<E0> & Norm<E1>, E2>,
+	s3: Selector<S, P3 & Norm<E0> & Norm<E1> & Norm<E2>, E3>,
+	s4: Selector<S, P4 & Norm<E0> & Norm<E1> & Norm<E2> & Norm<E3>, E4>,
+	s5: Selector<S, P5 & Norm<E0> & Norm<E1> & Norm<E2> & Norm<E3> & Norm<E4>, E5>,
+	s6: Selector<S, P6 & Norm<E0> & Norm<E1> & Norm<E2> & Norm<E3> & Norm<E4> & Norm<E5>, E6>,
+	s7: Selector<S, P7 & Norm<E0> & Norm<E1> & Norm<E2> & Norm<E3> & Norm<E4> & Norm<E5> & Norm<E6>, E7>,
+): Select<
+	S,
+	Norm<E0> & Norm<E1> & Norm<E2> & Norm<E3> & Norm<E4> & Norm<E5> & Norm<E6> & Norm<E7>,
+	P0
+		& Own<P1, Norm<E0>>
+		& Own<P2, Norm<E0> & Norm<E1>>
+		& Own<P3, Norm<E0> & Norm<E1> & Norm<E2>>
+		& Own<P4, Norm<E0> & Norm<E1> & Norm<E2> & Norm<E3>>
+		& Own<P5, Norm<E0> & Norm<E1> & Norm<E2> & Norm<E3> & Norm<E4>>
+		& Own<P6, Norm<E0> & Norm<E1> & Norm<E2> & Norm<E3> & Norm<E4> & Norm<E5>>
+		& Own<P7, Norm<E0> & Norm<E1> & Norm<E2> & Norm<E3> & Norm<E4> & Norm<E5> & Norm<E6>>
+>
 
-export function select<S, P0, E0, E1, E2, E3, E4, E5, E6, E7, E8>(
+export function select<S, P0, P1, P2, P3, P4, P5, P6, P7, P8, E0, E1, E2, E3, E4, E5, E6, E7, E8>(
 	s0: Selector<S, P0, E0>,
-	s1: Selector<S, P0 & Norm<E0>, E1>,
-	s2: Selector<S, P0 & Norm<E0> & Norm<E1>, E2>,
-	s3: Selector<S, P0 & Norm<E0> & Norm<E1> & Norm<E2>, E3>,
-	s4: Selector<S, P0 & Norm<E0> & Norm<E1> & Norm<E2> & Norm<E3>, E4>,
-	s5: Selector<S, P0 & Norm<E0> & Norm<E1> & Norm<E2> & Norm<E3> & Norm<E4>, E5>,
-	s6: Selector<S, P0 & Norm<E0> & Norm<E1> & Norm<E2> & Norm<E3> & Norm<E4> & Norm<E5>, E6>,
-	s7: Selector<S, P0 & Norm<E0> & Norm<E1> & Norm<E2> & Norm<E3> & Norm<E4> & Norm<E5> & Norm<E6>, E7>,
-	s8: Selector<S, P0 & Norm<E0> & Norm<E1> & Norm<E2> & Norm<E3> & Norm<E4> & Norm<E5> & Norm<E6> & Norm<E7>, E8>,
-): Select<S, Norm<E0> & Norm<E1> & Norm<E2> & Norm<E3> & Norm<E4> & Norm<E5> & Norm<E6> & Norm<E7> & Norm<E8>, P0>
+	s1: Selector<S, P1 & Norm<E0>, E1>,
+	s2: Selector<S, P2 & Norm<E0> & Norm<E1>, E2>,
+	s3: Selector<S, P3 & Norm<E0> & Norm<E1> & Norm<E2>, E3>,
+	s4: Selector<S, P4 & Norm<E0> & Norm<E1> & Norm<E2> & Norm<E3>, E4>,
+	s5: Selector<S, P5 & Norm<E0> & Norm<E1> & Norm<E2> & Norm<E3> & Norm<E4>, E5>,
+	s6: Selector<S, P6 & Norm<E0> & Norm<E1> & Norm<E2> & Norm<E3> & Norm<E4> & Norm<E5>, E6>,
+	s7: Selector<S, P7 & Norm<E0> & Norm<E1> & Norm<E2> & Norm<E3> & Norm<E4> & Norm<E5> & Norm<E6>, E7>,
+	s8: Selector<S, P8 & Norm<E0> & Norm<E1> & Norm<E2> & Norm<E3> & Norm<E4> & Norm<E5> & Norm<E6> & Norm<E7>, E8>,
+): Select<
+	S,
+	Norm<E0> & Norm<E1> & Norm<E2> & Norm<E3> & Norm<E4> & Norm<E5> & Norm<E6> & Norm<E7> & Norm<E8>,
+	P0
+		& Own<P1, Norm<E0>>
+		& Own<P2, Norm<E0> & Norm<E1>>
+		& Own<P3, Norm<E0> & Norm<E1> & Norm<E2>>
+		& Own<P4, Norm<E0> & Norm<E1> & Norm<E2> & Norm<E3>>
+		& Own<P5, Norm<E0> & Norm<E1> & Norm<E2> & Norm<E3> & Norm<E4>>
+		& Own<P6, Norm<E0> & Norm<E1> & Norm<E2> & Norm<E3> & Norm<E4> & Norm<E5>>
+		& Own<P7, Norm<E0> & Norm<E1> & Norm<E2> & Norm<E3> & Norm<E4> & Norm<E5> & Norm<E6>>
+		& Own<P8, Norm<E0> & Norm<E1> & Norm<E2> & Norm<E3> & Norm<E4> & Norm<E5> & Norm<E6> & Norm<E7>>
+>
 
-export function select<S, P0, E0, E1, E2, E3, E4, E5, E6, E7, E8, E9>(
+export function select<S, P0, P1, P2, P3, P4, P5, P6, P7, P8, P9, E0, E1, E2, E3, E4, E5, E6, E7, E8, E9>(
 	s0: Selector<S, P0, E0>,
-	s1: Selector<S, P0 & Norm<E0>, E1>,
-	s2: Selector<S, P0 & Norm<E0> & Norm<E1>, E2>,
-	s3: Selector<S, P0 & Norm<E0> & Norm<E1> & Norm<E2>, E3>,
-	s4: Selector<S, P0 & Norm<E0> & Norm<E1> & Norm<E2> & Norm<E3>, E4>,
-	s5: Selector<S, P0 & Norm<E0> & Norm<E1> & Norm<E2> & Norm<E3> & Norm<E4>, E5>,
-	s6: Selector<S, P0 & Norm<E0> & Norm<E1> & Norm<E2> & Norm<E3> & Norm<E4> & Norm<E5>, E6>,
-	s7: Selector<S, P0 & Norm<E0> & Norm<E1> & Norm<E2> & Norm<E3> & Norm<E4> & Norm<E5> & Norm<E6>, E7>,
-	s8: Selector<S, P0 & Norm<E0> & Norm<E1> & Norm<E2> & Norm<E3> & Norm<E4> & Norm<E5> & Norm<E6> & Norm<E7>, E8>,
-	s9: Selector<S, P0 & Norm<E0> & Norm<E1> & Norm<E2> & Norm<E3> & Norm<E4> & Norm<E5> & Norm<E6> & Norm<E7> & Norm<E8>, E9>,
-): Select<S, Norm<E0> & Norm<E1> & Norm<E2> & Norm<E3> & Norm<E4> & Norm<E5> & Norm<E6> & Norm<E7> & Norm<E8> & Norm<E9>, P0>
+	s1: Selector<S, P1 & Norm<E0>, E1>,
+	s2: Selector<S, P2 & Norm<E0> & Norm<E1>, E2>,
+	s3: Selector<S, P3 & Norm<E0> & Norm<E1> & Norm<E2>, E3>,
+	s4: Selector<S, P4 & Norm<E0> & Norm<E1> & Norm<E2> & Norm<E3>, E4>,
+	s5: Selector<S, P5 & Norm<E0> & Norm<E1> & Norm<E2> & Norm<E3> & Norm<E4>, E5>,
+	s6: Selector<S, P6 & Norm<E0> & Norm<E1> & Norm<E2> & Norm<E3> & Norm<E4> & Norm<E5>, E6>,
+	s7: Selector<S, P7 & Norm<E0> & Norm<E1> & Norm<E2> & Norm<E3> & Norm<E4> & Norm<E5> & Norm<E6>, E7>,
+	s8: Selector<S, P8 & Norm<E0> & Norm<E1> & Norm<E2> & Norm<E3> & Norm<E4> & Norm<E5> & Norm<E6> & Norm<E7>, E8>,
+	s9: Selector<S, P9 & Norm<E0> & Norm<E1> & Norm<E2> & Norm<E3> & Norm<E4> & Norm<E5> & Norm<E6> & Norm<E7> & Norm<E8>, E9>,
+): Select<
+	S,
+	Norm<E0> & Norm<E1> & Norm<E2> & Norm<E3> & Norm<E4> & Norm<E5> & Norm<E6> & Norm<E7> & Norm<E8> & Norm<E9>,
+	P0
+		& Own<P1, Norm<E0>>
+		& Own<P2, Norm<E0> & Norm<E1>>
+		& Own<P3, Norm<E0> & Norm<E1> & Norm<E2>>
+		& Own<P4, Norm<E0> & Norm<E1> & Norm<E2> & Norm<E3>>
+		& Own<P5, Norm<E0> & Norm<E1> & Norm<E2> & Norm<E3> & Norm<E4>>
+		& Own<P6, Norm<E0> & Norm<E1> & Norm<E2> & Norm<E3> & Norm<E4> & Norm<E5>>
+		& Own<P7, Norm<E0> & Norm<E1> & Norm<E2> & Norm<E3> & Norm<E4> & Norm<E5> & Norm<E6>>
+		& Own<P8, Norm<E0> & Norm<E1> & Norm<E2> & Norm<E3> & Norm<E4> & Norm<E5> & Norm<E6> & Norm<E7>>
+		& Own<P9, Norm<E0> & Norm<E1> & Norm<E2> & Norm<E3> & Norm<E4> & Norm<E5> & Norm<E6> & Norm<E7> & Norm<E8>>
+>

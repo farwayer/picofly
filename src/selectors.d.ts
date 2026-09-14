@@ -12,7 +12,7 @@ export function item<
 	cfg?: {map?: MapPath, idProp?: IdPath},
 ): (
 	app: App,
-	props: PathValue<IdPath, ItemKey<App, MapPath>>,
+	props: PathValue<NoInfer<IdPath>, ItemKey<App, MapPath>>,
 ) => {[key in Name]: ItemValue<App, MapPath> | undefined}
 
 
@@ -48,7 +48,9 @@ type SpecValues<S> = {
 type ItemKey<App, MapPath extends string> =
 	Get<App, MapPath> extends ReadonlyMap<infer Key, unknown> ? Key : never
 type ItemValue<App, MapPath extends string> =
-	Get<App, MapPath> extends ReadonlyMap<unknown, infer Value> ? Value : never
+	[Get<App, MapPath>] extends [never]
+		? never
+		: Get<App, MapPath> extends ReadonlyMap<unknown, infer Value> ? Value : never
 
 type PathValue<Path extends string, Value> =
 	Path extends `${infer Key}.${infer Rest}`
