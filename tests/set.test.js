@@ -469,6 +469,18 @@ suite('set', () => {
     assert.deepEqual(hits, ['name', KeysSym, 'color'])
   })
 
+  // the wrappers sit on Iterator.prototype, so the helpers work and still proxy
+  test('iterator helpers', {skip: !globalThis.Iterator}, () => {
+    let [, s, item] = objStore()
+
+    assert.ok(s.entries() instanceof Iterator)
+
+    let [proxied] = s.values().take(1).toArray()
+    proxied.name = 'red'
+
+    assert.equal(item.name, 'red')
+  })
+
   test('for..of proxify', () => {
     let [, s, item] = objStore()
     let hits = []

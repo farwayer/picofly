@@ -515,6 +515,18 @@ suite('map', () => {
     assert.deepEqual(hits, ['id', 'name'])
   })
 
+  // the wrappers sit on Iterator.prototype, so the helpers work and still proxy
+  test('iterator helpers', {skip: !globalThis.Iterator}, () => {
+    let [m, s, key] = pairStore()
+
+    assert.ok(s.entries() instanceof Iterator)
+
+    let [proxied] = s.values().take(1).toArray()
+    proxied.name = 'Alice'
+
+    assert.equal(m.get(key).name, 'Alice')
+  })
+
   test('for..of proxify', () => {
     let [m, s, key] = pairStore()
     let hits = []

@@ -4,8 +4,17 @@ export let SizeSym = /* @__PURE__ */ Symbol.for('size')
 export let KeysSym = /* @__PURE__ */ Symbol('keys')
 export let ValuesSym = /* @__PURE__ */ Symbol('values')
 
+let BaseIterProto = /* @__PURE__ */ (() => ({
+	// not supported in Hermes for RN < 0.88
+	__proto__: globalThis.Iterator?.prototype,
+
+	[Symbol.iterator]() {
+		return this
+	},
+}))()
+
 let SingleIterProto = /* @__PURE__ */ (() => ({
-	__proto__: Iterator.prototype,
+	__proto__: BaseIterProto,
 
 	next() {
 		let next = this.it.next()
@@ -23,7 +32,7 @@ let SingleIterProto = /* @__PURE__ */ (() => ({
 }))()
 
 export let EntriesIterProto = /* @__PURE__ */ (() => ({
-	__proto__: Iterator.prototype,
+	__proto__: BaseIterProto,
 
 	next() {
 		let next = this.it.next()
@@ -44,7 +53,7 @@ export let EntriesIterProto = /* @__PURE__ */ (() => ({
 }))()
 
 export let PairIterProto = /* @__PURE__ */ (() => ({
-	__proto__: Iterator.prototype,
+	__proto__: BaseIterProto,
 
 	next() {
 		let next = this.it.next()
