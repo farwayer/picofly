@@ -8,8 +8,8 @@ export let select = (...selectors) => (Component, options = {}) => {
 		let store = useStore(getStore?.())
 
 		props = selectors.reduce((props, selector) => (
-			Object.assign(props, selector(store, props))
-		), {...props})
+			Object.assign({}, props, selector(store, props))
+		), props)
 
 		return createElement(Component, props)
 	})
