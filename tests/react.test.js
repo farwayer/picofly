@@ -250,6 +250,34 @@ suite('react', () => {
     assert.equal(app.text(), '1')
   })
 
+  // a selector gets the props it is about to override, so a callback can wrap
+  // the one that came in. Overriding in place made the wrapper call itself.
+  test('a selector can wrap the prop it overrides', () => {
+    let store = create({n: 0})
+    let calls = []
+    let onClick
+
+    let View = props => {
+      onClick = props.onClick
+      return h('div', null, '' + props.n)
+    }
+
+    let C = select(
+      (s, props) => ({
+        n: s.n,
+        onClick: () => {
+          calls.push('outer')
+          props.onClick()
+        },
+      }),
+    )(View, {getStore: () => store})
+
+    mount(h(C, {onClick: () => calls.push('inner')}))
+    onClick()
+
+    assert.deepEqual(calls, ['outer', 'inner'])
+  })
+
   test('write during render throws', () => {
     let store = create({n: 0})
     let C = () => {
