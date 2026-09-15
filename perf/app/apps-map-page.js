@@ -9,6 +9,8 @@ import {proxy, useSnapshot} from 'valtio'
 import {proxyMap} from 'valtio/utils'
 import {observable, runInAction} from 'mobx'
 import {observer} from 'mobx-react-lite'
+import {createStore} from 'zustand/vanilla'
+import {useStore as useZustand} from 'zustand'
 import {memo, useState} from 'react'
 import {h, data, counter, rows} from './utils.js'
 
@@ -47,8 +49,6 @@ export let picofly = (n = rows, shown = 100) => {
   })
 
   let App = () => {
-    count.hit()
-
     let app = useStore(store)
     let ids = page(app.items.keys(), shown, app.step)
 
@@ -81,8 +81,6 @@ export let valtio = (n = rows, shown = 100, sync = true) => {
   })
 
   let App = () => {
-    count.hit()
-
     let snap = useSnapshot(store, {sync})
     let ids = page(snap.items.keys(), shown, snap.step)
 
@@ -111,8 +109,6 @@ export let mobx = (n = rows, shown = 100) => {
   })
 
   let App = observer(() => {
-    count.hit()
-
     let ids = page(store.items.keys(), shown, store.step)
 
     return h('ul', null, ids.map(id => h(Row, {key: id, id})))
@@ -123,6 +119,35 @@ export let mobx = (n = rows, shown = 100) => {
     count,
     element: h(App),
     step: () => runInAction(() => store.step = next(store.step)),
+  }
+}
+
+export let zustand = (n = rows, shown = 100) => {
+  let store = createStore(() => ({items: new Map(entries(n)), step: 0}))
+  let count = counter()
+  let next = stepper(n, shown)
+
+  let Row = memo(({id}) => {
+    count.hit()
+
+    let item = useZustand(store, s => s.items.get(id))
+
+    return h('li', null, item.name, item.done ? ' done' : '')
+  })
+
+  let App = () => {
+    let items = useZustand(store, s => s.items)
+    let step = useZustand(store, s => s.step)
+    let ids = page(items.keys(), shown, step)
+
+    return h('ul', null, ids.map(id => h(Row, {key: id, id})))
+  }
+
+  return {
+    store,
+    count,
+    element: h(App),
+    step: () => store.setState(s => ({step: next(s.step)})),
   }
 }
 
@@ -141,8 +166,6 @@ export let basic = (n = rows, shown = 100) => {
   })
 
   let App = () => {
-    count.hit()
-
     let [step, set] = useState(0)
     setStep = set
 

@@ -6,6 +6,12 @@ import * as apps from '../apps-obj.js'
 // show:
 //   // 1000 records in a dictionary, a page of 100 of them on screen
 //
+//   // App, until the page is full
+//   for (let id in app.items) ids.push(id)
+//
+//   // Row
+//   let {name, done} = app.items[id]
+//
 //   // bench: a batch of records arrives, all of them already there
 //   for (let obj of batch) {
 //     let item = app.items[obj.id]
@@ -52,5 +58,6 @@ loop(`Patch ${shown} records of ${records}`)
   .picofly({make: make('picofly')})
   .valtio({make: make('valtio')})
   .mobx({make: make('mobx')})
+  .zustand({make: make('zustand')})
   .basic({make: make('basic')})
   .run()

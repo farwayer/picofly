@@ -5,6 +5,8 @@ import {useStore} from '../../src/react/use-store.js'
 import {proxy, useSnapshot} from 'valtio'
 import {observable, runInAction} from 'mobx'
 import {observer} from 'mobx-react-lite'
+import {createStore} from 'zustand/vanilla'
+import {useStore as useZustand} from 'zustand'
 import {memo, useState} from 'react'
 import {h, data, counter, rows} from './utils.js'
 
@@ -22,8 +24,6 @@ export let picofly = (n = rows, shown = Infinity) => {
   })
 
   let App = () => {
-    count.hit()
-
     let app = useStore(store)
 
     return h('ul', null, Array.from({length: Math.min(app.items.length, shown)},
@@ -34,8 +34,9 @@ export let picofly = (n = rows, shown = Infinity) => {
     store,
     count,
     element: h(App),
-    toggle: (i, done) => {
-      store.items[i].done = done
+    toggle: i => {
+      let item = store.items[i]
+      item.done = !item.done
     },
     rename: (i, name) => {
       store.items[i].name = name
@@ -65,8 +66,6 @@ export let valtio = (n = rows, shown = Infinity, sync = true) => {
   })
 
   let App = () => {
-    count.hit()
-
     let snap = useSnapshot(store, {sync})
 
     return h('ul', null, Array.from({length: Math.min(snap.items.length, shown)},
@@ -77,8 +76,9 @@ export let valtio = (n = rows, shown = Infinity, sync = true) => {
     store,
     count,
     element: h(App),
-    toggle: (i, done) => {
-      store.items[i].done = done
+    toggle: i => {
+      let item = store.items[i]
+      item.done = !item.done
     },
     rename: (i, name) => {
       store.items[i].name = name
@@ -104,8 +104,6 @@ export let mobx = (n = rows, shown = Infinity) => {
   })
 
   let App = observer(() => {
-    count.hit()
-
     return h('ul', null, Array.from({length: Math.min(store.items.length, shown)},
       (_, i) => h(Row, {key: i, i})))
   })
@@ -114,8 +112,9 @@ export let mobx = (n = rows, shown = Infinity) => {
     store,
     count,
     element: h(App),
-    toggle: (i, done) => runInAction(() => {
-      store.items[i].done = done
+    toggle: i => runInAction(() => {
+      let item = store.items[i]
+      item.done = !item.done
     }),
     rename: (i, name) => runInAction(() => {
       store.items[i].name = name
@@ -125,6 +124,45 @@ export let mobx = (n = rows, shown = Infinity) => {
     replace: items => runInAction(() => {
       store.items = items
     }),
+  }
+}
+
+export let zustand = (n = rows, shown = Infinity) => {
+  let store = createStore(() => data(n))
+  let count = counter()
+
+  let Row = memo(({i}) => {
+    count.hit()
+
+    let item = useZustand(store, s => s.items[i])
+
+    return h('li', null, item.name, item.done ? ' done' : '')
+  })
+
+  let App = () => {
+    let length = useZustand(store, s => Math.min(s.items.length, shown))
+
+    return h('ul', null, Array.from({length}, (_, i) => h(Row, {key: i, i})))
+  }
+
+  // immutable updates, the way a zustand app does them
+  let swap = (i, patch) => store.setState(s => ({
+    items: s.items.map((item, at) => at === i ? {...item, ...patch} : item),
+  }))
+
+  return {
+    store,
+    count,
+    element: h(App),
+    toggle: i => store.setState(s => ({
+      items: s.items.map((item, at) => (
+        at === i ? {...item, done: !item.done} : item
+      )),
+    })),
+    rename: (i, name) => swap(i, {name}),
+    push: item => store.setState(s => ({items: [...s.items, item]})),
+    pop: () => store.setState(s => ({items: s.items.slice(0, -1)})),
+    replace: items => store.setState({items}),
   }
 }
 
@@ -142,8 +180,6 @@ export let basic = (n = rows, shown = Infinity) => {
   })
 
   let App = () => {
-    count.hit()
-
     let [items, set] = useState(store.items)
     setItems = set
 
@@ -160,7 +196,8 @@ export let basic = (n = rows, shown = Infinity) => {
     store,
     count,
     element: h(App),
-    toggle: (i, done) => swap(i, {done}),
+    toggle: i => setItems(items => items.map(
+      (item, at) => at === i ? {...item, done: !item.done} : item)),
     rename: (i, name) => swap(i, {name}),
     push: item => setItems(items => [...items, item]),
     pop: () => setItems(items => items.slice(0, -1)),

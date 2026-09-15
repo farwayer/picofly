@@ -7,6 +7,9 @@ import * as apps from '../apps.js'
 //   // 1000 rows, every row a component on its own item
 //   let app = create({items: [{id: 0, name: 'item 0', done: false}, ...]})
 //
+//   // Row
+//   let {name, done} = app.items[i]
+//
 //   // bench
 //   app.items.push({id: 1000, name: 'item 1000', done: false})
 //   app.items.pop()
@@ -40,5 +43,6 @@ loop(`Add and drop a row of ${rows}`)
   .picofly({make: make('picofly')})
   .valtio({make: make('valtio')})
   .mobx({make: make('mobx')})
+  .zustand({make: make('zustand')})
   .basic({make: make('basic')})
   .run()

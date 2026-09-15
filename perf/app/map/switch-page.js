@@ -10,8 +10,11 @@ import * as apps from '../apps-map-page.js'
 //     step: 0,
 //   })
 //
-//   // every render takes the ids of the page it is on
+//   // App, every render takes the ids of the page it is on
 //   app.items.keys().drop(app.step * 100).take(100)
+//
+//   // Row
+//   let {name, done} = app.items.get(id)
 //
 //   // bench
 //   app.step++
@@ -46,5 +49,6 @@ loop(`Switch to the next page of ${shown} in ${records} records`)
   .picofly({make: make('picofly')})
   .valtio({make: make('valtio')})
   .mobx({make: make('mobx')})
+  .zustand({make: make('zustand')})
   .basic({make: make('basic')})
   .run()

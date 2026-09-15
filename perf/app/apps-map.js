@@ -8,6 +8,8 @@ import {proxy, useSnapshot} from 'valtio'
 import {proxyMap} from 'valtio/utils'
 import {observable, runInAction} from 'mobx'
 import {observer} from 'mobx-react-lite'
+import {createStore} from 'zustand/vanilla'
+import {useStore as useZustand} from 'zustand'
 import {memo, useState} from 'react'
 import {h, data, counter, rows} from './utils.js'
 
@@ -39,8 +41,6 @@ export let picofly = (n = rows, shown = Infinity) => {
   })
 
   let App = () => {
-    count.hit()
-
     let app = useStore(store)
 
     return h('ul', null, page(app.items, shown).map(id => h(Row, {key: id, id})))
@@ -79,8 +79,6 @@ export let valtio = (n = rows, shown = Infinity, sync = true) => {
   })
 
   let App = () => {
-    count.hit()
-
     let snap = useSnapshot(store, {sync})
 
     return h('ul', null, page(snap.items, shown).map(id => h(Row, {key: id, id})))
@@ -115,8 +113,6 @@ export let mobx = (n = rows, shown = Infinity) => {
   })
 
   let App = observer(() => {
-    count.hit()
-
     return h('ul', null, page(store.items, shown).map(id => h(Row, {key: id, id})))
   })
 
@@ -137,6 +133,47 @@ export let mobx = (n = rows, shown = Infinity) => {
   }
 }
 
+export let zustand = (n = rows, shown = Infinity) => {
+  let store = createStore(() => ({items: new Map(entries(n))}))
+  let count = counter()
+
+  let Row = memo(({id}) => {
+    count.hit()
+
+    let item = useZustand(store, s => s.items.get(id))
+
+    return h('li', null, item.name, item.done ? ' done' : '')
+  })
+
+  let App = () => {
+    let items = useZustand(store, s => s.items)
+
+    return h('ul', null, page(items, shown).map(id => h(Row, {key: id, id})))
+  }
+
+  return {
+    store,
+    count,
+    element: h(App),
+    // the whole batch lands in one new map
+    upsert: records => store.setState(s => {
+      let next = new Map(s.items)
+
+      for (let obj of records) {
+        let item = next.get(obj.id)
+        next.set(obj.id, item ? {...item, ...obj} : obj)
+      }
+
+      return {items: next}
+    }),
+    drop: id => store.setState(s => {
+      let next = new Map(s.items)
+      next.delete(id)
+      return {items: next}
+    }),
+  }
+}
+
 // no store at all: the map lives in state and every update rebuilds it.
 // What React costs by itself, so the rest of the table is read against it
 export let basic = (n = rows, shown = Infinity) => {
@@ -151,8 +188,6 @@ export let basic = (n = rows, shown = Infinity) => {
   })
 
   let App = () => {
-    count.hit()
-
     let [items, set] = useState(store)
     setItems = set
 

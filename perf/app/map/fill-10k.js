@@ -7,6 +7,12 @@ import * as apps from '../apps-map.js'
 //   // an empty store, a page of 100 rows waiting for data
 //   let app = create({items: new Map()})
 //
+//   // App, until the page is full
+//   for (let id of app.items.keys()) ids.push(id)
+//
+//   // Row
+//   let {name, done} = app.items.get(id)
+//
 //   // bench: 10k records arrive, the first 100 of them reach the screen
 //   for (let obj of batch) {
 //     let item = app.items.get(obj.id)
@@ -47,5 +53,6 @@ loop(`Take ${records} records in, render the first ${shown}`)
   .picofly({make: make('picofly')})
   .valtio({make: make('valtio')})
   .mobx({make: make('mobx')})
+  .zustand({make: make('zustand')})
   .basic({make: make('basic')})
   .run()

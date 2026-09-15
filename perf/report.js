@@ -29,6 +29,7 @@ let short = labels.map(l => l
   .replace(/^Picofly \S+ ?/, 'picofly ')
   .replace(/^Valtio \S+/, 'valtio')
   .replace(/^MobX \S+/, 'mobx')
+  .replace(/^Zustand \S+/, 'zustand')
   .trim()
 )
 
@@ -51,7 +52,8 @@ for (let [bench, byLabel] of runs) {
   let stats = labels.map(l => summary(byLabel.get(l) || [], scale(bench)))
   let best = Math.min(...stats.map(s => s.median))
 
-  // a lib can be missing from a bench: the app group has a fourth column
+  // a lib can be missing from a bench: only the app group runs react and
+  // zustand
   let cells = stats.map(({median}) => {
     if (!isFinite(median)) return '—'.padStart(cell)
 

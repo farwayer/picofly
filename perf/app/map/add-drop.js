@@ -6,6 +6,12 @@ import * as apps from '../apps-map.js'
 // show:
 //   // 1000 records by id, a page of 100 of them on screen
 //
+//   // App, until the page is full
+//   for (let id of app.items.keys()) ids.push(id)
+//
+//   // Row
+//   let {name, done} = app.items.get(id)
+//
 //   // bench: one record the map has never seen, then gone again
 //   app.items.set(1000, {id: 1000, name: 'item 1000', done: false})
 //   app.items.delete(1000)
@@ -40,5 +46,6 @@ loop(`Add and drop a record of ${records}`)
   .picofly({make: make('picofly')})
   .valtio({make: make('valtio')})
   .mobx({make: make('mobx')})
+  .zustand({make: make('zustand')})
   .basic({make: make('basic')})
   .run()

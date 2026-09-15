@@ -7,6 +7,9 @@ import * as apps from '../apps.js'
 //   // 1000 rows, every row a component on its own item
 //   let app = create({items: [{id: 0, name: 'item 0', done: false}, ...]})
 //
+//   // Row
+//   let {name, done} = app.items[i]
+//
 //   // bench
 //   app.items = sameItemsAgain
 
@@ -35,6 +38,7 @@ loop(`Replace all ${rows} rows with equal ones`)
   .picofly({make: withLists('picofly')})
   .valtio({make: withLists('valtio')})
   .mobx({make: withLists('mobx')})
+  .zustand({make: withLists('zustand')})
   .basic({make: withLists('basic')})
   .run()
 

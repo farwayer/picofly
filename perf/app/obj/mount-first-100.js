@@ -7,6 +7,12 @@ import * as apps from '../apps-obj.js'
 //   // 1000 records in a dictionary, a page of 100 of them on screen
 //   let app = create({items: {0: {id: 0, name: 'item 0'}, ...}})
 //
+//   // App, until the page is full
+//   for (let id in app.items) ids.push(id)
+//
+//   // Row
+//   let {name, done} = app.items[id]
+//
 //   // bench
 //   root.render(<App/>)
 
@@ -25,5 +31,6 @@ loop(`Mount ${shown} rows of ${records} records`)
   .picofly({make: () => apps.picofly(records, shown)})
   .valtio({make: () => apps.valtio(records, shown)})
   .mobx({make: () => apps.mobx(records, shown)})
+  .zustand({make: () => apps.zustand(records, shown)})
   .basic({make: () => apps.basic(records, shown)})
   .run()

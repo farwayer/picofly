@@ -7,6 +7,9 @@ import * as apps from '../apps.js'
 //   // 1000 records in the store, a page of 100 of them on screen
 //   let app = create({items: [{id: 0, name: 'item 0', done: false}, ...]})
 //
+//   // Row
+//   let {name, done} = app.items[i]
+//
 //   // bench
 //   root.render(<App/>)
 
@@ -25,5 +28,6 @@ loop(`Mount ${shown} rows of ${records} records`)
   .picofly({make: () => apps.picofly(records, shown)})
   .valtio({make: () => apps.valtio(records, shown)})
   .mobx({make: () => apps.mobx(records, shown)})
+  .zustand({make: () => apps.zustand(records, shown)})
   .basic({make: () => apps.basic(records, shown)})
   .run()

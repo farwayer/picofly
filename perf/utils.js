@@ -5,6 +5,7 @@ import {onRead, onWrite} from 'picofly'
 import picoflyPkg from 'picofly/package.json' with {type: 'json'}
 import valtioPkg from 'valtio/package.json' with {type: 'json'}
 import mobxPkg from 'mobx/package.json' with {type: 'json'}
+import zustandPkg from 'zustand/package.json' with {type: 'json'}
 
 // runs in node and in bare shells (jsc, js), so nothing from node: here.
 // arguments come after -- as `pass lib bench`, node also accepts env vars
@@ -113,6 +114,7 @@ export let loop = name => {
   runner.picofly = add('picofly', `Picofly ${picoflyPkg.version}`)
   runner.valtio = add('valtio', `Valtio ${valtioPkg.version}`)
   runner.mobx = add('mobx', `MobX ${mobxPkg.version}`)
+  runner.zustand = add('zustand', `Zustand ${zustandPkg.version}`)
   // the same app without any store, so the table shows what react costs
   runner.basic = add('basic', 'React')
 

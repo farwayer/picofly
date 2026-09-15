@@ -109,19 +109,27 @@ while [ "$pass" -le "$passes" ]; do
     2) order='mobx picofly valtio' ;;
   esac
 
+  # zustand runs in the app benches only, so they rotate four
+  case $(( (pass - 1) % 4 )) in
+    0) app_order='picofly valtio mobx zustand' ;;
+    1) app_order='valtio mobx zustand picofly' ;;
+    2) app_order='mobx zustand picofly valtio' ;;
+    3) app_order='zustand picofly valtio mobx' ;;
+  esac
+
   # a chosen list runs as given: nobody to rotate against
   [ -z "$picked" ] || order=$picked
 
   for bench in $benches; do
     f="perf/$bench.js"
 
-    # an app bench has a fourth column, the same app with no store at all,
+    # an app bench adds the same app with no store at all as a column,
     # and react is only worth measuring in a production build
     libs=$order
     pre=
     case "$bench" in
       app/*)
-        [ -n "$picked" ] || libs="$order basic"
+        [ -n "$picked" ] || libs="$app_order basic"
         pre='env NODE_ENV=production'
         ;;
     esac

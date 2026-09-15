@@ -7,8 +7,12 @@ import * as apps from '../apps.js'
 //   // 1000 rows, every row a component on its own item
 //   let app = create({items: [{id: 0, name: 'item 0', done: false}, ...]})
 //
+//   // Row
+//   let {name, done} = app.items[i]
+//
 //   // bench
-//   app.items[500].done = true
+//   let item = app.items[500]
+//   item.done = !item.done
 
 // one mount per process: every region toggles the same live app, the way a
 // user would, and nobody pays for a thousand rows twelve times over
@@ -32,12 +36,13 @@ loop(`Toggle one row of ${rows}`)
     // an app op is hundreds of microseconds, so the counts are set by hand
     n: 100,
     warm: 50,
-    run: (app, i) => {
-      flushSync(() => app.toggle(mid, (i & 1) === 0))
+    run: app => {
+      flushSync(() => app.toggle(mid))
     },
   })
   .picofly({make: make('picofly')})
   .valtio({make: make('valtio')})
   .mobx({make: make('mobx')})
+  .zustand({make: make('zustand')})
   .basic({make: make('basic')})
   .run()

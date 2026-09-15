@@ -7,6 +7,9 @@ import * as apps from '../apps.js'
 //   // 1000 rows, every row a component on its own item
 //   let app = create({items: [{id: 0, name: 'item 0', done: false}, ...]})
 //
+//   // Row
+//   let {name, done} = app.items[i]
+//
 //   // bench
 //   app.items[500].name = 'item 500 again'
 
@@ -37,5 +40,6 @@ loop(`Rename one row of ${rows}`)
   .picofly({make: make('picofly')})
   .valtio({make: make('valtio')})
   .mobx({make: make('mobx')})
+  .zustand({make: make('zustand')})
   .basic({make: make('basic')})
   .run()
