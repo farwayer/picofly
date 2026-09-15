@@ -314,6 +314,19 @@ suite('arr', () => {
     assert.deepEqual(a, [1])
   })
 
+  // gap: an index on the prototype makes the write look like an update, so the
+  // array grows and nobody hears about length
+  test('onWrite set inherited idx no length', () => {
+    let a = [1]
+    Object.setPrototypeOf(a, [9, 9, 9, 9])
+    let s = store(a, [obj])
+    let hits = writes(s, a)
+
+    s[3] = 'own'
+    assert.deepEqual(hits, ['3'])
+    assert.equal(a.length, 4)
+  })
+
   // gap: an array whose prototype carries indexes hears about holes it never
   // had. `in` sees the prototype, and telling that apart costs a scan nobody
   // needs
