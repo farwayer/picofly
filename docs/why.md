@@ -8,7 +8,7 @@ and polishing apps to the last detail.
 A state manager with no compromises between usability, size and speed:
 
 - `create(state)` once, `useStore()` in a component, the whole API
-- [From](#very-small) <Hi>1.25 kB</Hi> with the *React* binding
+- [From](#very-small) <Hi>1.21 kB</Hi> with the *React* binding
 - [Very fast](#very-fast-with-lazy-proxies): lazy proxies, hand-tuned hot paths
 - Renders only what changed
 - Plays by the spec, your objects stays untouched
@@ -55,7 +55,6 @@ The bill:
 - Proxies instead of decorators
 - Small enough
 - Minimal API, simple mental model
-- Modern *React* through `useSyncExternalStore`
 
 So why not stop? *Valtio* looks simple from the outside, but inside it is built
 in a complicated way. Much more complicated than it could be.
@@ -71,19 +70,20 @@ empty lines).
 
 </Small>
 
-*Picofly* with *React* hook, <Hi>300 lines</Hi>.
+*Picofly* with *React* hook, <Hi>280 lines</Hi>.
 
 <Small>
 
 - **`store.js`** — 51
-- **`rules/obj.js`** — 107
-- **`react/use-store.js`** — 142
+- **`rules/obj.js`** — 106
+- **`react/use-store.js`** — 123
 
 </Small>
 
-And it is not about the size of the code or the extra layers (though those
-too). It weighs heavily on [performance](/performance), on top of the penalty
-Proxy already charges.
+It is not about the size of the code or the extra layers (though those too).
+It weighs heavily on [performance](/performance), on top of the penalty
+Proxy already charges. Plus the split into a "state to read" and a "state to
+write" was confusing, and never looked elegant.
 
 By then, after years of web development, I knew what the ideal state manager
 looks like. *Valtio* was close. Not close enough.
@@ -132,7 +132,7 @@ export let load = async (app: App) => {
 
 - Pure, async, side effects, generators, whatever
 - Top level of the file
-- No need for a global store variable
+- No need for a global state variable
 - Trivial to test
 - Splits across files however you like
 
@@ -145,8 +145,8 @@ well. If you are curious where my own search landed, read
 
 Hand-crafted, simple, readable, byte-counted, covered end to end by tests.
 
-- **picofly** — <Hi>704 B</Hi> (core),
-  <Hi>1.25 kB</Hi> (core + react)
+- **picofly** — <Hi>705 B</Hi> (core),
+  <Hi>1.21 kB</Hi> (core + react)
 - **picofly (full)** — <Hi>1.69 kB</Hi> (core + map + set),
   <Hi>2.24 kB</Hi> (core + map + set + react)
 - **valtio** — <Hi>2.16 kB</Hi> (core + react),
@@ -174,14 +174,7 @@ Median over the benchmarks of each category:
 
 - **putting data in** — <Hi>410x</Hi> vs valtio, <Hi>492x</Hi> vs mobx
 - **updating** — <Hi>6.6x</Hi> vs valtio, <Hi>3.5x</Hi> vs mobx
-- **reading** — <Hi>4.6x</Hi> vs valtio, <Hi>1.1x</Hi> vs mobx *
-
-<Note>
-
-\* The first read pays a small penalty for lazy proxies. And *Picofly* uses a
-real `Map` and `Set`, while *Valtio* and *MobX* replace them with emulations.
-
-</Note>
+- **reading** — <Hi>4.6x</Hi> vs valtio, <Hi>1.1x</Hi> vs mobx
 
 Hot paths are hand-tuned, bench by bench.
 
