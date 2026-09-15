@@ -4,35 +4,28 @@ import * as apps from '../apps-obj.js'
 
 
 // show:
-//   // 1000 records in a dictionary, a page of 100 of them on screen
+//   // 100 records in a dictionary, every one of them on screen
 //
-//   // App, until the page is full
+//   // App
 //   for (let id in app.items) ids.push(id)
 //
 //   // Row
 //   let {name, done} = app.items[id]
 //
-//   // bench: one record the dictionary has never seen, then gone again
-//   app.items[1000] = {id: 1000, name: 'item 1000', done: false}
-//   delete app.items[1000]
+//   // bench: one record the collection has never seen, and it stays
+//   app.items[100] = {id: 100, name: 'item 100', done: false}
 
-let records = 1000
-let shown = 100
+let records = 100
 
-let make = name => {
-  let app
+// the collection grows while a region runs, so every region gets its own app
+let make = name => () => {
+  let app = apps[name](records)
+  mount(app.element)
 
-  return () => {
-    if (!app) {
-      app = apps[name](records, shown)
-      mount(app.element)
-    }
-
-    return app
-  }
+  return app
 }
 
-loop(`Add and drop a record of ${records}`)
+loop(`Add a record to ${records}`)
   .all({
     n: 30,
     warm: 20,
@@ -40,7 +33,6 @@ loop(`Add and drop a record of ${records}`)
       let id = records + i
 
       flushSync(() => app.add({id, name: 'item ' + id, done: false}))
-      flushSync(() => app.drop(id))
     },
   })
   .picofly({make: make('picofly')})

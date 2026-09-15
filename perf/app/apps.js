@@ -42,7 +42,7 @@ export let picofly = (n = rows, shown = Infinity) => {
       store.items[i].name = name
     },
     push: item => store.items.push(item),
-    pop: () => store.items.pop(),
+    drop: i => store.items.splice(i, 1),
     replace: items => {
       store.items = items
     },
@@ -84,7 +84,7 @@ export let valtio = (n = rows, shown = Infinity, sync = true) => {
       store.items[i].name = name
     },
     push: item => store.items.push(item),
-    pop: () => store.items.pop(),
+    drop: i => store.items.splice(i, 1),
     replace: items => {
       store.items = items
     },
@@ -120,7 +120,7 @@ export let mobx = (n = rows, shown = Infinity) => {
       store.items[i].name = name
     }),
     push: item => runInAction(() => store.items.push(item)),
-    pop: () => runInAction(() => store.items.pop()),
+    drop: i => runInAction(() => store.items.splice(i, 1)),
     replace: items => runInAction(() => {
       store.items = items
     }),
@@ -161,7 +161,7 @@ export let zustand = (n = rows, shown = Infinity) => {
     })),
     rename: (i, name) => swap(i, {name}),
     push: item => store.setState(s => ({items: [...s.items, item]})),
-    pop: () => store.setState(s => ({items: s.items.slice(0, -1)})),
+    drop: i => store.setState(s => ({items: s.items.toSpliced(i, 1)})),
     replace: items => store.setState({items}),
   }
 }
@@ -200,7 +200,7 @@ export let basic = (n = rows, shown = Infinity) => {
       (item, at) => at === i ? {...item, done: !item.done} : item)),
     rename: (i, name) => swap(i, {name}),
     push: item => setItems(items => [...items, item]),
-    pop: () => setItems(items => items.slice(0, -1)),
+    drop: i => setItems(items => items.toSpliced(i, 1)),
     replace: items => setItems(items),
   }
 }

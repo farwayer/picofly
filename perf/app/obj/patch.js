@@ -15,7 +15,12 @@ import * as apps from '../apps-obj.js'
 //   // bench: a batch of records arrives, all of them already there
 //   for (let obj of batch) {
 //     let item = app.items[obj.id]
-//     item ? Object.assign(item, obj) : app.items[obj.id] = obj
+//
+//     if (item) {
+//       Object.assign(item, obj)
+//     } else {
+//       app.items[obj.id] = obj
+//     }
 //   }
 
 // the whole batch lands in one commit, so every library flushes the way it
@@ -39,6 +44,14 @@ let make = name => {
   }
 }
 
+// the payload a server would have sent, ready before the clock. Two of them,
+// so every op writes values the previous one did not
+let batches = [0, 1].map(v => Array.from({length: shown}, (_, id) => ({
+  id,
+  name: `item ${id} v${v}`,
+  done: v === 0,
+})))
+
 loop(`Patch ${shown} records of ${records}`)
   .all({
     flush: true,
@@ -46,13 +59,7 @@ loop(`Patch ${shown} records of ${records}`)
     n: 30,
     warm: 20,
     run: async (app, i) => {
-      let batch = Array.from({length: shown}, (_, id) => ({
-        id,
-        name: `item ${id} v${i}`,
-        done: (i & 1) === 0,
-      }))
-
-      await commit(() => app.upsert(batch))
+      await commit(() => app.upsert(batches[i & 1]))
     },
   })
   .picofly({make: make('picofly')})

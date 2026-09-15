@@ -50,12 +50,18 @@ export let picofly = (n = rows, shown = Infinity) => {
     store,
     count,
     element: h(App),
+    add: record => {
+      store.items.set(record.id, record)
+    },
     upsert: records => {
       for (let obj of records) {
         let item = store.items.get(obj.id)
 
-        if (item) Object.assign(item, obj)
-        else store.items.set(obj.id, obj)
+        if (item) {
+          Object.assign(item, obj)
+        } else {
+          store.items.set(obj.id, obj)
+        }
       }
     },
     drop: id => store.items.delete(id),
@@ -88,12 +94,18 @@ export let valtio = (n = rows, shown = Infinity, sync = true) => {
     store,
     count,
     element: h(App),
+    add: record => {
+      store.items.set(record.id, record)
+    },
     upsert: records => {
       for (let obj of records) {
         let item = store.items.get(obj.id)
 
-        if (item) Object.assign(item, obj)
-        else store.items.set(obj.id, obj)
+        if (item) {
+          Object.assign(item, obj)
+        } else {
+          store.items.set(obj.id, obj)
+        }
       }
     },
     drop: id => store.items.delete(id),
@@ -121,12 +133,16 @@ export let mobx = (n = rows, shown = Infinity) => {
     count,
     element: h(App),
     // one action for the batch, the way a mobx app takes a server payload
+    add: record => runInAction(() => store.items.set(record.id, record)),
     upsert: records => runInAction(() => {
       for (let obj of records) {
         let item = store.items.get(obj.id)
 
-        if (item) Object.assign(item, obj)
-        else store.items.set(obj.id, obj)
+        if (item) {
+          Object.assign(item, obj)
+        } else {
+          store.items.set(obj.id, obj)
+        }
       }
     }),
     drop: id => runInAction(() => store.items.delete(id)),
@@ -155,6 +171,9 @@ export let zustand = (n = rows, shown = Infinity) => {
     store,
     count,
     element: h(App),
+    add: record => store.setState(s => ({
+      items: new Map(s.items).set(record.id, record),
+    })),
     // the whole batch lands in one new map
     upsert: records => store.setState(s => {
       let next = new Map(s.items)
@@ -199,6 +218,7 @@ export let basic = (n = rows, shown = Infinity) => {
     store,
     count,
     element: h(App),
+    add: record => setItems(items => new Map(items).set(record.id, record)),
     // immutable updates, so the whole batch lands in one new map
     upsert: records => setItems(items => {
       let next = new Map(items)

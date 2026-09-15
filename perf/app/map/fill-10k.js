@@ -16,7 +16,12 @@ import * as apps from '../apps-map.js'
 //   // bench: 10k records arrive, the first 100 of them reach the screen
 //   for (let obj of batch) {
 //     let item = app.items.get(obj.id)
-//     item ? Object.assign(item, obj) : app.items.set(obj.id, obj)
+//
+//     if (item) {
+//       Object.assign(item, obj)
+//     } else {
+//       app.items.set(obj.id, obj)
+//     }
 //   }
 
 let records = 10000

@@ -11,7 +11,7 @@ import * as apps from '../apps.js'
 //   let {name, done} = app.items[i]
 //
 //   // bench
-//   app.items = sameItemsAgain
+//   app.items = anotherArrSameData
 
 let make = name => {
   let app
