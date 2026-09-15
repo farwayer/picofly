@@ -1,4 +1,4 @@
-import {cn} from '~/lib/cn'
+import {cn} from '~/lib/cn.ts'
 
 type Props<Id extends string> = {
   items: {id: Id, name: string}[]

@@ -2,10 +2,9 @@ import type {ComponentChildren} from 'preact'
 import {useRef} from 'preact/hooks'
 import {select, useStore} from 'picofly/react'
 import {callback} from 'picofly/react/selectors'
-import type App from '~/store/state'
-import type {Key} from '~/store/state'
-import {inc, reset} from '~/store/actions'
-import {cn} from '~/lib/cn'
+import type {App, Key} from '~/store/state.ts'
+import {inc, reset} from '~/store/actions.ts'
+import {cn} from '~/lib/cn.ts'
 
 type ButtonProps = {
   onClick: () => void

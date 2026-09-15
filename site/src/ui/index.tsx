@@ -1,14 +1,14 @@
 import {select} from 'picofly/react'
-import type App from '~/store/state'
-import type {Page} from '~/store/state'
-import Header from './app-views/header'
-import Footer from './app-views/footer'
-import Main from './pages/main'
-import Why from './pages/why'
-import Architecture from './pages/arch'
-import Selectors from './pages/selectors'
-import Api from './pages/api'
-import Perf from './pages/perf'
+import type {App, Page} from '~/store/state.ts'
+import Header from './app-views/header.tsx'
+import Footer from './app-views/footer.tsx'
+import Main from './pages/main/index.tsx'
+import Why from './pages/why/index.tsx'
+import Architecture from './pages/arch/index.tsx'
+import Selectors from './pages/selectors/index.tsx'
+import Api from './pages/api/index.tsx'
+import Perf from './pages/perf/index.tsx'
+import Tips from './pages/tips/index.tsx'
 import './styles.css'
 
 export default select(
@@ -22,6 +22,7 @@ let Pages = {
   'hook-vs-selectors': Selectors,
   api: Api,
   performance: Perf,
+  tips: Tips,
 }
 
 function UI({page}: {page: Page}) {

@@ -1,11 +1,10 @@
 import {select} from 'picofly/react'
 import {callback} from 'picofly/react/selectors'
-import type App from '~/store/state'
-import type {Page} from '~/store/state'
-import {Pages} from '~/const'
-import {closeMenu} from '~/store/actions'
-import {path} from '~/store/router'
-import {cn} from '~/lib/cn'
+import type {App, Page} from '~/store/state.ts'
+import {Pages} from '~/const.ts'
+import {closeMenu} from '~/store/actions.ts'
+import {path} from '~/store/router.ts'
+import {cn} from '~/lib/cn.ts'
 
 type Props = {
   current: Page

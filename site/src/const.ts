@@ -1,12 +1,12 @@
-import type {ApiTab, EngineId, Page, TabId} from '~/store/state'
+import type {ApiTab, EngineId, Page, TabId} from '~/store/state.ts'
 
 export let Cfg = {
   name: 'Picofly',
   tagline: 'Tiny state manager, built with ❤️',
   install: ['npm i picofly', 'yarn add picofly'],
   size: {
-    min: '704 B',
-    react: '1.25 kB',
+    min: '705 B',
+    react: '1.21 kB',
   },
   links: {
     github: 'https://github.com/farwayer/picofly',
@@ -32,6 +32,10 @@ export let Pages: {id: Page, name: string}[] = [
     name: 'Hook vs Selectors',
   },
   {
+    id: 'tips',
+    name: 'Tips',
+  },
+  {
     id: 'architecture',
     name: 'Good, Bad, Ugly Architecture',
   },
@@ -39,8 +43,8 @@ export let Pages: {id: Page, name: string}[] = [
 
 export let Features = [
   ['⚡', 'Fast', 'every hot path is measured'],
-  ['🤏', 'Tiny', `${Cfg.size.min} minimal, ${Cfg.size.react} with React support`],
-  ['🥧', 'Simple', '~140 lines of airy code'],
+  ['🤏', 'Tiny', `${Cfg.size.min} core, ${Cfg.size.react} with React support`],
+  ['🥧', 'Simple', '~160 lines of airy code'],
   ['🍳', 'Handy', 'think about what to do, not how'],
   ['⚛️', 'React & React Native', 'hook and selectors, modern React API'],
   ['🔋', 'Charged', 'Map/Set, TypeScript support and more'],
@@ -79,8 +83,7 @@ export let reset = async (calc: Calc) => {
   {
     id: 'app',
     name: 'app.tsx',
-    code: `import {useRef} from 'react'
-import {create} from 'picofly'
+    code: `import {create} from 'picofly'
 import {Picofly} from 'picofly/react'
 import {Calc} from './calc.ts'
 import {CellSum} from './sum.tsx'
@@ -89,9 +92,10 @@ import {CellA, CellB} from './cells.tsx'
 import {Inc} from './inc.tsx'
 
 // create and put the store in context
-export function Calculator() {
-  let calc = useRef().current ??= create(new Calc())
+// not happy with context? see [tips](/tips#without-context)
+let calc = create(new Calc())
 
+export function Calculator() {
   return (
     <Picofly value={calc}>
       <CellA/>
@@ -112,7 +116,7 @@ export function Calculator() {
 import {useStore} from 'picofly/react'
 import type {Calc} from './calc.ts'
 
-// useStore() reads the data and follows its changes
+// useStore() to read the data and follow its changes
 export function CellSum() {
   let calc = useStore<Calc>()
 
@@ -131,8 +135,7 @@ export function CellSum() {
     id: 'reset',
     name: 'reset.tsx',
     code: `import {useStore} from 'picofly/react'
-import type {Calc} from './calc.ts'
-import {reset} from './calc.ts'
+import {reset, type Calc} from './calc.ts'
 
 // use the same hook to change the data
 export function Reset() {
@@ -152,7 +155,7 @@ export function Reset() {
 import {select} from 'picofly/react'
 import type {Calc} from './calc.ts'
 
-// you can use selectors instead of the hook
+// you can use [selectors](/hook-vs-selectors) instead of the hook
 // selector reads the store and feeds a component
 let aValue = (calc: Calc) => ({value: calc.a})
 let bValue = (calc: Calc) => ({value: calc.b})
@@ -402,7 +405,7 @@ let date = next => !next ? 35 : ($, val) =>
 let app = store({}, [obj, builtins, date])`
 
 export let Libs: [string, string][] = [
-  ['picofly', '0.1.0'],
+  ['picofly', '1.0.0-beta.3'],
   ['valtio', '2.3.2'],
   ['mobx', '7.0.3'],
 ]
@@ -440,14 +443,6 @@ export let Notes: [string[], string][] = [
     ['update/arr/length-cut', 'update/arr/length-cut-holes'],
     `*Valtio* and *MobX* notify once for the whole array, *Picofly* once per
      dropped index, so a reader of \`list[7]\` learns about the cut.`,
-  ],
-  [
-    ['read/map/iterate-keys'],
-    `*Picofly* proxies object keys as well, so a component that read one is
-     subscribed to it. *Valtio* keeps its keys outside the proxy and *MobX*
-     enhances values only, so both hand back the raw object. The keys here are
-     numbers, and they still go through the same wrapped iterator, so the
-     check is paid on every one of them.`,
   ],
 ]
 
@@ -729,21 +724,21 @@ let Hermes: Bench = [
 
 let ReactApp: Bench = [
   ['app', [
-    ['obj/mount-page', '804 (101)', '3,214 (101)', '1,101 (101)'],
-    ['obj/patch', '206 (100)', '1,300 (100)', '233 (100)'],
-    ['obj/add-drop', '317 (2)', '1,913 (2)', '538 (2)'],
-    ['arr/mount', '6,943 (1001)', '12,978 (1001)', '6,441 (1001)'],
-    ['arr/mount-page', '744 (101)', '3,201 (101)', '778 (101)'],
-    ['arr/toggle-one', '50.0 (1)', '906 (1)', '47.5 (1)'],
-    ['arr/rename-one', '47.6 (1)', '888 (1)', '46.1 (1)'],
-    ['arr/push-pop', '262 (3)', '2,047 (3)', '2,127 (2003)'],
-    ['arr/replace-all-new', '2,167 (1001)', '4,930 (1000)', '4,326 (1001)'],
-    ['arr/replace-all-same', '1,377 (1001)', '425 (0)', '3,309 (1001)'],
-    ['map/mount-page', '747 (101)', '3,171 (101)', '809 (101)'],
-    ['map/fill-10k', '2,519 (101)', '53,353 (101)', '21,794 (101)'],
-    ['map/patch', '191 (100)', '1,501 (100)', '191 (100)'],
-    ['map/switch-page', '407 (101)', '657 (101)', '471 (101)'],
-    ['map/add-drop', '25.7 (2)', '1,467 (2)', '27.1 (2)'],
+    ['obj/mount-first-100', '771 (100)', '3,198 (100)', '1,096 (100)'],
+    ['obj/patch', '204 (100)', '1,300 (100)', '234 (100)'],
+    ['obj/add-drop', '317 (0)', '1,933 (0)', '537 (0)'],
+    ['arr/mount-all', '6,593 (1000)', '12,944 (1000)', '6,299 (1000)'],
+    ['arr/mount-first-100', '693 (100)', '3,203 (100)', '762 (100)'],
+    ['arr/toggle-one', '45.9 (1)', '901 (1)', '49.1 (1)'],
+    ['arr/rename-one', '40.7 (1)', '884 (1)', '46.0 (1)'],
+    ['arr/push-pop', '252 (1)', '2,053 (1)', '2,171 (2001)'],
+    ['arr/replace-all-new', '1,969 (1000)', '4,895 (1000)', '4,309 (1000)'],
+    ['arr/replace-all-same', '1,240 (1000)', '425 (0)', '3,281 (1000)'],
+    ['map/mount-first-100', '721 (100)', '3,098 (100)', '800 (100)'],
+    ['map/fill-10k', '2,460 (100)', '53,114 (100)', '22,035 (100)'],
+    ['map/patch', '183 (100)', '1,490 (100)', '191 (100)'],
+    ['map/switch-page', '385 (100)', '656 (100)', '466 (100)'],
+    ['map/add-drop', '24.8 (0)', '1,483 (0)', '28.3 (0)'],
   ]],
 ]
 

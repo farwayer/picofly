@@ -1,6 +1,6 @@
 import logo from '~docs/logo.svg'
-import {Cfg} from '~/const'
-import Install from './install'
+import {Cfg} from '~/const.ts'
+import Install from './install.tsx'
 
 export default function Hero() {
   return (

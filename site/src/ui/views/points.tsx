@@ -1,4 +1,4 @@
-import {md} from '~/lib/md'
+import {md} from '~/lib/md.tsx'
 
 export default function Points({items}: {items: [string, string][]}) {
   return (

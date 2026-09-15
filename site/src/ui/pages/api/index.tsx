@@ -1,13 +1,12 @@
 import {select} from 'picofly/react'
-import type App from '~/store/state'
-import type {ApiTab} from '~/store/state'
-import {setApiTab} from '~/store/actions'
-import {anchor} from '~/store/router'
-import {Api, OwnRule, Rules, RulesPick} from '~/const'
-import {cn} from '~/lib/cn'
-import {hl} from '~/lib/hl'
-import {md} from '~/lib/md'
-import Tabs from '~/ui/views/tabs'
+import type {App, ApiTab} from '~/store/state.ts'
+import {setApiTab} from '~/store/actions.ts'
+import {anchor} from '~/store/router.ts'
+import {Api, OwnRule, Rules, RulesPick} from '~/const.ts'
+import {cn} from '~/lib/cn.ts'
+import {hl} from '~/lib/hl.tsx'
+import {md} from '~/lib/md.tsx'
+import Tabs from '~/ui/views/tabs.tsx'
 
 type Props = {
   tab: ApiTab

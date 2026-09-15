@@ -1,5 +1,4 @@
-import type App from './state'
-import type {ApiTab, EngineId, Key, TabId} from './state'
+import type {App, ApiTab, EngineId, Key, TabId} from './state.ts'
 
 export let setTab = (app: App, tab: TabId) => {
   app.ui.tab = tab

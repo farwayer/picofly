@@ -3,15 +3,14 @@ import {useState} from 'preact/hooks'
 import {select} from 'picofly/react'
 import {callback} from 'picofly/react/selectors'
 import {BenchCode} from 'virtual:bench-code'
-import type App from '~/store/state'
-import type {EngineId} from '~/store/state'
-import {setEngine} from '~/store/actions'
-import {Caveats, Engines, Libs, Notes, Verdict} from '~/const'
-import {cn} from '~/lib/cn'
-import {hl} from '~/lib/hl'
-import {md} from '~/lib/md'
-import Points from '~/ui/views/points'
-import Tabs from '~/ui/views/tabs'
+import type {App, EngineId} from '~/store/state.ts'
+import {setEngine} from '~/store/actions.ts'
+import {Caveats, Cfg, Engines, Libs, Notes, Verdict} from '~/const.ts'
+import {cn} from '~/lib/cn.ts'
+import {hl} from '~/lib/hl.tsx'
+import {md} from '~/lib/md.tsx'
+import Points from '~/ui/views/points.tsx'
+import Tabs from '~/ui/views/tabs.tsx'
 
 type Props = {
   engine: EngineId
@@ -43,6 +42,11 @@ function Perf({engine, onEngine}: Props) {
       <Points items={Verdict}/>
 
       <h2>All benchmarks</h2>
+      <p class="text">
+        Benchmarks, the runner and the raw results are in{' '}
+        <a href={`${Cfg.links.github}/tree/main/perf`}>perf</a>.
+      </p>
+
       {measured.length > 1 && (
         <Tabs items={measured} current={current.id} onTab={onEngine}/>
       )}

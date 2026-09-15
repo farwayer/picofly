@@ -1,8 +1,8 @@
 import {store, obj} from 'picofly'
-import {App} from './state'
-import {page} from './router'
+import {App} from './state.ts'
+import {page} from './router.ts'
 
-export {App} from './state'
+export {App} from './state.ts'
 
 export let createStore = () => {
   let app = store(new App(), [obj])

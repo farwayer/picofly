@@ -1,4 +1,4 @@
-import {Features as items} from '~/const'
+import {Features as items} from '~/const.ts'
 
 export default function Features() {
   return (

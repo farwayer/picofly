@@ -1,5 +1,5 @@
-import {Cfg} from '~/const'
-import {Github, Npm} from '~/ui/views/icons'
+import {Cfg} from '~/const.ts'
+import {Github, Npm} from '~/ui/views/icons.tsx'
 
 export default function Footer() {
   return (

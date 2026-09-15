@@ -1,6 +1,6 @@
 import {select} from 'picofly/react'
-import type App from '~/store/state'
-import {copy} from '~/store/actions'
+import type {App} from '~/store/state.ts'
+import {copy} from '~/store/actions.ts'
 
 type Props = {
   cmd: string

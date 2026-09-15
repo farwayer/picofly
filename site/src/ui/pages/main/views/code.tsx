@@ -1,11 +1,10 @@
 import {select} from 'picofly/react'
-import type App from '~/store/state'
-import type {TabId} from '~/store/state'
-import {setTab} from '~/store/actions'
-import {Tabs as items} from '~/const'
-import {cn} from '~/lib/cn'
-import {hl} from '~/lib/hl'
-import Tabs from '~/ui/views/tabs'
+import type {App, TabId} from '~/store/state.ts'
+import {setTab} from '~/store/actions.ts'
+import {Tabs as items} from '~/const.ts'
+import {cn} from '~/lib/cn.ts'
+import {hl} from '~/lib/hl.tsx'
+import Tabs from '~/ui/views/tabs.tsx'
 
 type Props = {
   tab: TabId

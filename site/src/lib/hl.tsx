@@ -31,6 +31,10 @@ let tokenize = (code: string, options: object) => {
   return tokens
 }
 
+// [text](/link) in a comment becomes a link
+let link = (html: string) =>
+  html.replace(/\[([^\]]+)]\(([^)]+)\)/g, '<a href="$2">$1</a>')
+
 export let hl = (code: string) => (
-  <code dangerouslySetInnerHTML={{__html: render(parse(code, {tokenize}))}}/>
+  <code dangerouslySetInnerHTML={{__html: link(render(parse(code, {tokenize})))}}/>
 )

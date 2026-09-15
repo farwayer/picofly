@@ -1,6 +1,6 @@
-import Body from '~docs/arch.md'
+import Body from '~docs/tips.md'
 import Article from '~/ui/views/article.tsx'
 
-export default function Architecture() {
+export default function Tips() {
   return <Article body={Body}/>
 }

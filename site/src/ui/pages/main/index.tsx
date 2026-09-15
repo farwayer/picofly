@@ -1,7 +1,7 @@
-import Hero from './views/hero'
-import Features from './views/features'
-import Demo from './views/demo'
-import Code from './views/code'
+import Hero from './views/hero.tsx'
+import Features from './views/features.tsx'
+import Demo from './views/demo.tsx'
+import Code from './views/code.tsx'
 
 export default function Main() {
   return (

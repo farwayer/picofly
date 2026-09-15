@@ -1,6 +1,6 @@
 import type {MDXComponents, MDXContent} from 'mdx/types'
 import type {VNode} from 'preact'
-import {hl} from '~/lib/hl'
+import {hl} from '~/lib/hl.tsx'
 
 type Props = {
   body: MDXContent

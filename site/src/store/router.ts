@@ -1,6 +1,5 @@
-import type App from './state'
-import type {Page} from './state'
-import {Api, Pages} from '~/const'
+import type {App, Page} from './state.ts'
+import {Api, Pages} from '~/const.ts'
 
 export let page = (pathname = location.pathname): Page => {
   let id = pathname.slice(1) as Page
