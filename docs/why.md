@@ -11,7 +11,7 @@ A state manager with no compromises between usability, size and speed:
 - [From](#very-small) <Hi>1.24 kB</Hi> with the *React* binding
 - [Very fast](#very-fast-with-lazy-proxies): lazy proxies, hand-tuned hot paths
 - Renders only what changed
-- Plays by the spec, your objects stay untouched
+- Plays by the rules, your objects stay untouched
 - App business logic is just plain JS functions, async, generators, whatever
 - Framework agnostic, but with *React* batteries included
 - `Map` and `Set` support, [selectors](/hook-vs-selectors) for more complex apps
@@ -234,7 +234,7 @@ slower. *MobX* swaps them for its own `ObservableMap` and `ObservableSet`.
 
 </Note>
 
-## Plays by the spec
+## Plays by the rules
 
 *Picofly* wraps your data in a Proxy and changes nothing else.
 
