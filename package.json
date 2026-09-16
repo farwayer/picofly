@@ -1,117 +1,121 @@
 {
-  "name": "picofly",
-  "version": "1.0.0-beta.3",
-  "license": "MIT",
-  "description": "Lightweight state manager, simple, fast and built with ❤",
-  "author": "farwayer <farwayer@gmail.com>",
-  "repository": "https://github.com/farwayer/picofly",
-  "type": "module",
-  "sideEffects": false,
-  "exports": {
-    ".": "./src/index.js",
-    "./selectors": "./src/selectors.js",
-    "./react": "./src/react/index.js",
-    "./react/selectors": "./src/react/selectors.js",
-    "./package.json": "./package.json"
-  },
-  "keywords": [
-    "preact",
-    "react",
-    "react-native",
-    "state",
-    "state manager",
-    "pico",
-    "proxy",
-    "store"
-  ],
-  "scripts": {
-    "size": "size-limit",
-    "test": "node --test",
-    "publish": "clean-publish"
-  },
-  "devDependencies": {
-    "@size-limit/preset-small-lib": "^14.0.0",
-    "clean-publish": "^7.1.0",
-    "happy-dom": "^20.14.5",
-    "mobx": "^7.0.3",
-    "mobx-react-lite": "^5.0.3",
-    "picocolors": "^1.1.1",
-    "proxy-compare": "^3.0.1",
-    "react": "^19.3.0",
-    "react-dom": "^19.3.0",
-    "size-limit": "^14.0.0",
-    "valtio": "^2.3.2",
-    "zustand": "^5.0.15"
-  },
-  "peerDependencies": {
-    "react": ">=18"
-  },
-  "peerDependenciesMeta": {
-    "react": {
-      "optional": true
-    }
-  },
-  "workspaces": [
-    "examples/*",
-    "site"
-  ],
-  "size-limit": [
-    {
-      "name": "Min",
-      "import": {
-        "src/index.js": "{store, obj, onWrite}"
-      },
-      "limit": "683b"
-    },
-    {
-      "name": "React min",
-      "import": {
-        "src/index.js": "{store, obj}",
-        "src/react/index.js": "{Picofly, useStore}"
-      },
-      "ignore": [
-        "react"
-      ],
-      "limit": "1235b"
-    },
-    {
-      "name": "Full",
-      "import": {
-        "src/index.js": "{create, onWrite}"
-      },
-      "ignore": [
-        "react"
-      ],
-      "limit": "1516b"
-    },
-    {
-      "name": "React full",
-      "import": {
-        "src/index.js": "{create}",
-        "src/react/index.js": "{Picofly, useStore}"
-      },
-      "ignore": [
-        "react"
-      ],
-      "limit": "2064b"
-    },
-    {
-      "name": "React full select",
-      "import": {
-        "src/index.js": "{create}",
-        "src/react/index.js": "{Picofly, select}"
-      },
-      "ignore": [
-        "react"
-      ],
-      "limit": "2181b"
-    }
-  ],
-  "clean-publish": {
-    "fields": [
-      "packageManager",
-      "workspaces"
-    ]
-  },
-  "packageManager": "yarn@4.18.0"
+	"name": "picofly",
+	"version": "1.0.0-beta.3",
+	"license": "MIT",
+	"description": "Tiny state manager, built with ❤",
+	"author": "farwayer <farwayer@gmail.com>",
+	"repository": "https://github.com/farwayer/picofly",
+	"homepage": "https://picofly.dev",
+	"type": "module",
+	"sideEffects": false,
+	"exports": {
+		".": "./src/index.js",
+		"./selectors": "./src/selectors.js",
+		"./react": "./src/react/index.js",
+		"./react/selectors": "./src/react/selectors.js",
+		"./package.json": "./package.json"
+	},
+	"keywords": [
+		"preact",
+		"react",
+		"react-native",
+		"state",
+		"state manager",
+		"pico",
+		"proxy",
+		"store"
+	],
+	"scripts": {
+		"size": "size-limit",
+		"test": "node --test",
+		"publish": "clean-publish",
+		"types": "tsc --noEmit --strict --ignoreConfig --jsx react-jsx --allowImportingTsExtensions tests/select.test-d.tsx tests/selectors.test-d.tsx"
+	},
+	"devDependencies": {
+		"@size-limit/preset-small-lib": "^14.0.0",
+		"@types/react": "^19.3.0",
+		"clean-publish": "^7.1.0",
+		"happy-dom": "^20.14.5",
+		"mobx": "^7.0.3",
+		"mobx-react-lite": "^5.0.3",
+		"picocolors": "^1.1.1",
+		"proxy-compare": "^3.0.1",
+		"react": "^19.3.0",
+		"react-dom": "^19.3.0",
+		"size-limit": "^14.0.0",
+		"typescript": "^7.0.2",
+		"valtio": "^2.3.2",
+		"zustand": "^5.0.15"
+	},
+	"peerDependencies": {
+		"react": ">=18"
+	},
+	"peerDependenciesMeta": {
+		"react": {
+			"optional": true
+		}
+	},
+	"workspaces": [
+		"examples/*",
+		"site"
+	],
+	"size-limit": [
+		{
+			"name": "Min",
+			"import": {
+				"src/index.js": "{store, obj, onWrite}"
+			},
+			"limit": "683b"
+		},
+		{
+			"name": "React min",
+			"import": {
+				"src/index.js": "{store, obj}",
+				"src/react/index.js": "{Picofly, useStore}"
+			},
+			"ignore": [
+				"react"
+			],
+			"limit": "1235b"
+		},
+		{
+			"name": "Full",
+			"import": {
+				"src/index.js": "{create, onWrite}"
+			},
+			"ignore": [
+				"react"
+			],
+			"limit": "1516b"
+		},
+		{
+			"name": "React full",
+			"import": {
+				"src/index.js": "{create}",
+				"src/react/index.js": "{Picofly, useStore}"
+			},
+			"ignore": [
+				"react"
+			],
+			"limit": "2064b"
+		},
+		{
+			"name": "React full select",
+			"import": {
+				"src/index.js": "{create}",
+				"src/react/index.js": "{Picofly, select}"
+			},
+			"ignore": [
+				"react"
+			],
+			"limit": "2181b"
+		}
+	],
+	"clean-publish": {
+		"fields": [
+			"packageManager",
+			"workspaces"
+		]
+	},
+	"packageManager": "yarn@4.18.0"
 }

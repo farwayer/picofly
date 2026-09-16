@@ -11,3 +11,4 @@ dist
 perf/results/
 perf/bundles/
 .tmp
+.wrangler/

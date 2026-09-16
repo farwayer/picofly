@@ -14,10 +14,10 @@ A state manager with no compromises between usability, size and speed:
 - Plays by the rules, your objects stay untouched
 - App business logic is just plain JS functions, async, generators, whatever
 - Framework agnostic, but with *React* batteries included
-- `Map` and `Set` support, [selectors](/hook-vs-selectors) for more complex apps
+- `Map` and `Set` support, [selectors](hook-vs-selectors.md) for more complex apps
 
 Why a state manager at all, and not `useState` and `useContext`? That is a
-separate story: [The Good, the Bad, the Ugly architecture](/architecture).
+separate story: [The Good, the Bad, the Ugly architecture](arch.md).
 
 ## History
 
@@ -42,7 +42,7 @@ Then *MobX*, later with *MobX-State-Tree* on top. It felt like rescue:
 
 The bill:
 
-- Heavy and slow, back then (today it's [fast!](/performance))
+- Heavy and slow, back then (today it's [fast!](https://picofly.dev/performance))
 - Decorators, poorly supported by runtimes and bundlers back then
 - Less boilerplate, but still boilerplate
 - Too much internal machinery to keep in the head
@@ -93,7 +93,7 @@ empty lines).
 </Small>
 
 It is not about the size of the code or the extra layers (though those too).
-It weighs heavily on [performance](/performance), on top of the penalty
+It weighs heavily on [performance](https://picofly.dev/performance), on top of the penalty
 Proxy already charges. Plus the split into a "state to read" and a "state to
 write" was confusing, and never looked elegant.
 
@@ -156,7 +156,7 @@ export let load = async (app: App) => {
 *Picofly* does not force any architecture on you. It takes one small but
 important thing off your plate, tracking changes in data, and does it damn
 well. If you are curious where my own search landed, read
-[The Good, the Bad, the Ugly architecture](/architecture).
+[The Good, the Bad, the Ugly architecture](arch.md).
 
 ## Very small
 
@@ -182,7 +182,7 @@ A whole site in tens of kB with *Picofly* and *Preact*? Easy.
 
 ## Very fast with lazy proxies
 
-The full story is on the [performance](/performance) page.
+The full story is on the [performance](https://picofly.dev/performance) page.
 
 Proxies are created lazily, on first read. The backend sends 10,000 records,
 the page shows 10. *Picofly* stores the payload instantly. *Valtio* and *MobX* pay
@@ -197,7 +197,7 @@ Median over the core benchmarks of each category:
 <Note>
 
 \* *Zustand* is not in that list: it keeps plain immutable data, there is no
-proxy to compare. In the [app benchmarks](/performance#react) *Picofly* is
+proxy to compare. In the [app benchmarks](https://picofly.dev/performance#react) *Picofly* is
 <Hi>1.6x</Hi> faster on a point change and about <Hi>20%</Hi> slower over the
 whole suite — mounting and replacing a list is what an immutable store does
 best.
@@ -224,7 +224,7 @@ away instead of looping quietly.
 
 - *React*/*React Native*/*Preact* binding
 - Native `Map` and `Set` support out of the box, not emulations *
-- Ready-made [selectors](/api#spec)
+- Ready-made [selectors](https://picofly.dev/api#spec)
 
 <Note>
 
