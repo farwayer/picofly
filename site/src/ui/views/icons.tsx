@@ -37,3 +37,23 @@ export let Chevron = () => (
     <path d="M5 9l7 7 7-7"/>
   </svg>
 )
+
+export let ArrowUp = () => (
+  <svg
+    viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"
+    stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
+    aria-hidden="true"
+  >
+    <path d="M12 20V6M6 12l6-6 6 6"/>
+  </svg>
+)
+
+export let ArrowRight = () => (
+  <svg
+    viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor"
+    stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
+    aria-hidden="true"
+  >
+    <path d="M4 12h14M12 6l6 6-6 6"/>
+  </svg>
+)

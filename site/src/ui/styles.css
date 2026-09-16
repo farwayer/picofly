@@ -38,15 +38,14 @@
   box-sizing: border-box;
 }
 
-/* Geist Sans 1.7.2, the variable file subset to what the site prints:
-   latin-1, the dashes, the arrows and µ. 69 kB became 26 kB
-   pyftsubset Geist-Variable.ttf --layout-features+=tnum \
-     --unicodes="U+0000-00FF,U+2013-2014,U+2018-201A,U+201C-201E,
-       U+2026,U+2190-2193,U+2212,U+2260,U+2264-2265" */
+/* Noto Sans 2.015, the latin variable file from fontsource cut down
+   to what the site prints and to the weights it asks for.
+   36 kB became 12 kB.
+   Rebuild with tools/font.sh */
 @font-face {
-  font-family: Geist;
-  src: url(/fonts/geist-sans.woff2) format('woff2');
-  font-weight: 100 900;
+  font-family: 'Noto Sans';
+  src: url(/fonts/noto-sans.woff2) format('woff2');
+  font-weight: 400 700;
   font-display: swap;
 }
 
@@ -61,7 +60,7 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--fg);
-  font: 16px/1.6 Geist, system-ui, sans-serif;
+  font: 16px/1.6 'Noto Sans', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -357,6 +356,12 @@ h3 {
   font-size: .92rem;
 }
 
+/* the arrow after a link on to another page */
+.text > svg {
+  margin-left: .15rem;
+  vertical-align: -.2em;
+}
+
 .demo .text {
   margin-bottom: 1rem;
   max-width: 32rem;
@@ -541,7 +546,9 @@ pre {
 .page .up {
   margin-left: .45rem;
   padding: 0 .1rem;
-  font-size: .95rem;
+  display: inline-flex;
+  /* `middle` puts it on the x-height, the caps beside it sit higher */
+  vertical-align: -.1em;
   color: var(--fg2);
   background: none;
   border: none;

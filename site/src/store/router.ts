@@ -25,6 +25,7 @@ let swap = (change: () => void) => {
 let go = (app: App, id: Page, hash: string) => {
   // the page you are on: its link in the header takes you back to the top
   if (id === app.ui.page && !hash) {
+    app.ui.menu = false
     scrollTo({top: 0})
     return
   }
@@ -62,9 +63,15 @@ let jump = (app: App, nav = false) => {
 }
 
 export let init = (app: App) => {
+  // a fragment navigation is a history entry too, so clicking a tab lands
+  // here as well as in `hashchange`. It is not a page change: nothing to
+  // cross-fade, and `jump` must not take it for a landing on a new page
   addEventListener('popstate', () => {
+    let id = page()
+    if (id === app.ui.page) return jump(app)
+
     swap(() => {
-      app.ui.page = page()
+      app.ui.page = id
       location.hash ? jump(app, true) : scrollTo({top: 0, behavior: 'instant'})
     })
   })

@@ -22,7 +22,13 @@ export default select(
 
 function Nav({current, open, onLeave}: Props) {
   return (
-    <nav class={cn('nav', open && 'open')} onClick={onLeave}>
+    <nav
+      class={cn('nav', open && 'open')}
+      // the panel itself: an item is as wide as its text, so a tap beside
+      // one closes the menu. A tap on a link belongs to the router, which
+      // closes it inside the page transition instead of a frame before it
+      onClick={e => e.target === e.currentTarget && onLeave()}
+    >
       {Pages.map(({id, name}) => (
         <a key={id} href={path(id)} class={cn(id === current && 'active')}>
           {name}

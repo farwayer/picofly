@@ -1,25 +1,28 @@
 {
-  "name": "picofly-site",
-  "private": true,
-  "type": "module",
-  "scripts": {
-    "start": "vite",
-    "build": "vite build",
-    "check": "tsc --noEmit",
-    "check:deps": "node scripts/check-deps.mjs"
-  },
-  "dependencies": {
-    "picofly": "portal:..",
-    "preact": "11.0.0-rc.2",
-    "sugar-high": "^2.4.1"
-  },
-  "devDependencies": {
-    "@babel/core": "^7.29.7",
-    "@mdx-js/rollup": "^3.1.1",
-    "@preact/preset-vite": "^2.10.6",
-    "@types/node": "^26.5.1",
-    "typescript": "^7.0.2",
-    "vite": "^8.3.0",
-    "wrangler": "^4.131.1"
-  }
+	"name": "picofly-site",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"start": "vite",
+		"check": "tsc --noEmit",
+		"build": "yarn check && vite build",
+		"font": "tools/font.sh",
+		"deploy": "yarn build && wrangler deploy",
+		"preview": "yarn build && wrangler dev"
+	},
+	"dependencies": {
+		"picofly": "portal:..",
+		"preact": "11.0.0-rc.2",
+		"sugar-high": "^2.4.1"
+	},
+	"devDependencies": {
+		"@babel/core": "^7.29.7",
+		"@fontsource-variable/noto-sans": "^5.3.0",
+		"@mdx-js/rollup": "^3.1.1",
+		"@preact/preset-vite": "^2.10.6",
+		"@types/node": "^26.5.1",
+		"typescript": "^7.0.2",
+		"vite": "^8.3.0",
+		"wrangler": "^4.132.0"
+	}
 }

@@ -7,6 +7,7 @@ import {Caveats, Cfg, Engines, Libs, Notes, ReactCaveats, Verdict} from '~/const
 import {cn} from '~/lib/cn.ts'
 import {hl} from '~/lib/hl.tsx'
 import {md} from '~/lib/md.tsx'
+import {ArrowUp} from '~/ui/views/icons.tsx'
 import Points from '~/ui/views/points.tsx'
 import Tabs from '~/ui/views/tabs.tsx'
 
@@ -162,7 +163,7 @@ function Perf({engine}: Props) {
             aria-label="Back to the benchmark"
             onClick={() => jumpTo(`row-${ids[0]}`)}
           >
-            ↑
+            <ArrowUp/>
           </button>
         </p>
       ))}

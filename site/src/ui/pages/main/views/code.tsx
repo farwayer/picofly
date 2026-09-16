@@ -4,6 +4,7 @@ import {setTab} from '~/store/actions.ts'
 import {Tabs as items} from '~/const.ts'
 import {cn} from '~/lib/cn.ts'
 import {hl} from '~/lib/hl.tsx'
+import {ArrowRight} from '~/ui/views/icons.tsx'
 import Tabs from '~/ui/views/tabs.tsx'
 
 type Props = {
@@ -24,7 +25,7 @@ function Code({tab, onTab}: Props) {
   return (
     <section class="code">
       <p class="text">
-        <a href="/hook-vs-selectors">Hook vs Selectors</a> →
+        <a href="/hook-vs-selectors">Hook vs Selectors</a><ArrowRight/>
       </p>
 
       <Tabs items={items} current={current.id} onTab={onTab}/>
