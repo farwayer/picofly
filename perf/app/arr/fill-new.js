@@ -1,5 +1,5 @@
 import {loop} from '../../utils.js'
-import {data, flushSync, mount, rows} from '../utils.js'
+import {data, flushSync, mount} from '../utils.js'
 import * as apps from '../apps.js'
 
 
@@ -13,12 +13,14 @@ import * as apps from '../apps.js'
 //   // bench
 //   app.items = freshItems
 
+let records = 1000
+
 let make = name => {
   let app
 
   return () => {
     if (!app) {
-      app = apps[name]()
+      app = apps[name](records)
       mount(app.element)
     }
 
@@ -26,7 +28,7 @@ let make = name => {
   }
 }
 
-loop(`Replace all ${rows} rows`)
+loop(`Replace all ${records} rows`)
   .all({
     // an app op is hundreds of microseconds, so the counts are set by hand
     n: 20,
@@ -56,7 +58,7 @@ function withLists(name) {
 // the two lists differ in every row. On equal values a library that compares
 // them skips the render, and the swap measures nothing
 function list(v) {
-  return data().items.map(item => ({
+  return data(records).items.map(item => ({
     ...item,
     name: `${item.name} v${v}`,
     done: v > 1,

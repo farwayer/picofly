@@ -15,6 +15,8 @@
 #        PERF_COOL=2              pause between processes on a hot machine
 #        PERF_NODE=--predictable  node flags, none by default
 #        PERF_LIBS=picofly        only these libs, in this order, no rotation
+#        PERF_PREACT=1            the app benches on preact, every react
+#                                 import answered by preact/compat
 #        PERF_NOARGS=1            the engine takes no script arguments:
 #                                 the bundle is compiled to bytecode with
 #                                 them baked in, the way react native
@@ -28,6 +30,9 @@ passes=$((rounds * 3))
 cpus=${PERF_CPUS-0,2,4,6}
 engine=${PERF_ENGINE-}
 node_flags=${PERF_NODE-}
+if [ -n "${PERF_PREACT-}" ]; then
+  node_flags="$node_flags --import=./perf/preact.js"
+fi
 picked=${PERF_LIBS-}
 noargs=${PERF_NOARGS-}
 tab=$(printf '\t')

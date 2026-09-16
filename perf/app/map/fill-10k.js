@@ -4,7 +4,7 @@ import * as apps from '../apps-map.js'
 
 
 // show:
-//   // an empty store, a page of 100 rows waiting for data
+//   // an empty store, a page of 1000 rows waiting for data
 //   let app = create({items: new Map()})
 //
 //   // App, until the page is full
@@ -13,19 +13,11 @@ import * as apps from '../apps-map.js'
 //   // Row
 //   let {name, done} = app.items.get(id)
 //
-//   // bench: 10k records arrive, the first 100 of them reach the screen
-//   for (let obj of batch) {
-//     let item = app.items.get(obj.id)
-//
-//     if (item) {
-//       Object.assign(item, obj)
-//     } else {
-//       app.items.set(obj.id, obj)
-//     }
-//   }
+//   // bench: 10k records arrive, the first 1000 of them reach the screen
+//   app.items = newItems
 
 let records = 10000
-let shown = 100
+let shown = 1000
 
 // the app is mounted empty and the payload is ready, so the clock starts
 // where the data does
@@ -34,11 +26,10 @@ let make = name => () => {
   let app = apps[name](0, shown, false)
   mount(app.element)
 
-  app.batch = Array.from({length: records}, (_, id) => ({
+  app.next = new Map(Array.from({length: records}, (_, id) => [
     id,
-    name: 'item ' + id,
-    done: false,
-  }))
+    {id, name: 'item ' + id, done: false},
+  ]))
 
   return app
 }
@@ -52,7 +43,7 @@ loop(`Take ${records} records in, render the first ${shown}`)
     warm: 2,
     repeats: 5,
     run: async app => {
-      await commit(() => app.upsert(app.batch))
+      await commit(() => app.replace(app.next))
     },
   })
   .picofly({make: make('picofly')})

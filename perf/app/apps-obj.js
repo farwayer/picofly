@@ -52,6 +52,11 @@ export let picofly = (n = rows, shown = Infinity) => {
     add: record => {
       store.items[record.id] = record
     },
+    patch: records => {
+      for (let obj of records) {
+        Object.assign(store.items[obj.id], obj)
+      }
+    },
     upsert: records => {
       for (let obj of records) {
         let item = store.items[obj.id]
@@ -96,6 +101,11 @@ export let valtio = (n = rows, shown = Infinity, sync = true) => {
     add: record => {
       store.items[record.id] = record
     },
+    patch: records => {
+      for (let obj of records) {
+        Object.assign(store.items[obj.id], obj)
+      }
+    },
     upsert: records => {
       for (let obj of records) {
         let item = store.items[obj.id]
@@ -134,6 +144,11 @@ export let mobx = (n = rows, shown = Infinity) => {
     // one action for the batch, the way a mobx app takes a server payload
     add: record => runInAction(() => {
       store.items[record.id] = record
+    }),
+    patch: records => runInAction(() => {
+      for (let obj of records) {
+        Object.assign(store.items[obj.id], obj)
+      }
     }),
     upsert: records => runInAction(() => {
       for (let obj of records) {
@@ -176,6 +191,15 @@ export let zustand = (n = rows, shown = Infinity) => {
       items: {...s.items, [record.id]: record},
     })),
     // the whole batch lands in one new dictionary
+    patch: records => store.setState(s => {
+      let next = {...s.items}
+
+      for (let obj of records) {
+        next[obj.id] = {...next[obj.id], ...obj}
+      }
+
+      return {items: next}
+    }),
     upsert: records => store.setState(s => {
       let next = {...s.items}
 
@@ -221,6 +245,15 @@ export let basic = (n = rows, shown = Infinity) => {
     element: h(App),
     add: record => setItems(items => ({...items, [record.id]: record})),
     // immutable updates, so the whole batch lands in one new dictionary
+    patch: records => setItems(items => {
+      let next = {...items}
+
+      for (let obj of records) {
+        next[obj.id] = {...next[obj.id], ...obj}
+      }
+
+      return next
+    }),
     upsert: records => setItems(items => {
       let next = {...items}
 

@@ -4,7 +4,7 @@ import * as apps from '../apps-obj.js'
 
 
 // show:
-//   // 100 records in a dictionary, every one of them on screen
+//   // 1000 records in a dictionary, every one of them on screen
 //
 //   // App
 //   for (let id in app.items) ids.push(id)
@@ -13,10 +13,10 @@ import * as apps from '../apps-obj.js'
 //   let {name, done} = app.items[id]
 //
 //   // bench: a record goes away, out of the middle of the collection
-//   delete app.items[50]
+//   delete app.items[500]
 
-let records = 100
-let first = 50
+let records = 1000
+let first = 500
 
 // the collection shrinks while a region runs, so every region gets its own app
 let make = name => () => {

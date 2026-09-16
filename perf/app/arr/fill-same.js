@@ -1,5 +1,5 @@
 import {loop} from '../../utils.js'
-import {data, flushSync, mount, rows} from '../utils.js'
+import {data, flushSync, mount} from '../utils.js'
 import * as apps from '../apps.js'
 
 
@@ -13,12 +13,14 @@ import * as apps from '../apps.js'
 //   // bench
 //   app.items = anotherArrSameData
 
+let records = 1000
+
 let make = name => {
   let app
 
   return () => {
     if (!app) {
-      app = apps[name]()
+      app = apps[name](records)
       mount(app.element)
     }
 
@@ -26,7 +28,7 @@ let make = name => {
   }
 }
 
-loop(`Replace all ${rows} rows with equal ones`)
+loop(`Replace all ${records} rows with equal ones`)
   .all({
     // an app op is hundreds of microseconds, so the counts are set by hand
     n: 20,
@@ -50,7 +52,7 @@ function withLists(name) {
 
   return () => {
     let app = build()
-    app.next ??= [data().items, data().items]
+    app.next ??= [data(records).items, data(records).items]
 
     return app
   }

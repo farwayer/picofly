@@ -1,5 +1,5 @@
 import {loop} from '../../utils.js'
-import {flushSync, mount, rows} from '../utils.js'
+import {flushSync, mount} from '../utils.js'
 import * as apps from '../apps.js'
 
 
@@ -13,12 +13,14 @@ import * as apps from '../apps.js'
 //   // bench
 //   app.items[500].name = 'item 500 again'
 
+let records = 1000
+
 let make = name => {
   let app
 
   return () => {
     if (!app) {
-      app = apps[name]()
+      app = apps[name](records)
       mount(app.element)
     }
 
@@ -26,9 +28,9 @@ let make = name => {
   }
 }
 
-let mid = rows >> 1
+let mid = records >> 1
 
-loop(`Rename one row of ${rows}`)
+loop(`Rename one row of ${records}`)
   .all({
     // an app op is hundreds of microseconds, so the counts are set by hand
     n: 100,

@@ -21,6 +21,15 @@ let pass = argv[0] || env.PERF_PASS || '1'
 let onlyLib = argv[1] || env.PERF_LIB || ''
 let benchId = argv[2] || env.PERF_BENCH || globalThis.__perfBench || guessBench()
 let quick = env.PERF_QUICK
+// let the event loop run at the end of a region, so work a renderer
+// puts off to a timer or a frame lands inside the clock
+let drainOn = env.PERF_DRAIN
+// a frame, not a timer: preact puts its effects on one, happy-dom answers in
+// microseconds, and node clamps setTimeout to a whole millisecond
+let drain = () => new Promise(done =>
+  typeof requestAnimationFrame === 'function'
+    ? requestAnimationFrame(() => done())
+    : typeof setImmediate === 'function' ? setImmediate(done) : setTimeout(done, 0))
 
 let say = typeof print === 'function' ? print : console.log
 
@@ -149,6 +158,10 @@ let measure = async ({make, run, fresh, n, repeats, warm, flush, enter = plain})
     warm = 10
   }
 
+  if (env.PERF_N) n = +env.PERF_N
+  // a drained region has to await, so every bench takes the flush path
+  flush ||= drainOn
+
   let best = Infinity
 
   // heat the whole path before the clock, or the first timed window pays
@@ -159,6 +172,8 @@ let measure = async ({make, run, fresh, n, repeats, warm, flush, enter = plain})
     let subject = make()
     for (let i = 0; i < warm; i++) await run(subject, i)
   }
+
+  if (drainOn) await drain()
 
   // fresh benches keep their subject count: growing it grows the working
   // set too, and cold reads start measuring cache misses instead
@@ -212,10 +227,12 @@ let timedFlush = async (make, run, fresh, n) => {
 
   // warm the shapes before the clock, fresh ones are warmed by measure()
   if (one) await run(one, 0)
+  if (drainOn) await drain()
 
   let t = now()
 
   for (let i = 0; i < n; i++) await run(fresh ? all[i] : one, i)
+  if (drainOn) await drain()
 
   return (now() - t) / n
 }

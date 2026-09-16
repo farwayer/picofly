@@ -1,5 +1,5 @@
 import {loop} from '../../utils.js'
-import {commit, mount, rows} from '../utils.js'
+import {commit, mount} from '../utils.js'
 import * as apps from '../apps.js'
 
 
@@ -13,16 +13,18 @@ import * as apps from '../apps.js'
 //   // bench: a row on the end, and it stays
 //   app.items.push({id: 1000, name: 'item 1000', done: false})
 
+let records = 1000
+
 // the list grows while a region runs, so every region gets its own app
 let make = name => () => {
   // valtio only: the op flushes itself, so its sync mode is off
-  let app = apps[name](rows, Infinity, false)
+  let app = apps[name](records, Infinity, false)
   mount(app.element)
 
   return app
 }
 
-loop(`Add a row to ${rows}`)
+loop(`Add a row to ${records}`)
   .all({
     // a push writes the index and the length, so valtio gets to coalesce
     flush: true,
@@ -30,7 +32,7 @@ loop(`Add a row to ${rows}`)
     n: 30,
     warm: 20,
     run: async (app, i) => {
-      await commit(() => app.push({id: rows + i, name: 'item ' + i, done: false}))
+      await commit(() => app.push({id: records + i, name: 'item ' + i, done: false}))
     },
   })
   .picofly({make: make('picofly')})

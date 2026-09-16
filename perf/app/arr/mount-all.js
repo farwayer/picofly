@@ -1,5 +1,5 @@
 import {loop} from '../../utils.js'
-import {mount, rows} from '../utils.js'
+import {mount} from '../utils.js'
 import * as apps from '../apps.js'
 
 
@@ -13,7 +13,9 @@ import * as apps from '../apps.js'
 //   // bench
 //   root.render(<App/>)
 
-loop(`Mount ${rows} rows`)
+let records = 1000
+
+loop(`Mount ${records} rows`)
   .all({
     fresh: true,
     // a mount is milliseconds, so a handful of them fills a region
@@ -22,9 +24,9 @@ loop(`Mount ${rows} rows`)
     repeats: 5,
     run: app => mount(app.element),
   })
-  .picofly({make: () => apps.picofly()})
-  .valtio({make: () => apps.valtio()})
-  .mobx({make: () => apps.mobx()})
-  .zustand({make: () => apps.zustand()})
-  .basic({make: () => apps.basic()})
+  .picofly({make: () => apps.picofly(records)})
+  .valtio({make: () => apps.valtio(records)})
+  .mobx({make: () => apps.mobx(records)})
+  .zustand({make: () => apps.zustand(records)})
+  .basic({make: () => apps.basic(records)})
   .run()

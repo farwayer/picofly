@@ -4,7 +4,7 @@ import * as apps from '../apps-map.js'
 
 
 // show:
-//   // 100 records by id, every one of them on screen
+//   // 1000 records by id, every one of them on screen
 //
 //   // App
 //   for (let id of app.items.keys()) ids.push(id)
@@ -13,9 +13,9 @@ import * as apps from '../apps-map.js'
 //   let {name, done} = app.items.get(id)
 //
 //   // bench: one record the collection has never seen, and it stays
-//   app.items.set(100, {id: 100, name: 'item 100', done: false})
+//   app.items.set(1000, {id: 1000, name: 'item 1000', done: false})
 
-let records = 100
+let records = 1000
 
 // the collection grows while a region runs, so every region gets its own app
 let make = name => () => {

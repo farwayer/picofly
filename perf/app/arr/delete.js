@@ -1,5 +1,5 @@
 import {loop} from '../../utils.js'
-import {commit, mount, rows} from '../utils.js'
+import {commit, mount} from '../utils.js'
 import * as apps from '../apps.js'
 
 
@@ -13,18 +13,19 @@ import * as apps from '../apps.js'
 //   // bench: a row goes away, out of the middle of the list
 //   app.items.splice(500, 1)
 
-let middle = rows / 2
+let records = 1000
+let middle = records / 2
 
 // the list shrinks while a region runs, so every region gets its own app
 let make = name => () => {
   // valtio only: the op flushes itself, so its sync mode is off
-  let app = apps[name](rows, Infinity, false)
+  let app = apps[name](records, Infinity, false)
   mount(app.element)
 
   return app
 }
 
-loop(`Delete a row of ${rows}`)
+loop(`Delete a row of ${records}`)
   .all({
     // a splice writes every index after it, so valtio gets to coalesce
     flush: true,

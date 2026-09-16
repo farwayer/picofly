@@ -4,9 +4,9 @@ import * as apps from '../apps-obj.js'
 
 
 // show:
-//   // 1000 records in a dictionary, a page of 100 of them on screen
+//   // 1000 records in a dictionary, every one of them on screen
 //
-//   // App, until the page is full
+//   // App
 //   for (let id in app.items) ids.push(id)
 //
 //   // Row
@@ -14,13 +14,7 @@ import * as apps from '../apps-obj.js'
 //
 //   // bench: a batch of records arrives, all of them already there
 //   for (let obj of batch) {
-//     let item = app.items[obj.id]
-//
-//     if (item) {
-//       Object.assign(item, obj)
-//     } else {
-//       app.items[obj.id] = obj
-//     }
+//     Object.assign(app.items[obj.id], obj)
 //   }
 
 // the whole batch lands in one commit, so every library flushes the way it
@@ -28,7 +22,7 @@ import * as apps from '../apps-obj.js'
 // other two notify while writing
 
 let records = 1000
-let shown = 100
+let batch = 100
 
 let make = name => {
   let app
@@ -36,7 +30,7 @@ let make = name => {
   return () => {
     if (!app) {
       // valtio only: the op flushes itself, so its sync mode is off
-      app = apps[name](records, shown, false)
+      app = apps[name](records, Infinity, false)
       mount(app.element)
     }
 
@@ -46,20 +40,20 @@ let make = name => {
 
 // the payload a server would have sent, ready before the clock. Two of them,
 // so every op writes values the previous one did not
-let batches = [0, 1].map(v => Array.from({length: shown}, (_, id) => ({
+let batches = [0, 1].map(v => Array.from({length: batch}, (_, id) => ({
   id,
   name: `item ${id} v${v}`,
   done: v === 0,
 })))
 
-loop(`Patch ${shown} records of ${records}`)
+loop(`Patch ${batch} records of ${records}`)
   .all({
     flush: true,
     // an app op is hundreds of microseconds, so the counts are set by hand
     n: 30,
     warm: 20,
     run: async (app, i) => {
-      await commit(() => app.upsert(batches[i & 1]))
+      await commit(() => app.patch(batches[i & 1]))
     },
   })
   .picofly({make: make('picofly')})
