@@ -1,6 +1,6 @@
 {
   "name": "picofly",
-  "version": "0.1.0",
+  "version": "1.0.0-beta.3",
   "license": "MIT",
   "description": "Lightweight state manager, simple, fast and built with ❤",
   "author": "farwayer <farwayer@gmail.com>",
@@ -15,6 +15,7 @@
     "./package.json": "./package.json"
   },
   "keywords": [
+    "preact",
     "react",
     "react-native",
     "state",
@@ -29,7 +30,7 @@
     "publish": "clean-publish"
   },
   "devDependencies": {
-    "@size-limit/preset-small-lib": "^13.1.1",
+    "@size-limit/preset-small-lib": "^14.0.0",
     "clean-publish": "^7.1.0",
     "happy-dom": "^20.14.5",
     "mobx": "^7.0.3",
@@ -38,8 +39,9 @@
     "proxy-compare": "^3.0.1",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
-    "size-limit": "^13.1.1",
-    "valtio": "^2.3.2"
+    "size-limit": "^14.0.0",
+    "valtio": "^2.3.2",
+    "zustand": "^5.0.15"
   },
   "peerDependencies": {
     "react": ">=19"
@@ -59,7 +61,7 @@
       "import": {
         "src/index.js": "{store, obj, onWrite}"
       },
-      "limit": "704b"
+      "limit": "683b"
     },
     {
       "name": "React min",
@@ -70,7 +72,7 @@
       "ignore": [
         "react"
       ],
-      "limit": "1255b"
+      "limit": "1235b"
     },
     {
       "name": "Full",
@@ -80,7 +82,7 @@
       "ignore": [
         "react"
       ],
-      "limit": "1693b"
+      "limit": "1516b"
     },
     {
       "name": "React full",
@@ -91,7 +93,7 @@
       "ignore": [
         "react"
       ],
-      "limit": "2240b"
+      "limit": "2064b"
     },
     {
       "name": "React full select",
@@ -102,7 +104,7 @@
       "ignore": [
         "react"
       ],
-      "limit": "2360b"
+      "limit": "2181b"
     }
   ],
   "clean-publish": {
