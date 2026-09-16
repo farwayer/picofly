@@ -1,11 +1,9 @@
 import {Fragment} from 'preact'
 import {useState} from 'preact/hooks'
 import {select} from 'picofly/react'
-import {callback} from 'picofly/react/selectors'
 import {BenchCode} from 'virtual:bench-code'
 import type {App, EngineId} from '~/store/state.ts'
-import {setEngine} from '~/store/actions.ts'
-import {Caveats, Cfg, Engines, Libs, Notes, Verdict} from '~/const.ts'
+import {Caveats, Cfg, Engines, Libs, Notes, ReactCaveats, Verdict} from '~/const.ts'
 import {cn} from '~/lib/cn.ts'
 import {hl} from '~/lib/hl.tsx'
 import {md} from '~/lib/md.tsx'
@@ -14,21 +12,26 @@ import Tabs from '~/ui/views/tabs.tsx'
 
 type Props = {
   engine: EngineId
-  onEngine: (engine: EngineId) => void
 }
 
 export default select(
   (app: App) => ({engine: app.ui.engine}),
-  callback('onEngine', setEngine),
 )(Perf)
 
-function Perf({engine, onEngine}: Props) {
+function Perf({engine}: Props) {
   let [open, setOpen] = useState('')
   let measured = Engines.filter(({bench}) => bench.length)
   let current = measured.find(({id}) => id === engine) ?? measured[0]
 
-  let libs = Libs
+  let libs = current.libs ?? Libs
   let cols = libs.length + 1
+  let app = current.id === 'react'
+
+  // a footnote belongs to a row, so the other tabs never show it
+  let shown = new Set(current.bench.flatMap(
+    ([group, items]) => items.map(([name]) => `${group}/${name}`),
+  ))
+  let notes = Notes.filter(([ids]) => ids.some(id => shown.has(id)))
 
   return (
     <section class="page">
@@ -48,7 +51,7 @@ function Perf({engine, onEngine}: Props) {
       </p>
 
       {measured.length > 1 && (
-        <Tabs items={measured} current={current.id} onTab={onEngine}/>
+        <Tabs items={measured} current={current.id} hash/>
       )}
 
       <p class="text bench-env">{current.env}, Linux, i9-13900, P-cores only</p>
@@ -82,11 +85,11 @@ function Perf({engine, onEngine}: Props) {
                 let best = Math.min(...all.filter(v => v === v))
                 let id = `${group}/${name}`
                 let code = BenchCode[id]
-                let note = Notes.findIndex(([ids]) => ids.includes(id)) + 1
+                let note = notes.findIndex(([ids]) => ids.includes(id)) + 1
 
                 return (
                   <Fragment key={name}>
-                    <tr>
+                    <tr id={`row-${id}`}>
                       <td>
                         <details
                           open={open === id}
@@ -100,7 +103,20 @@ function Perf({engine, onEngine}: Props) {
                         >
                           <summary>
                             {name}
-                            {note > 0 && <sup>{note}</sup>}
+                            {note > 0 && (
+                              <a
+                                class="note-ref"
+                                href={`#note-${note}`}
+                                // the summary would toggle the snippet open
+                                onClick={e => {
+                                  e.preventDefault()
+                                  e.stopPropagation()
+                                  jumpTo(`note-${note}`)
+                                }}
+                              >
+                                <sup>{note}</sup>
+                              </a>
+                            )}
                           </summary>
                         </details>
                       </td>
@@ -138,23 +154,41 @@ function Perf({engine, onEngine}: Props) {
         </table>
       </div>
 
-      {Notes.map(([, text], i) => (
-        <p class="text bench-note" key={i}>
+      {notes.map(([ids, text], i) => (
+        <p class="text bench-note" key={i} id={`note-${i + 1}`}>
           <sup>{i + 1}</sup> {md(text)}
+          <button
+            class="up"
+            aria-label="Back to the benchmark"
+            onClick={() => jumpTo(`row-${ids[0]}`)}
+          >
+            ↑
+          </button>
         </p>
       ))}
 
       <h2>Method</h2>
-      <p class="text">
-        Each library is read and written the way its React binding does it,
-        but without the binding itself — only the read and write noop
-        subscribers of the core.
-      </p>
+      {app ? (
+        <p class="text">
+          The same little app written five times over, once per library, and
+          driven through a real renderer.
+        </p>
+      ) : (
+        <p class="text">
+          Each library is read and written the way its React binding does it,
+          but without the binding itself — only the read and write noop
+          subscribers of the core.
+        </p>
+      )}
 
-      <Points items={Caveats}/>
+      <Points items={app ? ReactCaveats : Caveats}/>
     </section>
   )
 }
+
+// the page scrolls itself: a real hash would leave a dead link in the url
+let jumpTo = (id: string) =>
+  document.getElementById(id)?.scrollIntoView({block: 'center'})
 
 let ns = (v: string) =>
   parseFloat(v.replace(/,/g, ''))

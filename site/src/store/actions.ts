@@ -1,4 +1,4 @@
-import type {App, ApiTab, EngineId, Key, TabId} from './state.ts'
+import type {App, ApiTab, Key, TabId} from './state.ts'
 
 export let setTab = (app: App, tab: TabId) => {
   app.ui.tab = tab
@@ -6,10 +6,6 @@ export let setTab = (app: App, tab: TabId) => {
 
 export let setApiTab = (app: App, tab: ApiTab) => {
   app.ui.apiTab = tab
-}
-
-export let setEngine = (app: App, engine: EngineId) => {
-  app.ui.engine = engine
 }
 
 export let toggleMenu = (app: App) => {

@@ -1,6 +1,7 @@
 import type {MDXComponents, MDXContent} from 'mdx/types'
 import type {VNode} from 'preact'
 import {hl} from '~/lib/hl.tsx'
+import Up from '~/ui/views/up.tsx'
 
 type Props = {
   body: MDXContent
@@ -14,7 +15,12 @@ let slug = (children: unknown) =>
 let Heading = (tag: 'h2' | 'h3') => ({children, ...props}: any) => {
   let H = tag
 
-  return <H id={slug(children)} {...props}>{children}</H>
+  return (
+    <H id={slug(children)} {...props}>
+      {children}
+      {tag === 'h2' && <Up/>}
+    </H>
+  )
 }
 
 // a fenced block arrives as <pre><code>{source}</code></pre>
@@ -35,7 +41,7 @@ let Base: MDXComponents = {
 
 export default function Article({body: Body, components}: Props) {
   return (
-    <section class="page">
+    <section class="page doc">
       <Body components={{...Base, ...components}}/>
     </section>
   )

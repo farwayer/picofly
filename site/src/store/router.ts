@@ -1,5 +1,5 @@
 import type {App, Page} from './state.ts'
-import {Api, Pages} from '~/const.ts'
+import {Api, Engines, Pages} from '~/const.ts'
 
 export let page = (pathname = location.pathname): Page => {
   let id = pathname.slice(1) as Page
@@ -10,13 +10,28 @@ export let path = (id: Page) => id === 'main' ? '/' : `/${id}`
 
 export let anchor = (sign: string) => sign.split('(')[0]
 
+// the browser cross-fades the old page into the new one where it can. Preact
+// renders in a microtask, so the callback waits for one before giving the
+// transition its new state
+let swap = (change: () => void) => {
+  if (!document.startViewTransition) return change()
+
+  document.startViewTransition(async () => {
+    change()
+    await null
+  })
+}
+
 let go = (app: App, id: Page, hash: string) => {
   if (id === app.ui.page && !hash) return
 
   history.pushState(null, '', path(id) + hash)
-  app.ui.page = id
-  app.ui.menu = false
-  hash ? jump(app) : scrollTo(0, 0)
+
+  swap(() => {
+    app.ui.page = id
+    app.ui.menu = false
+    hash ? jump(app) : scrollTo({top: 0, behavior: 'instant'})
+  })
 }
 
 let jump = (app: App) => {
@@ -26,6 +41,9 @@ let jump = (app: App) => {
   let tab = Api.find(({items}) => items.some(([sign]) => anchor(sign) === id))
   if (tab) app.ui.apiTab = tab.id
 
+  let engine = Engines.find(e => e.id === id)
+  if (engine) app.ui.engine = engine.id
+
   requestAnimationFrame(() => {
     document.getElementById(id)?.scrollIntoView()
   })
@@ -33,8 +51,10 @@ let jump = (app: App) => {
 
 export let init = (app: App) => {
   addEventListener('popstate', () => {
-    app.ui.page = page()
-    location.hash ? jump(app) : scrollTo(0, 0)
+    swap(() => {
+      app.ui.page = page()
+      location.hash ? jump(app) : scrollTo({top: 0, behavior: 'instant'})
+    })
   })
 
   addEventListener('hashchange', () => jump(app))

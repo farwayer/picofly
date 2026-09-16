@@ -7,6 +7,7 @@ import {cn} from '~/lib/cn.ts'
 import {hl} from '~/lib/hl.tsx'
 import {md} from '~/lib/md.tsx'
 import Tabs from '~/ui/views/tabs.tsx'
+import Up from '~/ui/views/up.tsx'
 
 type Props = {
   tab: ApiTab
@@ -36,7 +37,7 @@ function ApiPage({tab, onTab}: Props) {
 
       {current.id === 'core' && (
         <>
-          <h2 id="rules">Rules</h2>
+          <h2 id="rules">Rules<Up/></h2>
           <p class="text">
             A rule decides what gets a proxy. Fewer rules ship fewer bytes
             and do less on every read.

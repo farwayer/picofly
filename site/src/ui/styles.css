@@ -1,11 +1,11 @@
 :root {
-  --bg: #fff;
-  --bg2: #edf1ed;
+  --bg: #faf9f6;
+  --bg2: #f1efec;
   --fg: #191d1a;
   --fg2: #5b635e;
   --primary: #5bb54e;
-  --border: #e3e7e3;
-  --chip: #e9ece9;
+  --border: #e7e4e0;
+  --chip: #e9e6e2;
   --string: #a1662f;
   --number: #b8860b;
 
@@ -22,13 +22,13 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #111413;
-    --bg2: #1e2320;
-    --fg: #e7ece9;
-    --fg2: #8f9793;
+    --bg: #242424;
+    --bg2: #323232;
+    --fg: #e8e8e8;
+    --fg2: #a0a0a0;
     --primary: #5bb54e;
-    --border: #262b28;
-    --chip: #2a302c;
+    --border: #3b3b3b;
+    --chip: #404040;
     --string: #c99764;
     --number: #e2c15e;
   }
@@ -51,6 +51,7 @@
 }
 
 html {
+  scroll-behavior: smooth;
   scrollbar-gutter: stable;
   scrollbar-width: thin;
   scrollbar-color: var(--border) transparent;
@@ -98,6 +99,39 @@ main {
   display: flex;
   flex-direction: column;
   gap: 3rem;
+}
+
+/* the browser cross-fades the page swap itself */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: .07s;
+}
+
+/* where it cannot, the new page fades in on its own: a swap remounts what is
+   under main, so the animation runs itself */
+@supports not (view-transition-name: none) {
+  main > * {
+    animation: page .07s ease-out;
+  }
+}
+
+@keyframes page {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  ::view-transition-old(root),
+  ::view-transition-new(root),
+  main > *,
+  .nav.open > * {
+    animation: none;
+  }
 }
 
 .top {
@@ -242,6 +276,7 @@ main {
 .nav .active {
   padding: .35rem .85rem;
   font-size: .9rem;
+  font-weight: 500;
   color: var(--fg2);
   text-decoration: none;
 }
@@ -426,6 +461,8 @@ button:disabled {
 
 .tab {
   padding: .4rem .9rem;
+  cursor: pointer;
+  text-decoration: none;
   font-size: .85rem;
   color: var(--fg2);
   background: none;
@@ -460,6 +497,7 @@ button:disabled {
 pre {
   margin: 0;
   padding: 1.1rem 1.25rem;
+  tab-size: 2;
   overflow-x: auto;
   font-size: .82rem;
   line-height: 1.65;
@@ -496,6 +534,28 @@ pre {
 
 .page em {
   color: var(--fg);
+}
+
+/* back to the top from any section */
+.page .up {
+  margin-left: .45rem;
+  padding: 0 .1rem;
+  font-size: .95rem;
+  color: var(--fg2);
+  background: none;
+  border: none;
+  opacity: .45;
+}
+
+.page .up:hover {
+  color: var(--primary);
+  opacity: 1;
+}
+
+/* an article opens with its first section, so there is nowhere to go from it.
+   Pages that build their own headings decide for themselves */
+.doc h2:first-of-type .up {
+  display: none;
 }
 
 .page h2 {
@@ -718,6 +778,16 @@ pre {
 }
 
 /* a footnote under the table, tied to a bench row by its number */
+.note-ref {
+  margin-left: .35rem;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.note-ref:hover {
+  color: var(--primary);
+}
+
 .bench-note {
   margin-top: -.4rem;
   padding-left: .6rem;
@@ -929,8 +999,38 @@ footer .note {
     gap: 0;
   }
 
+  /* the open menu covers the screen and sits under the header row, so the
+     logo and the burger stay on top of it and nothing leaves the flow */
   .nav.open {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
     display: flex;
+    padding: 3.4rem 1.5rem 1rem;
+    background: color-mix(in oklab, var(--bg) 60%, transparent);
+    -webkit-backdrop-filter: blur(12px) saturate(180%);
+    backdrop-filter: blur(12px) saturate(180%);
+  }
+
+  /* the blurred panel arrives in one frame, together with the strip giving up
+     its own blur, or the strip shows crisp content while the panel fades in.
+     Only the items fade */
+  .nav.open > * {
+    animation: menu .07s ease-out;
+  }
+
+  @keyframes menu {
+    from {
+      opacity: 0;
+    }
+  }
+
+  /* the menu blurs the whole screen, the row stops blurring its own strip:
+     one layer, no seam, and no containing block for the fixed menu */
+  .top:has(.nav.open) {
+    background: none;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
   }
 
   .nav a,
@@ -938,31 +1038,10 @@ footer .note {
     padding: .6rem .5rem;
   }
 
-  /* an open menu turns the header into a full screen panel: one background,
-     one blur, no seam anywhere, and the page keeps its place underneath.
-     It unrolls from the header row, 3.2rem is that row with its padding */
-  .top:has(.nav.open) {
-    position: fixed;
-    inset: 0;
-    align-content: flex-start;
-    animation: menu .18s ease-out;
-  }
-
-  @keyframes menu {
-    from {
-      clip-path: inset(0 0 calc(100% - 3.2rem) 0);
-    }
-  }
-
-  body:has(.nav.open) {
+  /* the lock goes on html, where the stable gutter is: on body it propagates
+     to the viewport, the gutter goes with it and the page jumps sideways */
+  html:has(.nav.open) {
     overflow: hidden;
-  }
-
-  /* the empty part of the panel closes the menu, so it sits under the rest */
-  .backdrop {
-    position: absolute;
-    inset: 0;
-    z-index: -1;
   }
 }
 

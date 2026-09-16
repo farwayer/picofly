@@ -3,7 +3,7 @@ import type {ApiTab, EngineId, Page, TabId} from '~/store/state.ts'
 export let Cfg = {
   name: 'Picofly',
   tagline: 'Tiny state manager, built with ❤️',
-  install: ['npm i picofly', 'yarn add picofly'],
+  install: ['npm i picofly', 'yarn add picofly', 'pnpm add picofly'],
   size: {
     min: '705 B',
     react: '1.21 kB',
@@ -59,25 +59,25 @@ export let Tabs: {id: TabId, name: string, code: string}[] = [
 // describe the app state, a class or a plain object
 // getters, setters and methods keep working
 export class Calc {
-  a = 0
-  b = 0
-  resetting = false
+	a = 0
+	b = 0
+	resetting = false
 
-  inc(key: Key) {
-    this[key]++
-  }
+	inc(key: Key) {
+		this[key]++
+	}
 }
 
 // write plain functions that read and change data
 // they can be async, generators, whatever
 export let reset = async (calc: Calc) => {
-  calc.resetting = true
+	calc.resetting = true
 
-  await delay(500)
+	await delay(500)
 
-  calc.a = 0
-  calc.b = 0
-  calc.resetting = false
+	calc.a = 0
+	calc.b = 0
+	calc.resetting = false
 }`,
   },
   {
@@ -96,17 +96,17 @@ import {Inc} from './inc.tsx'
 let calc = create(new Calc())
 
 export function Calculator() {
-  return (
-    <Picofly value={calc}>
-      <CellA/>
-      <CellB/>
-      <CellSum/>
+	return (
+		<Picofly value={calc}>
+			<CellA/>
+			<CellB/>
+			<CellSum/>
 
-      <Inc cell="a"/>
-      <Inc cell="b"/>
-      <Reset/>
-    </Picofly>
-  )
+			<Inc cell="a"/>
+			<Inc cell="b"/>
+			<Reset/>
+		</Picofly>
+	)
 }`,
   },
   {
@@ -118,17 +118,17 @@ import type {Calc} from './calc.ts'
 
 // useStore() to read the data and follow its changes
 export function CellSum() {
-  let calc = useStore<Calc>()
+	let calc = useStore<Calc>()
 
-  let renders = useRef(0)
-  renders.current++
+	let renders = useRef(0)
+	renders.current++
 
-  return (
-    <div>
-      <span>{calc.a + calc.b}</span>
-      <span>renders: {renders.current}</span>
-    </div>
-  )
+	return (
+		<div>
+			<span>{calc.a + calc.b}</span>
+			<span>renders: {renders.current}</span>
+		</div>
+	)
 }`,
   },
   {
@@ -139,13 +139,13 @@ import {reset, type Calc} from './calc.ts'
 
 // use the same hook to change the data
 export function Reset() {
-  let calc = useStore<Calc>()
+	let calc = useStore<Calc>()
 
-  return (
-    <button onClick={() => reset(calc)} disabled={calc.resetting}>
-      {calc.resetting ? <Spinner/> : 'reset'}
-    </button>
-  )
+	return (
+		<button onClick={() => reset(calc)} disabled={calc.resetting}>
+			{calc.resetting ? <Spinner/> : 'reset'}
+		</button>
+	)
 }`,
   },
   {
@@ -165,36 +165,40 @@ export let CellB = select(bValue)(Cell) // renders only when b changes
 
 // pure component
 function Cell({value}: {value: number}) {
-  let renders = useRef(0)
-  renders.current++
+	let renders = useRef(0)
+	renders.current++
 
-  return (
-    <div>
-      <span>{value}</span>
-      <span>renders: {renders.current}</span>
-    </div>
-  )
+	return (
+		<div>
+			<span>{value}</span>
+			<span>renders: {renders.current}</span>
+		</div>
+	)
 }`,
   },
   {
     id: 'inc',
     name: 'inc.tsx (selectors)',
-    code: `import {memo, useCallback} from 'react'
+    code: `import {useEffect} from 'react'
 import {select} from 'picofly/react'
 import type {Calc, Key} from './calc.ts'
 
 // selectors can do more than read the store
-// they can attach callbacks and use hooks
-export let Inc = select(
-  (calc: Calc, props: {cell: Key}) => ({
-    onClick: useCallback(() => calc.inc(props.cell), [props.cell]),
-    children: \`\${props.cell}++\`,
-  }),
-)(memo(Button))
+// they can attach callbacks and use hooks 
+let props = (calc: Calc, props: {cell: Key}) => ({
+	title: \`\${props.cell}++\`,
+	onClick: () => calc.inc(props.cell),
+})
 
-// memo is not really needed here, just for example
-function Button({onClick, children}: Props) {
-  return <button onClick={onClick}>{children}</button>
+let logRendered = () => {
+	useEffect(() => console.log('inc rendered!'))
+}
+
+export let Inc = select(props, logRendered)(Button)
+
+// some common component
+function Button({onClick, title}: Props) {
+	return <button onClick={onClick}>{title}</button>
 }`,
   },
 ]
@@ -400,7 +404,7 @@ let app = store(state, [raw, map, set, builtins, obj])`
 
 export let OwnRule = `// 35 to run before builtins, which filters Date out
 let date = next => !next ? 35 : ($, val) =>
-  val instanceof Date ? proxifyDate($, val) : next($, val)
+	val instanceof Date ? proxifyDate($, val) : next($, val)
 
 let app = store({}, [obj, builtins, date])`
 
@@ -435,6 +439,29 @@ export let Caveats: [string, string][] = [
   ['Writes reach a subscriber',
    `one noop live listener each, \`onWrite\` in *Picofly*, a sync
     \`subscribe\` in *Valtio*, \`observe\` in *MobX*.`],
+]
+
+// the app benches run a real renderer, so the method under the table is
+// their own
+export let ReactCaveats: [string, string][] = [
+  ['A real app on a real renderer',
+   `*react-dom* into *happy-dom*, production build. Every library gets its own
+    binding and its own idiomatic shape: \`useStore\` in *Picofly*,
+    \`useSnapshot\` in *Valtio*, \`observer\` in *MobX*, a selector per value in
+    *Zustand*.`],
+  ['Median of nine passes',
+   `one process per benchmark and library, order rotates every pass, a
+    \`gc()\` before each repeat.`],
+  ['One operation, flushed the way an app flushes',
+   `the write is wrapped in \`flushSync\`, and a library that coalesces its
+    notifications in a microtask gets it, then a second flush. The render is
+    inside the measurement, not after it.`],
+  ['Rows are memoized',
+   `a parent render does not redraw the list on its own, so the number in
+    brackets is how many row components the write actually woke.`],
+  ['The last column is the same app with no store at all',
+   `plain \`useState\` and immutable updates, the floor everything else is
+    read against.`],
 ]
 
 // a bench row can carry a footnote, numbered in the order they are listed
@@ -724,21 +751,25 @@ let Hermes: Bench = [
 
 let ReactApp: Bench = [
   ['app', [
-    ['obj/mount-first-100', '771 (100)', '3,198 (100)', '1,096 (100)'],
-    ['obj/patch', '204 (100)', '1,300 (100)', '234 (100)'],
-    ['obj/add-drop', '317 (0)', '1,933 (0)', '537 (0)'],
-    ['arr/mount-all', '6,593 (1000)', '12,944 (1000)', '6,299 (1000)'],
-    ['arr/mount-first-100', '693 (100)', '3,203 (100)', '762 (100)'],
-    ['arr/toggle-one', '45.9 (1)', '901 (1)', '49.1 (1)'],
-    ['arr/rename-one', '40.7 (1)', '884 (1)', '46.0 (1)'],
-    ['arr/push-pop', '252 (1)', '2,053 (1)', '2,171 (2001)'],
-    ['arr/replace-all-new', '1,969 (1000)', '4,895 (1000)', '4,309 (1000)'],
-    ['arr/replace-all-same', '1,240 (1000)', '425 (0)', '3,281 (1000)'],
-    ['map/mount-first-100', '721 (100)', '3,098 (100)', '800 (100)'],
-    ['map/fill-10k', '2,460 (100)', '53,114 (100)', '22,035 (100)'],
-    ['map/patch', '183 (100)', '1,490 (100)', '191 (100)'],
-    ['map/switch-page', '385 (100)', '656 (100)', '466 (100)'],
-    ['map/add-drop', '24.8 (0)', '1,483 (0)', '28.3 (0)'],
+    ['obj/mount-all', '6,867 (1000)', '13,415 (1000)', '7,037 (1000)', '5,646 (1000)'],
+    ['obj/patch', '257 (100)', '2,630 (100)', '315 (100)', '270 (100)'],
+    ['obj/upsert', '975 (200)', '5,243 (200)', '1,339 (200)', '610 (200)'],
+    ['obj/add', '377 (1)', '1,660 (1)', '662 (1)', '197 (1)'],
+    ['obj/delete', '381 (0)', '1,542 (0)', '631 (0)', '205 (0)'],
+    ['arr/mount-all', '6,520 (1000)', '13,073 (1000)', '6,282 (1000)', '5,480 (1000)'],
+    ['arr/toggle-one', '46.2 (1)', '904 (1)', '49.2 (1)', '71.3 (1)'],
+    ['arr/rename-one', '40.0 (1)', '891 (1)', '45.8 (1)', '70.4 (1)'],
+    ['arr/push', '122 (1)', '1,045 (1)', '1,074 (1001)', '157 (1)'],
+    ['arr/delete', '843 (499)', '6,504 (499)', '1,198 (999)', '432 (499)'],
+    ['arr/fill-new', '1,979 (1000)', '4,954 (1000)', '4,308 (1000)', '1,071 (1000)'],
+    ['arr/fill-same', '1,245 (1000)', '431 (0)', '3,351 (1000)', '439 (1000)'],
+    ['map/mount-all', '6,582 (1000)', '14,864 (1000)', '6,461 (1000)', '5,430 (1000)'],
+    ['map/fill-10k', '4,000 (1000)', '55,685 (1000)', '26,154 (1000)', '3,405 (1000)'],
+    ['map/patch', '247 (100)', '2,830 (100)', '274 (100)', '300 (100)'],
+    ['map/upsert', '727 (200)', '6,386 (200)', '783 (200)', '669 (200)'],
+    ['map/switch-page', '382 (100)', '658 (100)', '471 (100)', '329 (100)'],
+    ['map/add', '165 (1)', '1,926 (1)', '267 (1)', '228 (1)'],
+    ['map/delete', '164 (0)', '1,339 (0)', '269 (0)', '231 (0)'],
   ]],
 ]
 
@@ -747,6 +778,8 @@ export let Engines: {
   name: string
   env: string
   bench: Bench
+  // the app benches run zustand too, the core ones do not
+  libs?: [string, string][]
   unit?: string
   renders?: boolean
 }[] = [
@@ -764,6 +797,7 @@ export let Engines: {
     name: 'React (V8)',
     env: 'node v24.18.1, react-dom 19.3.0 into happy-dom, production build',
     bench: ReactApp,
+    libs: [...Libs, ['zustand', '5.0.15']],
     unit: 'µs',
     renders: true,
   },
