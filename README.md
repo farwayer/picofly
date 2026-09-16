@@ -4,7 +4,7 @@ _Tiny state manager, built with ❤️_
 
 [picofly.dev](https://picofly.dev)
 
-[![NPM version](https://img.shields.io/npm/v/picofly.svg)](https://www.npmjs.com/package/picofly)
+[![NPM version](https://img.shields.io/npm/v/picofly/beta)](https://www.npmjs.com/package/picofly)
 
 <img src="docs/logo.svg" height="192" align="right">
 
