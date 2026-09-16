@@ -8,10 +8,10 @@ and polishing apps to the last detail.
 A state manager with no compromises between usability, size and speed:
 
 - `create(state)` once, `useStore()` in a component, the whole API
-- [From](#very-small) <Hi>1.21 kB</Hi> with the *React* binding
+- [From](#very-small) <Hi>1.24 kB</Hi> with the *React* binding
 - [Very fast](#very-fast-with-lazy-proxies): lazy proxies, hand-tuned hot paths
 - Renders only what changed
-- Plays by the spec, your objects stays untouched
+- Plays by the spec, your objects stay untouched
 - App business logic is just plain JS functions, async, generators, whatever
 - Framework agnostic, but with *React* batteries included
 - `Map` and `Set` support, [selectors](/hook-vs-selectors) for more complex apps
@@ -47,6 +47,18 @@ The bill:
 - Less boilerplate, but still boilerplate
 - Too much internal machinery to keep in the head
 - Business code lived in functions nested inside the store, never fully clean
+
+### Zustand, the popular one
+
+Small, honest, and everywhere for a reason. But the ceremony moved rather than
+went away:
+
+- A selector for every value a component reads
+- `useShallow` as soon as it reads more than one
+- Business logic inside the store, wrapped in actions around `set`, or
+  `setState` from outside: never a plain assignment
+- `Map` and `Set` copied on every change: the store compares by identity, so a
+  mutation in place stays invisible
 
 ### Valtio, almost there
 
@@ -100,13 +112,13 @@ So *Picofly* happened. Here is what it looks like, point by point.
 let app = create(new App())
 
 function Counter() {
-  let app = useStore<App>()
+	let app = useStore<App>()
 
-  return (
-    <button onClick={() => app.count++}>
-      {app.count}
-    </button>
-  )
+	return (
+		<button onClick={() => app.count++}>
+			{app.count}
+		</button>
+	)
 }
 ```
 
@@ -117,6 +129,11 @@ objects, two identities, extra confusion. *Picofly* has one state.
 writes, `observer` around components. Rules to figure out, and then to keep in
 mind. *Picofly* has none of them.
 
+*Zustand* is simpler, but the work stays with you: a hook call for every value
+the component reads, `useShallow` when it needs several at once, an action in
+the store for every write and the wrapping around it. *Picofly* asks for none of
+that, you read and write the data.
+
 ## Clean business logic
 
 Any function that works with data is just a JS function. State comes in as a
@@ -124,9 +141,9 @@ parameter.
 
 ```ts
 export let load = async (app: App) => {
-  app.loading = true
-  app.users = await api.users()
-  app.loading = false
+	app.loading = true
+	app.users = await api.users()
+	app.loading = false
 }
 ```
 
@@ -145,13 +162,14 @@ well. If you are curious where my own search landed, read
 
 Hand-crafted, simple, readable, byte-counted, covered end to end by tests.
 
-- **picofly** — <Hi>705 B</Hi> (core),
-  <Hi>1.21 kB</Hi> (core + react)
-- **picofly (full)** — <Hi>1.69 kB</Hi> (core + map + set),
-  <Hi>2.24 kB</Hi> (core + map + set + react)
-- **valtio** — <Hi>2.16 kB</Hi> (core + react),
-  <Hi>3.29 kB</Hi> (core + react + map + set)
-- **mobx** — <Hi>10.7 kB</Hi> (core), <Hi>14 kB</Hi> (core + react)
+- **picofly** — <Hi>683 B</Hi> (core),
+  <Hi>1.24 kB</Hi> (core + react)
+- **picofly (full)** — <Hi>1.52 kB</Hi> (core + map + set),
+  <Hi>2.06 kB</Hi> (core + map + set + react)
+- **valtio** — <Hi>2.61 kB</Hi> (core + react),
+  <Hi>4.58 kB</Hi> (core + react + map + set)
+- **mobx** — <Hi>9.88 kB</Hi> (core), <Hi>12.9 kB</Hi> (core + react)
+- **zustand** — <Hi>625 B</Hi> (core + react)
 
 <Note>
 
@@ -170,11 +188,21 @@ Proxies are created lazily, on first read. The backend sends 10,000 records,
 the page shows 10. *Picofly* stores the payload instantly. *Valtio* and *MobX* pay
 for 10,000 proxies up front.
 
-Median over the benchmarks of each category:
+Median over the core benchmarks of each category:
 
 - **putting data in** — <Hi>410x</Hi> vs valtio, <Hi>492x</Hi> vs mobx
 - **updating** — <Hi>6.6x</Hi> vs valtio, <Hi>3.5x</Hi> vs mobx
 - **reading** — <Hi>4.6x</Hi> vs valtio, <Hi>1.1x</Hi> vs mobx
+
+<Note>
+
+\* *Zustand* is not in that list: it keeps plain immutable data, there is no
+proxy to compare. In the [app benchmarks](/performance#react) *Picofly* is
+<Hi>1.6x</Hi> faster on a point change and about <Hi>20%</Hi> slower over the
+whole suite — mounting and replacing a list is what an immutable store does
+best.
+
+</Note>
 
 Hot paths are hand-tuned, bench by bench.
 
@@ -183,7 +211,8 @@ Hot paths are hand-tuned, bench by bench.
 `useStore()` and `select()` track what the component reads. So `user.name = 'Bob'`
 wakes whoever read `user.name` and nobody else.
 
-Nothing to declare, nothing to subscribe to. It just works.
+Nothing to declare, nothing to subscribe to. It just works. In *Zustand* the
+same thing is a selector per value, written and kept by hand.
 
 ## The store locks during render
 

@@ -7,22 +7,22 @@ hook is quicker to start with, selectors hold up better as things grow.
 
 ```jsx
 export default function Video({id}) {
-  let app = useStore()
-  let video = app.videos.get(id)
+	let app = useStore()
+	let video = app.videos.get(id)
 
-  return <span>{video.name}</span>
+	return <span>{video.name}</span>
 }
 ```
 
 ```jsx
 let videoById = (app, props) => ({
-  video: app.videos.get(props.id),
+	video: app.videos.get(props.id),
 })
 
 export default select(videoById)(Video)
 
 function Video({video}) {
-  return <span>{video.name}</span>
+	return <span>{video.name}</span>
 }
 ```
 
@@ -84,11 +84,11 @@ imported from.
 
 ```jsx
 export default select(
-  videoById,
-  (app, props) => ({
-    canEdit: props.video?.ownerId === app.user.id,
-    onWatched: () => watchVideo(app, props.id),
-  }),
+	videoById,
+	(app, props) => ({
+		canEdit: props.video?.ownerId === app.user.id,
+		onWatched: () => watchVideo(app, props.id),
+	}),
 )(Video)
 ```
 

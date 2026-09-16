@@ -23,18 +23,24 @@ let swap = (change: () => void) => {
 }
 
 let go = (app: App, id: Page, hash: string) => {
-  if (id === app.ui.page && !hash) return
+  // the page you are on: its link in the header takes you back to the top
+  if (id === app.ui.page && !hash) {
+    scrollTo({top: 0})
+    return
+  }
 
   history.pushState(null, '', path(id) + hash)
 
   swap(() => {
     app.ui.page = id
     app.ui.menu = false
-    hash ? jump(app) : scrollTo({top: 0, behavior: 'instant'})
+    hash ? jump(app, true) : scrollTo({top: 0, behavior: 'instant'})
   })
 }
 
-let jump = (app: App) => {
+// `nav` is a page change: a hash that points at nothing, like the engine of a
+// benchmark tab, still has to land at the top of the new page
+let jump = (app: App, nav = false) => {
   let id = location.hash.slice(1)
   if (!id) return
 
@@ -45,7 +51,13 @@ let jump = (app: App) => {
   if (engine) app.ui.engine = engine.id
 
   requestAnimationFrame(() => {
-    document.getElementById(id)?.scrollIntoView()
+    let el = document.getElementById(id)
+
+    if (el) {
+      el.scrollIntoView()
+    } else if (nav) {
+      scrollTo({top: 0, behavior: 'instant'})
+    }
   })
 }
 
@@ -53,7 +65,7 @@ export let init = (app: App) => {
   addEventListener('popstate', () => {
     swap(() => {
       app.ui.page = page()
-      location.hash ? jump(app) : scrollTo({top: 0, behavior: 'instant'})
+      location.hash ? jump(app, true) : scrollTo({top: 0, behavior: 'instant'})
     })
   })
 

@@ -5,8 +5,8 @@ export let Cfg = {
   tagline: 'Tiny state manager, built with ❤️',
   install: ['npm i picofly', 'yarn add picofly', 'pnpm add picofly'],
   size: {
-    min: '705 B',
-    react: '1.21 kB',
+    min: '683 B',
+    react: '1.24 kB',
   },
   links: {
     github: 'https://github.com/farwayer/picofly',
@@ -459,9 +459,6 @@ export let ReactCaveats: [string, string][] = [
   ['Rows are memoized',
    `a parent render does not redraw the list on its own, so the number in
     brackets is how many row components the write actually woke.`],
-  ['The last column is the same app with no store at all',
-   `plain \`useState\` and immutable updates, the floor everything else is
-    read against.`],
 ]
 
 // a bench row can carry a footnote, numbered in the order they are listed

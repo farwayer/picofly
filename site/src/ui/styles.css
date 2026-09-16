@@ -281,13 +281,14 @@ main {
   text-decoration: none;
 }
 
-.nav a:hover {
+.nav a:not(.active):hover {
   color: var(--fg);
 }
 
 .nav .active {
   color: var(--primary);
   text-decoration: underline;
+  text-decoration-color: currentColor;
   text-underline-offset: .3em;
 }
 

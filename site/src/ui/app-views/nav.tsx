@@ -23,10 +23,11 @@ export default select(
 function Nav({current, open, onLeave}: Props) {
   return (
     <nav class={cn('nav', open && 'open')} onClick={onLeave}>
-      {Pages.map(({id, name}) => id === current
-        ? <span key={id} class="active">{name}</span>
-        : <a key={id} href={path(id)}>{name}</a>
-      )}
+      {Pages.map(({id, name}) => (
+        <a key={id} href={path(id)} class={cn(id === current && 'active')}>
+          {name}
+        </a>
+      ))}
     </nav>
   )
 }
