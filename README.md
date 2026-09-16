@@ -1,6 +1,8 @@
 # Picofly
 
-_Lightweight handy state manager, simple, fast and built with ❤️_
+_Tiny state manager, built with ❤️_
+
+[picofly.dev](https://picofly.dev)
 
 [![NPM version](https://img.shields.io/npm/v/picofly.svg)](https://www.npmjs.com/package/picofly)
 
@@ -8,15 +10,15 @@ _Lightweight handy state manager, simple, fast and built with ❤️_
 
 ⚡ **Fast**: lazy proxies, hand-tuned hot paths, renders only what changed  
 🤏 **Tiny**: *683 B* core, *1.24 kB* with React support  
-🥧 **Simple**: *~160 lines* of sparse code + *~120 lines* for React support  
-🍳 **Handy**: you will worry about what needs to be done, not how  
-⚛️ **React & React Native**: *hooks* or *selectors*, modern React API  
-🔋 **Charged**: *Map* and *Set*, *TypeScript* support and more  
-🪟 **Transparent**: original objects are not modified
+🥧 **Simple**: *~160 lines* of code, *~120* more for React  
+🍳 **Handy**: you think about what to do, not how  
+⚛️ **React & React Native**: *hook* or *selectors*, whichever fits  
+🔋 **Charged**: *Map*, *Set* and *TypeScript* out of the box  
+🪟 **Transparent**: your objects stay your objects
 
 #### Supported
 
-*React* >= 19  
+*React* >= 18  
 *React Native* >= 0.78  
 *Preact* >= 11 (beta now, [why not 10](https://github.com/preactjs/preact/issues/4299))
 
@@ -24,30 +26,33 @@ _Lightweight handy state manager, simple, fast and built with ❤️_
 
 ```sh
 npm i picofly
+```
+```sh
 yarn add picofly
+```
+```sh
 pnpm add picofly
 ```
 
 ## How to use
 
 `create(state)` wraps your state and gives back the store. Read what you need
-in a component, write from anywhere: a component re-renders only when a
-property it has actually read changes.
+in a component and write from anywhere. The component renders only when a
+property it actually read changes.
 
-By default picofly proxies objects, arrays, `Map` and `Set`, and leaves
-special objects like `Date`, `Error` or `RegExp` as they are. Picking fewer
-rules ships fewer bytes and does less on every read.
+Objects, arrays, `Map` and `Set` are proxied. `Date`, `Error`, `RegExp` and
+the like stay as they are.
 
 ### React example
 
-Picofly works with a hook or with selectors, the trade-offs are in
+Picofly works with a hook or with selectors. The trade-offs are in
 [Hook vs selectors](docs/hook-vs-selectors.md).
 
 #### store.js
 ```javascript
 import {create, markRaw} from 'picofly'
 
-// may be a simple object
+// a plain object works too
 class State {
 	api = null
 	authToken = null
@@ -61,11 +66,11 @@ class State {
 export let createStore = () => {
 	let state = new State()
 	let app = create(state)
-	
-	// you can attach any service objects to the store
-	// markRaw keeps them as is, never proxied
+
+	// service objects can live on the store too
+	// markRaw keeps them as they are, never proxied
 	app.api = markRaw(app, createApi())
-	
+
 	return app
 }
 ```
@@ -89,7 +94,7 @@ let App = () => {
 
 #### video-list.js
 
-This example shows how to use picofly with a hook.
+This one uses the hook.
 
 ```javascript
 import {memo} from 'react'
@@ -98,18 +103,18 @@ import Video from './video'
 
 export default memo(VideoList)
 
-// VideoList component uses video ids only
-// so it will only re-render when a video is added or removed
+// VideoList reads the ids only, so it renders
+// when a video is added or removed
 function VideoList() {
 	let app = useStore()
 
 	let ids = Array.from(app.videos.keys())
 	let videos = ids.map(id => <Video id={id} key={id}/>)
-	
+
 	let addVideo = () => {
 		app.videos.set(Math.random(), {name: 'Cool video', watched: false})
 	}
-	
+
 	return (
 		<div>
 			{videos}
@@ -121,27 +126,24 @@ function VideoList() {
 
 #### video.js
 
-This example shows how to use picofly with selectors.  
+This one uses selectors.
 
-Selector is a pure function that derives some data from the store or
-attach action. Selectors are called in render context so you can use any hooks inside.
+A selector is a plain function that picks data out of the store or attaches an
+action. Selectors run in the render context, so hooks work inside them.
 
-I recommend keeping selectors as simple and generic as possible
-so that they can be reused between components.
-Complex data selections can be done through their combinations.  
-Read more in [Hook vs selectors](docs/hook-vs-selectors.md).
+Keep them small and generic and they will be reused between components;
+a complex selection is a combination of simple ones. More in
+[Hook vs selectors](docs/hook-vs-selectors.md).
 
 ```javascript
-import {useCallback} from 'react'
 import {select} from 'picofly/react'
 
-// this selector gets video data from the store
-// by id passed to component in the properties 
+// takes the video out of the store by the id in props
 let videoById = (app, props) => ({
 	video: app.videos.get(props.id),
 })
 
-// actions normally imported from the business logic layer
+// actions usually come from the business logic layer
 let watchVideo = async (app, id) => {
 	await app.api.watchVideo(id)
 
@@ -149,17 +151,17 @@ let watchVideo = async (app, id) => {
 	video.watched = true
 }
 
-// use select() to combine selectors and attach them to component
-// all props returned from selectors will be merged and passed to component
+// select() merges what the selectors return
+// and passes it to the component as props
 export default select(
 	videoById,
 	(app, props) => ({
-		onWatched: useCallback(() => watchVideo(app, props.id), [props.id]),
+		onWatched: () => watchVideo(app, props.id),
 	}),
 )(Video)
 
-// Video component depends on a `name` and `watched` only
-// so it will only re-render if any of these properties change
+// Video reads name and watched only, so it renders
+// when one of them changes
 function Video({
 	video = {},
 	onWatched,
@@ -167,7 +169,7 @@ function Video({
 	return (
 		<div>
 			<span>{video.name}</span>
-			<span>{video.watched ? "✅" : "🚫"}</span>
+			<span>{video.watched ? '✅' : '🚫'}</span>
 			<button onClick={onWatched}>WATCH</button>
 		</div>
 	)
@@ -176,6 +178,8 @@ function Video({
 
 ## Docs
 
+- [API and benchmarks](https://picofly.dev)
 - [Why the hell another one?](docs/why.md)
 - [Hook vs selectors](docs/hook-vs-selectors.md)
 - [The Good, the Bad, the Ugly architecture](docs/arch.md)
+- [Tips](docs/tips.md)

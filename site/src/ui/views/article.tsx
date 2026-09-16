@@ -23,6 +23,12 @@ let Heading = (tag: 'h2' | 'h3') => ({children, ...props}: any) => {
   )
 }
 
+// the articles are read on github too, so they link each other by file
+// name. Here the same link is a route
+let Link = ({href = '', ...props}: any) => (
+  <a href={href.replace(/^([\w-]+)\.md/, '/$1')} {...props}/>
+)
+
 // a fenced block arrives as <pre><code>{source}</code></pre>
 let Pre = ({children}: {children: VNode<{children: string}>}) => (
   <pre>{hl(children.props.children)}</pre>
@@ -31,6 +37,7 @@ let Pre = ({children}: {children: VNode<{children: string}>}) => (
 let Base: MDXComponents = {
   h2: Heading('h2'),
   h3: Heading('h3'),
+  a: Link,
   p: props => <p class="text" {...props}/>,
   ul: props => <ul class="points" {...props}/>,
   pre: Pre,

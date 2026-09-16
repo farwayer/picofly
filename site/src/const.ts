@@ -36,7 +36,7 @@ export let Pages: {id: Page, name: string}[] = [
     name: 'Tips',
   },
   {
-    id: 'architecture',
+    id: 'arch',
     name: 'Good, Bad, Ugly Architecture',
   },
 ]

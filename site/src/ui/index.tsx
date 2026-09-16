@@ -18,7 +18,7 @@ export default select(
 let Pages = {
   main: Main,
   why: Why,
-  architecture: Architecture,
+  arch: Architecture,
   'hook-vs-selectors': Selectors,
   api: Api,
   performance: Perf,
