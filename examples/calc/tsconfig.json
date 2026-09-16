@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "allowImportingTsExtensions": true,
+    "strict": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "types": ["vite/client"],
+		"paths": {
+			"~/*": ["./src/*"]
+		}
+	},
+  "include": ["src"]
+}

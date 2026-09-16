@@ -1,0 +1,98 @@
+body {
+  margin: 0;
+  padding: 2rem 1.25rem;
+  font: 16px/1.6 system-ui, sans-serif;
+  text-align: center;
+}
+
+.logo {
+  width: 8rem;
+  height: auto;
+  aspect-ratio: 601 / 640;
+}
+
+h1 {
+  font-size: 1.35rem;
+}
+
+p {
+  color: #5b635e;
+}
+
+.cells, .buttons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: .75rem;
+}
+
+.buttons {
+  margin-top: 1.5rem;
+}
+
+.cell {
+  width: 9.5rem;
+  padding: .9rem;
+  display: flex;
+  flex-direction: column;
+  gap: .35rem;
+  border: 1px solid #e7e4e0;
+  border-radius: 10px;
+}
+
+.cell code, .renders {
+  font-size: .78rem;
+  color: #5b635e;
+}
+
+.value {
+  font-size: 2rem;
+  color: #5bb54e;
+  animation: flash .5s ease-out;
+}
+
+/* the key on the span remounts it, so the flash replays on every render */
+@keyframes flash {
+  from { background: color-mix(in srgb, #5bb54e 22%, transparent) }
+  to { background: transparent }
+}
+
+button {
+  padding: .45rem 1rem;
+  font: inherit;
+  border: 1px solid #e7e4e0;
+  border-radius: 8px;
+  background: #f1efec;
+  cursor: pointer;
+}
+
+.buttons button {
+  position: relative;
+}
+
+button:disabled {
+  cursor: default;
+  opacity: .6;
+}
+
+/* the title keeps the button's width while the spinner sits on top of it */
+.off {
+  visibility: hidden;
+}
+
+.spin {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin: -.4em 0 0 -.4em;
+  width: .8em;
+  height: .8em;
+  border: 2px solid #e7e4e0;
+  border-top-color: #5b635e;
+  border-radius: 50%;
+  animation: spin .6s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg) }
+}
