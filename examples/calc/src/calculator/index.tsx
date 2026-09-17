@@ -18,8 +18,8 @@ export let Calculator = () => {
 	return (
 		<Picofly value={calc}>
 			<div className="cells">
-				<CellX title="app.a" cell="a"/>
-				<CellX title="app.b" cell="b"/>
+				<CellX title="calc.a" cell="a"/>
+				<CellX title="calc.b" cell="b"/>
 				<Sum/>
 			</div>
 

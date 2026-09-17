@@ -9,7 +9,7 @@ export let Reset = () => {
 
 	return (
 		<Button
-			title="reset"
+			title="reset (async delay)"
 			busy={calc.resetting}
 			onClick={() => reset(calc)}
 		/>

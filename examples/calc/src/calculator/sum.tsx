@@ -9,6 +9,6 @@ export let Sum = () => {
 	let sum = calc.a + calc.b
 
 	return (
-		<Cell title="app.a + app.b" value={sum}/>
+		<Cell title="calc.a + calc.b" value={sum}/>
 	)
 }
