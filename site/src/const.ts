@@ -1,3 +1,4 @@
+import {version} from 'picofly/package.json'
 import type {ApiTab, EngineId, Page, TabId} from '~/store/state.ts'
 
 export let Cfg = {
@@ -409,7 +410,7 @@ let date = next => !next ? 35 : ($, val) =>
 let app = store({}, [obj, builtins, date])`
 
 export let Libs: [string, string][] = [
-  ['picofly', '1.0.0'],
+  ['picofly', version],
   ['valtio', '2.3.2'],
   ['mobx', '7.0.3'],
 ]
