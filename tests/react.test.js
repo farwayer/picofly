@@ -1,8 +1,10 @@
 import {suite, test} from 'node:test'
 import * as assert from 'node:assert/strict'
+import {createRequire} from 'node:module'
 import {Window} from 'happy-dom'
 import {
   createElement as h, StrictMode, useState, useLayoutEffect, act,
+  startTransition,
 } from 'react'
 import {create} from 'picofly'
 import {Picofly, useStore, select} from 'picofly/react'
@@ -16,8 +18,16 @@ for (let key of ['window', 'document', 'Event', 'Node', 'Element', 'HTMLElement'
 
 globalThis.IS_REACT_ACT_ENVIRONMENT = true
 
+// react schedules through this module, mocked so a test can stop a render
+// half-way. act() has its own queue, so the other tests do not notice
+let require = createRequire(import.meta.url)
+let Scheduler = require('scheduler/unstable_mock')
+require('scheduler')
+require.cache[require.resolve('scheduler')].exports = Scheduler
+
 // react-dom reads the dom globals, so it is imported after them
 let {createRoot} = await import('react-dom/client')
+let {flushSync} = await import('react-dom')
 
 let mount = element => {
   let host = window.document.createElement('div')
@@ -344,5 +354,66 @@ suite('react', () => {
 
     write(() => {store.n = 1})
     assert.equal(renders, 1)
+  })
+
+  // a transition renders A, yields, and the store changes in the gap. The
+  // scheduler is stopped between the two readers, and the write goes in
+  // through `write`. Every commit is collected: a mix of old and new is a tear
+  let tornBy = async (t, write) => {
+    globalThis.IS_REACT_ACT_ENVIRONMENT = false
+    t.after(() => {globalThis.IS_REACT_ACT_ENVIRONMENT = true})
+
+    let store = create({n: 0})
+    let host = window.document.createElement('div')
+    let commits = []
+    let bump
+
+    let Reader = ({tag}) => {
+      let s = useStore(store)
+      Scheduler.log(tag)
+      useLayoutEffect(() => {commits.push(host.textContent)})
+      return h('i', null, '' + s.n)
+    }
+    let App = () => {
+      let [, set] = useState(0)
+      bump = () => set(t => t + 1)
+      return h('div', null, h(Reader, {tag: 'A'}), h(Reader, {tag: 'B'}))
+    }
+
+    // react hands work to the scheduler in a microtask, hence the awaits
+    createRoot(host).render(h(App))
+    await null
+    Scheduler.unstable_flushAllWithoutAsserting()
+    assert.equal(host.textContent, '00')
+    Scheduler.unstable_clearLog()
+
+    startTransition(bump)
+    await null
+    Scheduler.unstable_flushNumberOfYields(1)
+    assert.deepEqual(Scheduler.unstable_clearLog(), ['A'])
+    assert.equal(host.textContent, '00')
+
+    // the render lock lifts in a microtask, as it does in a browser gap
+    await null
+    write(store)
+    await null
+    Scheduler.unstable_flushAllWithoutAsserting()
+
+    assert.equal(host.textContent, '11')
+    return commits.filter(text => text !== '00' && text !== '11')
+  }
+
+  // a click or a key press: the write is a sync lane, react drops the
+  // half-rendered pass and re-renders both readers before anything lands
+  test('a discrete write during a yielded transition does not tear', async t => {
+    assert.deepEqual(await tornBy(t, store => flushSync(() => {store.n = 1})), [])
+  })
+
+  // a timer or a response: the write is a default lane, and react lets a
+  // running transition finish first. B would render the new value next to
+  // the old one A rendered, but useSyncExternalStore re-checks its snapshot
+  // before commit and renders the pair again before anything lands
+  test('a default write during a yielded transition does not tear', async t => {
+    assert.deepEqual(await tornBy(t, store => {store.n = 1}), [])
   })
 })

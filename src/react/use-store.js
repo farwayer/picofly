@@ -1,4 +1,7 @@
-import {createContext, useContext, useRef, useInsertionEffect, useReducer} from 'react'
+import {
+	createContext, useContext, useRef, useInsertionEffect, useCallback,
+	useSyncExternalStore,
+} from 'react'
 import {onWrite, onRead, lock, unlock, get$} from '../store.js'
 
 export let ReactSym = /* @__PURE__ */ Symbol()
@@ -12,22 +15,33 @@ export let useContextStore = () => useContext(PicoflyContext)
 // store will be locked after the call and before any component commit stage
 export let useStore = (store = useContextStore() || "use <Picofly>!"()) => {
 	let state = useRef().current ??= {
+		epoch: 0,
+		dirty: 0,
 		subs: [],
 		notify: null,
 	}
-	state.notify = useReducer(epoch => ++epoch, 0)[1]
 
 	let trackRead = attachTracker(store)
 	let stopTrackRead = trackRead(state)
 
+	let subscribe = useCallback(onChange => {
+		state.notify = onChange
+
+		return () => {
+			state.epoch++
+			cutSubsTailIfNeed(state, 0)
+		}
+	}, [])
+
+	let getEpoch = () => state.epoch
+
+	useSyncExternalStore(subscribe, getEpoch, getEpoch)
 	useInsertionEffect(stopTrackRead)
 	// due to the asynchronous nature of rendering
 	// useInsertionEffect may not always be called after each render
 	// (for ex. when the data was updated between the render and commit stages)
 	// we should schedule cleanup so as not to miss such a situation
 	queueMicrotask(stopTrackRead)
-
-	useInsertionEffect(() => () => cutSubsTailIfNeed(state, 0), [])
 
 	return store
 }
@@ -50,11 +64,15 @@ let attachTracker = (store) => {
 
 		while (sub) {
 			let state = sub.state
-			let notify = state.notify
 
-			if (notify) {
-				notify()
-				state.notify = null
+			if (!state.dirty) {
+				state.epoch++
+
+				let notify = state.notify
+				if (notify) {
+					state.dirty = 1
+					notify()
+				}
 			}
 
 			sub = sub.next
@@ -116,6 +134,7 @@ let attachTracker = (store) => {
 		}
 
 		state = readerState
+		readerState.dirty = 0
 		subIndex = 0
 
 		return stopTrackRead

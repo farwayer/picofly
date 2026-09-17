@@ -18,7 +18,6 @@
 - **`arr.length = n` notifies the dropped indexes**
 - ready made selectors: `spec`, `item`, `callback`, `effect`
 - more built-ins are left alone: `URL`, generators, boxed `Boolean`, etc.
-- React 18 support, `useInsertionEffect` is the newest API used
 - +137 tests (thanks Claude)
 - benchmarks on V8, JSC and SpiderMonkey
 - picofly got itself a site [picofly.dev](https://picofly.dev) 🎉
@@ -42,7 +41,7 @@
 - Map and Set track fewer reads
 - `useStore` stops checking once the component is dirty
 - a write wakes only the components that read that object
-- 683 B minimal, 1.24 kB with React
+- 683 B minimal, 1.28 kB with React
 
 ## 0.1.0 — 2026-08-21
 

@@ -10,8 +10,8 @@ And it got itself a site [picofly.dev](https://picofly.dev)
 <img src="docs/logo.svg" height="192" align="right">
 
 ⚡ **Fast**: lazy proxies, hand-tuned hot paths, renders only what changed  
-🤏 **Tiny**: *683 B* core, *1.24 kB* with React support  
-🥧 **Simple**: *~160 lines* of code, *~120* more for React  
+🤏 **Tiny**: *683 B* core, *1.28 kB* with React support  
+🥧 **Simple**: *~160 lines* of code, *~140* more for React  
 🍳 **Handy**: you think about what to do, not how  
 ⚛️ **React & React Native**: *hook* or *selectors*, whichever fits  
 🔋 **Charged**: *Map*, *Set* and *TypeScript* out of the box  
@@ -19,7 +19,7 @@ And it got itself a site [picofly.dev](https://picofly.dev)
 
 #### Supported
 
-*React* >= 18  
+*React* >= 19  
 *React Native* >= 0.78  
 *Preact* >= 11 (beta now, [why not 10](https://github.com/preactjs/preact/issues/4299))
 
