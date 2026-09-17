@@ -306,7 +306,7 @@ app.user.name = 'Eve' // works again`],
         \`selector\`: \`(store, props) => props\` Adds or overwrites props.
         Runs in render, hooks allowed.
 
-        \`options\`: \`{getStore?: () => store}\` Takes the store from somewhere
+        \`options\`: \`{store?: store | () => store}\` Takes the store from somewhere
         else than the context.
 
         **Returns:** \`component\` The wrapped component, its own props plus the

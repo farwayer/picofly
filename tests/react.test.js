@@ -266,7 +266,7 @@ suite('react', () => {
   test('strict mode keeps tracking with select', () => {
     let store = create({n: 0})
     let View = ({n}) => h('div', null, '' + n)
-    let C = select(s => ({n: s.n}))(View, {getStore: () => store})
+    let C = select(s => ({n: s.n}))(View, {store})
 
     let app = mount(h(StrictMode, null, h(C)))
 
@@ -294,12 +294,28 @@ suite('react', () => {
           props.onClick()
         },
       }),
-    )(View, {getStore: () => store})
+    )(View, {store})
 
     mount(h(C, {onClick: () => calls.push('inner')}))
     onClick()
 
     assert.deepEqual(calls, ['outer', 'inner'])
+  })
+
+  test('select takes the store itself or a function returning it', () => {
+    let store
+    let View = ({n}) => h('div', null, '' + n)
+    let Lazy = select(s => ({n: s.n}))(View, {store: () => store})
+
+    // the function runs at render, so the store may not exist yet
+    store = create({n: 0})
+    let Direct = select(s => ({n: s.n}))(View, {store})
+
+    let app = mount(h('div', null, h(Direct), h(Lazy)))
+    assert.equal(app.text(), '00')
+
+    write(() => {store.n = 1})
+    assert.equal(app.text(), '11')
   })
 
   test('write during render throws', () => {

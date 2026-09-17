@@ -2,7 +2,7 @@
 
 *In short: because the others weren't ideal enough for me* 😮‍💨
 
-*Picofly* is 12+ years of using state managers, reworking architecture
+*Picofly* is 12 years of using state managers, reworking architecture
 and polishing apps to the last detail.
 
 A state manager with no compromises between usability, size and speed:

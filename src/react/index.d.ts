@@ -10,7 +10,7 @@ export function useStore<S>(store?: S): S
 export type Selector<S, P, EP> = (store: S, props: P) => EP
 
 export type SelectOptions<S> = {
-	getStore?: () => S
+	store?: S | (() => S)
 }
 
 type None = null | undefined | false | 0 | 0n | ''

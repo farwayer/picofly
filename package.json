@@ -108,7 +108,7 @@
 			"ignore": [
 				"react"
 			],
-			"limit": "2181b"
+			"limit": "2175b"
 		}
 	],
 	"clean-publish": {

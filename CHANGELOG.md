@@ -8,6 +8,7 @@
 - prebuilt combinations gone: `objMap`, `objMapIgnoreSpecialsRef` and friends
 - `ref()`/`isRef()` -> `markRaw()`/`isRaw()`
 - `StoreProvider`/`StoreContext` -> `Picofly`/`PicoflyContext`
+- `select()`: `{getStore}` -> `{store}`, a store or a function returning it
 - `useDerived()`, `withRef()`, `usePostRenderCallback()` gone
 - `Object.defineProperty` is not tracked any more
 

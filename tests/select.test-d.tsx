@@ -147,3 +147,12 @@ let r22 = <R22 id="1" hasFlag/>
 let r22b = <R22 hasFlag/>
 // @ts-expect-error
 let r22c = <R22 id="1"/>
+
+// 23. the store comes as is or as a function returning it
+let app: App = {n: 1}
+let R23 = select(base, age)(C, {store: app})
+let R23b = select(base, age)(C, {store: () => app})
+// @ts-expect-error
+select(base, age)(C, {store: {m: 1}})
+// @ts-expect-error
+select(base, age)(C, {getStore: () => app})

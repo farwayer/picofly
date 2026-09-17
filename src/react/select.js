@@ -1,14 +1,15 @@
 import {memo, createElement} from 'react'
 import {useStore} from './use-store.js'
 
-export let select = (...selectors) => (Component, options = {}) => {
-	let {getStore} = options
+export let select = (...selectors) => (Component, options) => {
+	let store = options?.store
 
 	let Select = memo(props => {
-		let store = useStore(getStore?.())
+		let cstore = typeof store === 'function' ? store() : store
+		cstore = useStore(cstore)
 
 		props = selectors.reduce((props, selector) => (
-			Object.assign({}, props, selector(store, props))
+			Object.assign({}, props, selector(cstore, props))
 		), props)
 
 		return createElement(Component, props)
