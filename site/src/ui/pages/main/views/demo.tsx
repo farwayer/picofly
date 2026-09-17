@@ -22,8 +22,8 @@ export default function Demo() {
       </p>
 
       <div class="cells">
-        <CellA reads="app.a"/>
-        <CellB reads="app.b"/>
+        <CellA reads="calc.a"/>
+        <CellB reads="calc.b"/>
         <CellSum/>
       </div>
 
@@ -45,7 +45,7 @@ let CellB = select(value('b'))(Cell)
 let CellSum = () => {
   let app = useStore<App>()
 
-  return <Cell reads="app.a + app.b" value={app.demo.a + app.demo.b}/>
+  return <Cell reads="calc.a + calc.b" value={app.demo.a + app.demo.b}/>
 }
 
 function Cell({reads, value}: {reads: string, value: number}) {
@@ -74,7 +74,7 @@ let IncB = incBtn('b')
 let Reset = select(
   (app: App) => ({
     busy: app.demo.resetting,
-    children: 'reset',
+    children: 'reset (async delay)',
   }),
   callback('onClick', reset),
 )(Button)

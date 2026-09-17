@@ -757,17 +757,10 @@ pre {
   margin: .4rem 0 .3rem;
 }
 
-/* the bar rides above the table, where it is seen before the first scroll:
-   the box is flipped and its content flipped back */
 .scroll {
   overflow-x: auto;
-  transform: scaleY(-1);
   scrollbar-width: thin;
   scrollbar-color: var(--border) transparent;
-}
-
-.scroll > * {
-  transform: scaleY(-1);
 }
 
 /* webkit hides the bar until it scrolls unless it is given a size */
@@ -803,10 +796,36 @@ pre {
   opacity: .75;
 }
 
-/* what the numbers below were measured on */
+/* what the numbers below were measured on. The arrow in its corner says the
+   table goes on to the right, scrolls it by a screen on a tap, and leaves
+   when the end is reached. It hangs down into the empty top of the table */
 .bench-env {
+  position: relative;
   margin: -.6rem 0 -.4rem;
-  padding-left: .6rem;
+  padding: 0 1.5rem 0 .6rem;
+}
+
+.scroll-on {
+  position: absolute;
+  right: 0;
+  bottom: -1.1rem;
+  padding: .4rem;
+  border: 0;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .15s;
+}
+
+.scroll-on svg {
+  display: block;
+}
+
+.bench-env.goes-on .scroll-on {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .spec {
@@ -887,10 +906,11 @@ pre {
 }
 
 /* how many components rendered, quieter and ahead of the time they took.
-   Its own box is fixed, so the counts line up too */
+   Its own box holds four digits, so the counts line up too */
 .bench .renders {
   display: inline-block;
-  width: 4ch;
+  min-width: 4ch;
+  font-variant-numeric: tabular-nums;
   /* jsx eats the newline after the span, so the gap lives here */
   margin-right: .3rem;
   text-align: right;
@@ -1071,10 +1091,12 @@ footer .note {
 }
 
 /* narrow phones: the table no longer fits, so it tightens up and scrolls,
-   with the next column peeking in to say there is more */
+   with the next column peeking in to say there is more. Every column gets
+   what its widest number and count need, so five columns do not try to
+   squeeze into the room of three */
 @media (max-width: 30rem) {
   .bench {
-    min-width: 26.5rem;
+    min-width: calc(11rem + (var(--cols) - 1) * 5.4rem);
     font-size: .8rem;
   }
 
@@ -1086,10 +1108,6 @@ footer .note {
   .bench th,
   .bench td {
     padding-inline: .25rem;
-  }
-
-  .bench .time {
-    min-width: 4ch;
   }
 
   .bench .renders {

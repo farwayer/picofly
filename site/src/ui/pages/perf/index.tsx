@@ -1,5 +1,5 @@
 import {Fragment} from 'preact'
-import {useState} from 'preact/hooks'
+import {useEffect, useRef, useState} from 'preact/hooks'
 import {select} from 'picofly/react'
 import {BenchCode} from 'virtual:bench-code'
 import type {App, EngineId} from '~/store/state.ts'
@@ -7,7 +7,7 @@ import {Caveats, Cfg, Engines, Libs, Notes, ReactCaveats, Verdict} from '~/const
 import {cn} from '~/lib/cn.ts'
 import {hl} from '~/lib/hl.tsx'
 import {md} from '~/lib/md.tsx'
-import {ArrowUp} from '~/ui/views/icons.tsx'
+import {ArrowRight, ArrowUp} from '~/ui/views/icons.tsx'
 import Points from '~/ui/views/points.tsx'
 import Tabs from '~/ui/views/tabs.tsx'
 
@@ -27,6 +27,33 @@ function Perf({engine}: Props) {
   let libs = current.libs ?? Libs
   let cols = libs.length + 1
   let app = current.id === 'react'
+
+  let scroll = useRef<HTMLDivElement>(null)
+  let [more, setMore] = useState(false)
+
+  // the arrow above the table stays while there is table beyond the right edge
+  useEffect(() => {
+    let box = scroll.current
+    if (!box) return
+
+    let check = () => {
+      setMore(box.scrollWidth - box.clientWidth - box.scrollLeft > 1)
+    }
+
+    check()
+    box.addEventListener('scroll', check, {passive: true})
+    addEventListener('resize', check)
+
+    return () => {
+      box.removeEventListener('scroll', check)
+      removeEventListener('resize', check)
+    }
+  }, [current.id])
+
+  let scrollOn = () => {
+    let box = scroll.current
+    box?.scrollBy({left: box.clientWidth, behavior: 'smooth'})
+  }
 
   // a footnote belongs to a row, so the other tabs never show it
   let shown = new Set(current.bench.flatMap(
@@ -55,10 +82,15 @@ function Perf({engine}: Props) {
         <Tabs items={measured} current={current.id} hash/>
       )}
 
-      <p class="text bench-env">{current.env}, Linux, i9-13900, P-cores only</p>
+      <p class={cn('text bench-env', more && 'goes-on')}>
+        {current.env}, Linux, i9-13900, P-cores only
+        <button class="scroll-on" onClick={scrollOn} aria-label="scroll the table">
+          <ArrowRight/>
+        </button>
+      </p>
 
-      <div class="scroll">
-        <table class="bench">
+      <div class="scroll" ref={scroll}>
+        <table class="bench" style={`--cols: ${cols}`}>
           <colgroup>
             {Array.from({length: cols}, (_, i) => <col key={i}/>)}
           </colgroup>
