@@ -2,8 +2,8 @@
 
 *In short: because the others weren't ideal enough for me* 😮‍💨
 
-*Picofly* is 12 years of using state managers, reworking architecture
-and polishing apps to the last detail.
+*Picofly* grew out of 12 years of using different state managers, reworking
+architecture and polishing apps to the last detail.
 
 A state manager with no compromises between usability, size and speed:
 
@@ -82,13 +82,13 @@ empty lines).
 
 </Small>
 
-*Picofly* with *React* hook, <Hi>280 lines</Hi>.
+*Picofly* with *React* hook, <Hi>291 lines</Hi>.
 
 <Small>
 
 - **`store.js`** — 51
 - **`rules/obj.js`** — 106
-- **`react/use-store.js`** — 123
+- **`react/use-store.js`** — 134
 
 </Small>
 

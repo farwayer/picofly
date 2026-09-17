@@ -1,13 +1,30 @@
 # Tips
 
-## Without context
+## React Compiler
 
-Not happy with context? Wrap `useStore` in a small hook.
+You do not need it with *Picofly*. The compiler wraps every computation,
+callback and element of every component in a cache, to skip re-renders and
+repeated work. A component on *Picofly* already renders only when a key it
+read changes, so the cache has nothing to save and only adds code and checks.
 
-```js
-export let useMyApp = () => {
-	let app = useRef().current ??= create()
-	return useStore(app)
+Worse, with it on things break. The cache compares by reference, and a store
+object keeps its reference while the data inside changes. A `map` over a store
+array, or a store object handed to a child, shows the old data. Only primitives
+survive.
+
+The clean way is `compilationMode: 'annotation'` in the compiler config. It
+compiles only the components marked `"use memo"`, the store ones stay as
+written. Or keep the default and put `"use no memo"` on the components that
+read the store.
+
+```jsx
+function Videos() {
+	"use no memo"
+	let app = useStore()
+
+	return [...app.videos.values()].map(video => (
+		<Video key={video.id} video={video}/>
+	))
 }
 ```
 
@@ -33,3 +50,14 @@ Putting `memo` on the component you pass to `select()` breaks updates whenever
 a selector returns an object the component reads inside. The object stays the
 same, `memo` skips the render and the screen goes stale. In rare cases it pays
 off, but only if you know exactly what you are doing.
+
+## Without context
+
+Not happy with context? Wrap `useStore` in a small hook.
+
+```js
+export let useMyApp = () => {
+	let app = useRef().current ??= create()
+	return useStore(app)
+}
+```
