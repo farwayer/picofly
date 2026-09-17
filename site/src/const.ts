@@ -24,7 +24,7 @@ export let Pages: {id: Page, name: string}[] = [
     name: 'API',
   },
   {
-    id: 'performance',
+    id: 'perf',
     name: 'Performance',
   },
   {

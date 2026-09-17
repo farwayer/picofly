@@ -42,7 +42,7 @@ Then *MobX*, later with *MobX-State-Tree* on top. It felt like rescue:
 
 The bill:
 
-- Heavy and slow, back then (today it's [fast!](https://picofly.dev/performance))
+- Heavy and slow, back then (today it's [fast!](https://picofly.dev/perf))
 - Decorators, poorly supported by runtimes and bundlers back then
 - Less boilerplate, but still boilerplate
 - Too much internal machinery to keep in the head
@@ -93,7 +93,7 @@ empty lines).
 </Small>
 
 It is not about the size of the code or the extra layers (though those too).
-It weighs heavily on [performance](https://picofly.dev/performance), on top of the penalty
+It weighs heavily on [performance](https://picofly.dev/perf), on top of the penalty
 Proxy already charges. Plus the split into a "state to read" and a "state to
 write" was confusing, and never looked elegant.
 
@@ -182,7 +182,7 @@ A whole site in tens of kB with *Picofly* and *Preact*? Easy.
 
 ## Very fast with lazy proxies
 
-The full story is on the [performance](https://picofly.dev/performance) page.
+The full story is on the [performance](https://picofly.dev/perf) page.
 
 Proxies are created lazily, on first read. The backend sends 10,000 records,
 the page shows 10. *Picofly* stores the payload instantly. *Valtio* and *MobX* pay
@@ -197,7 +197,7 @@ Median over the core benchmarks of each category:
 <Note>
 
 \* *Zustand* is not in that list: it keeps plain immutable data, there is no
-proxy to compare. In the [app benchmarks](https://picofly.dev/performance#react) *Picofly* is
+proxy to compare. In the [app benchmarks](https://picofly.dev/perf#react) *Picofly* is
 <Hi>1.6x</Hi> faster on a point change and about <Hi>20%</Hi> slower over the
 whole suite — mounting and replacing a list is what an immutable store does
 best.

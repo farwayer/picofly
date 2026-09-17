@@ -2,9 +2,10 @@
 
 _Tiny state manager, built with ❤️_
 
-[picofly.dev](https://picofly.dev)
+[![NPM version](https://img.shields.io/npm/v/picofly)](https://www.npmjs.com/package/picofly)
 
-[![NPM version](https://img.shields.io/npm/v/picofly/beta)](https://www.npmjs.com/package/picofly)
+After many years of development and testing in real apps, Picofly 1.0 is out! 🎉  
+And it got itself a site [picofly.dev](https://picofly.dev)
 
 <img src="docs/logo.svg" height="192" align="right">
 
@@ -27,18 +28,12 @@ _Tiny state manager, built with ❤️_
 ```sh
 npm i picofly
 ```
-```sh
-yarn add picofly
-```
-```sh
-pnpm add picofly
-```
 
 ## How to use
 
 `create(state)` wraps your state and gives back the store. Read what you need
-in a component and write from anywhere. The component renders only when a
-property it actually read changes.
+in a component and write from anywhere outside render. The component renders
+only when a property it actually read changes.
 
 Objects, arrays, `Map` and `Set` are proxied. `Date`, `Error`, `RegExp` and
 the like stay as they are.
@@ -55,12 +50,7 @@ import {create, markRaw} from 'picofly'
 // a plain object works too
 class State {
 	api = null
-	authToken = null
 	videos = new Map()
-
-	get signedIn() {
-		return !!this.authToken
-	}
 }
 
 export let createStore = () => {
@@ -97,15 +87,12 @@ let App = () => {
 This one uses the hook.
 
 ```javascript
-import {memo} from 'react'
 import {useStore} from 'picofly/react'
 import Video from './video'
 
-export default memo(VideoList)
-
 // VideoList reads the ids only, so it renders
-// when a video is added or removed
-function VideoList() {
+// only when a video is added or removed
+export default function VideoList() {
 	let app = useStore()
 
 	let ids = Array.from(app.videos.keys())
@@ -132,8 +119,7 @@ A selector is a plain function that picks data out of the store or attaches an
 action. Selectors run in the render context, so hooks work inside them.
 
 Keep them small and generic and they will be reused between components;
-a complex selection is a combination of simple ones. More in
-[Hook vs selectors](docs/hook-vs-selectors.md).
+a complex selection is a combination of simple ones.
 
 ```javascript
 import {select} from 'picofly/react'

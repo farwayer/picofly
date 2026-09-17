@@ -21,7 +21,7 @@ let Pages = {
   arch: Architecture,
   'hook-vs-selectors': Selectors,
   api: Api,
-  performance: Perf,
+  perf: Perf,
   tips: Tips,
 }
 

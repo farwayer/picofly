@@ -5,7 +5,7 @@ export type ApiTab = 'core' | 'selectors' | 'react' | 'react-selectors'
 export type EngineId = 'v8' | 'jsc' | 'sm' | 'hermes' | 'react'
 export type Page =
   'main' | 'why' | 'arch' | 'hook-vs-selectors' | 'api'
-  | 'performance' | 'tips'
+  | 'perf' | 'tips'
 
 export class Demo {
   a = 0
