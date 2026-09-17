@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.0.1
+
+### Fixed
+
+- back on `useSyncExternalStore` to rule out a rare but theoretically possible
+  tearing under concurrent rendering
+
 ## 1.0.0
 
 ### Breaking
@@ -41,7 +48,7 @@
 - Map and Set track fewer reads
 - `useStore` stops checking once the component is dirty
 - a write wakes only the components that read that object
-- 683 B minimal, 1.28 kB with React
+- 683 B minimal, 1.27 kB with React
 
 ## 0.1.0 — 2026-08-21
 

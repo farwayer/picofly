@@ -198,7 +198,7 @@ Median over the core benchmarks of each category:
 
 \* *Zustand* is not in that list: it keeps plain immutable data, there is no
 proxy to compare. In the [app benchmarks](https://picofly.dev/perf#react) *Picofly* is
-<Hi>1.6x</Hi> faster on a point change and about <Hi>20%</Hi> slower over the
+<Hi>1.4x</Hi> faster on a point change and about <Hi>20%</Hi> slower over the
 whole suite — mounting and replacing a list is what an immutable store does
 best.
 
