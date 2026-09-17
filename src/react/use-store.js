@@ -15,8 +15,7 @@ export let useContextStore = () => useContext(PicoflyContext)
 // store will be locked after the call and before any component commit stage
 export let useStore = (store = useContextStore() || "use <Picofly>!"()) => {
 	let state = useRef().current ??= {
-		epoch: 0,
-		dirty: 0,
+		epoch: 1,
 		subs: [],
 		notify: null,
 	}
@@ -65,14 +64,10 @@ let attachTracker = (store) => {
 		while (sub) {
 			let state = sub.state
 
-			if (!state.dirty) {
+			// dirty flag
+			if (state.epoch & 1) {
 				state.epoch++
-
-				let notify = state.notify
-				if (notify) {
-					state.dirty = 1
-					notify()
-				}
+				state.notify?.()
 			}
 
 			sub = sub.next
@@ -134,7 +129,7 @@ let attachTracker = (store) => {
 		}
 
 		state = readerState
-		readerState.dirty = 0
+		readerState.epoch |= 1
 		subIndex = 0
 
 		return stopTrackRead
