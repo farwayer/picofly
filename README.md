@@ -10,7 +10,7 @@ And it got itself a site [picofly.dev](https://picofly.dev)
 <img src="docs/logo.svg" height="192" align="right">
 
 ⚡ **Fast**: lazy proxies, hand-tuned hot paths, renders only what changed  
-🤏 **Tiny**: *683 B* core, *1.28 kB* with React support  
+🤏 **Tiny**: *683 B* core, *1.27 kB* with React support  
 🥧 **Simple**: *~160 lines* of code, *~140* more for React  
 🍳 **Handy**: you think about what to do, not how  
 ⚛️ **React & React Native**: *hook* or *selectors*, whichever fits  

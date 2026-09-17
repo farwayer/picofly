@@ -76,7 +76,7 @@
 			"ignore": [
 				"react"
 			],
-			"limit": "1285b"
+			"limit": "1275b"
 		},
 		{
 			"name": "Full",
@@ -97,7 +97,7 @@
 			"ignore": [
 				"react"
 			],
-			"limit": "2111b"
+			"limit": "2103b"
 		},
 		{
 			"name": "React full select",
@@ -108,7 +108,7 @@
 			"ignore": [
 				"react"
 			],
-			"limit": "2234b"
+			"limit": "2216b"
 		}
 	],
 	"clean-publish": {

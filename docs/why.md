@@ -8,7 +8,7 @@ and polishing apps to the last detail.
 A state manager with no compromises between usability, size and speed:
 
 - `create(state)` once, `useStore()` in a component, the whole API
-- [From](#very-small) <Hi>1.28 kB</Hi> with the *React* binding
+- [From](#very-small) <Hi>1.27 kB</Hi> with the *React* binding
 - [Very fast](#very-fast-with-lazy-proxies): lazy proxies, hand-tuned hot paths
 - Renders only what changed
 - Plays by the rules, your objects stay untouched
@@ -163,7 +163,7 @@ well. If you are curious where my own search landed, read
 Hand-crafted, simple, readable, byte-counted, covered end to end by tests.
 
 - **picofly** — <Hi>683 B</Hi> (core),
-  <Hi>1.28 kB</Hi> (core + react)
+  <Hi>1.27 kB</Hi> (core + react)
 - **picofly (full)** — <Hi>1.52 kB</Hi> (core + map + set),
   <Hi>2.06 kB</Hi> (core + map + set + react)
 - **valtio** — <Hi>2.61 kB</Hi> (core + react),

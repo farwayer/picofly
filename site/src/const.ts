@@ -6,7 +6,7 @@ export let Cfg = {
   install: ['npm i picofly', 'yarn add picofly', 'pnpm add picofly'],
   size: {
     min: '683 B',
-    react: '1.24 kB',
+    react: '1.27 kB',
   },
   links: {
     github: 'https://github.com/farwayer/picofly',
@@ -42,7 +42,7 @@ export let Pages: {id: Page, name: string}[] = [
 ]
 
 export let Features = [
-  ['⚡', 'Fast', 'every hot path is measured'],
+  ['⚡', 'Fast', 'lazy proxies, every hot path is measured'],
   ['🤏', 'Tiny', `${Cfg.size.min} core, ${Cfg.size.react} with React support`],
   ['🥧', 'Simple', '~160 lines of airy code'],
   ['🍳', 'Handy', 'think about what to do, not how'],
@@ -143,7 +143,7 @@ export function Reset() {
 
 	return (
 		<button onClick={() => reset(calc)} disabled={calc.resetting}>
-			{calc.resetting ? <Spinner/> : 'reset'}
+			{calc.resetting ? <Spinner/> : 'reset (async)'}
 		</button>
 	)
 }`,
@@ -409,7 +409,7 @@ let date = next => !next ? 35 : ($, val) =>
 let app = store({}, [obj, builtins, date])`
 
 export let Libs: [string, string][] = [
-  ['picofly', '1.0.0-beta.3'],
+  ['picofly', '1.0.0'],
   ['valtio', '2.3.2'],
   ['mobx', '7.0.3'],
 ]
