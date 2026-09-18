@@ -23,6 +23,17 @@ And it got itself a site [picofly.dev](https://picofly.dev)
 *React Native* >= 0.78  
 *Preact* >= 11 (beta now, [why not 10](https://github.com/preactjs/preact/issues/4299))
 
+## React Compiler?
+
+No, and not planned. You do not need it with *Picofly*. More in
+[Mobx Memoizes Components (You don't need React Compiler)](https://www.mikejohnson.dev/posts/2024/06/mobx-react-compiler),
+which I agree with 5000%, and in [Tips](docs/tips.md#disable-react-compiler).
+
+Worse, with React Compiler on, *Picofly* will most likely not work as it
+should. Compile only the components marked `"use memo"` with
+`compilationMode: 'annotation'`, or put `"use no memo"` on the ones that read
+the store.
+
 ## Install
 
 ```sh

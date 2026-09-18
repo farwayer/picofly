@@ -13,6 +13,9 @@ where they are not at all.
 Worse, `Map` and `Set`, the fastest way to keep a collection, are built to be
 mutated, and the compiler forces you to copy them on every change.
 
+More in [Mobx Memoizes Components (You don't need React Compiler)](https://www.mikejohnson.dev/posts/2024/06/mobx-react-compiler)
+by Mike Johnson.
+
 A component on *Picofly* already renders only when a key it read changes, so
 there is little left for the compiler to save.
 
