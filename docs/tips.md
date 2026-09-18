@@ -1,6 +1,6 @@
 # Tips
 
-## React Compiler
+## Disable React Compiler
 
 You do not need it with *Picofly*. The compiler wraps every computation,
 callback and element of every component in a cache, to skip re-renders and
@@ -22,8 +22,8 @@ function Videos() {
 	"use no memo"
 	let app = useStore()
 
-	return [...app.videos.values()].map(video => (
-		<Video key={video.id} video={video}/>
+	return [...app.videos.keys()].map(id => (
+		<Video key={id} id={id}/>
 	))
 }
 ```
