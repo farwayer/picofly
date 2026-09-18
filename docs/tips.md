@@ -2,12 +2,21 @@
 
 ## Disable React Compiler
 
-You do not need it with *Picofly*. The compiler wraps every computation,
-callback and element of every component in a cache, to skip re-renders and
-repeated work. A component on *Picofly* already renders only when a key it
-read changes, so the cache has nothing to save and only adds code and checks.
+You do not need it with *Picofly*. The compiler goes after the same problem, a
+component re-rendered for nothing, by memoizing everything in every component,
+blindly.
 
-Worse, with it on things break. The cache compares by reference, and a store
+Like any deal with the devil, it has a price. The app bundle grows by checks
+around every computation, callback and element, where they are needed and
+where they are not at all.
+
+Worse, `Map` and `Set`, the fastest way to keep a collection, are built to be
+mutated, and the compiler forces you to copy them on every change.
+
+A component on *Picofly* already renders only when a key it read changes, so
+there is little left for the compiler to save.
+
+And with it on, things break. The cache compares by reference, and a store
 object keeps its reference while the data inside changes. A `map` over a store
 array, or a store object handed to a child, shows the old data. Only primitives
 survive.
