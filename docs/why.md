@@ -214,6 +214,21 @@ wakes whoever read `user.name` and nobody else.
 Nothing to declare, nothing to subscribe to. It just works. In *Zustand* the
 same thing is a selector per value, written and kept by hand.
 
+## Selectors for more complex apps
+
+Optional. The hook is enough for a small app, selectors hold up better as
+things grow, they keep the UI apart from the logic.
+
+```jsx
+let videoById = (app, props) => ({
+	video: app.videos.get(props.id),
+})
+
+export default select(videoById)(Video)
+```
+
+More in [Hook vs selectors](hook-vs-selectors.md).
+
 ## The store locks during render
 
 Writing to state from a render is one of the most common *React* mistakes.
