@@ -63,9 +63,11 @@ let tick = (() => {
 let coarse = tick > 10e3
 
 // the onWrite check useStore() runs on every change, once per subscriber
+// a fresh callback each time: a Set of listeners would dedupe one `noop`
+// into a single subscriber and the count would be a lie
 export let watch = (store, subs = 1) => {
   while (subs--) {
-    onWrite(store, noop)
+    onWrite(store, () => {})
   }
 
   return store
@@ -74,12 +76,12 @@ export let watch = (store, subs = 1) => {
 export let sub = (proxy, subs = 1) => {
   // sync mode: the default batching parks a microtask per write, and inside
   // a sync timed loop those pile up and retain every subject until the end
-  while (subs--) subscribe(proxy, noop, true)
+  while (subs--) subscribe(proxy, () => {}, true)
   return proxy
 }
 
 export let obs = (observable, subs = 1) => {
-  while (subs--) observe(observable, noop)
+  while (subs--) observe(observable, () => {})
   return observable
 }
 
