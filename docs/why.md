@@ -259,4 +259,13 @@ Two gaps:
   dropped it on purpose.
 - Private `#fields` cannot be read through a proxy.
 
+## React Compiler?
+
+No, and not planned. You do not need it with *Picofly*.
+
+More in [Tips](tips.md#disable-react-compiler) and in
+[Mobx Memoizes Components (You don't need React Compiler)](https://www.mikejohnson.dev/posts/2024/06/mobx-react-compiler).
+
+With React Compiler on, *Picofly* will most likely not work as it should.
+
 <i>It took many years to make it this short. Now I'm happy to share Picofly with you.</i>
