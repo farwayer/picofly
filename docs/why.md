@@ -217,7 +217,7 @@ same thing is a selector per value, written and kept by hand.
 ## Selectors for more complex apps
 
 Optional. The hook is enough for a small app, selectors hold up better as
-things grow, they keep the UI apart from the logic.
+things grow, they keep the logic apart from the UI.
 
 ```jsx
 let videoById = (app, props) => ({
