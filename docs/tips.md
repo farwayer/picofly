@@ -23,10 +23,9 @@ With React Compiler on, *Picofly* will most likely not work as it should. The
 cache compares by reference, and a store object keeps its reference while the
 data inside changes.
 
-The clean way is `compilationMode: 'annotation'` in the compiler config. It
-compiles only the components marked `"use memo"`, the store ones stay as
-written. Or keep the default and put `"use no memo"` on the components that
-read the store.
+The clean way is `compilationMode: 'annotation'` in the compiler config. Or
+keep the default and put `"use no memo"` on the components that read the
+store.
 
 ```jsx
 function Videos() {
