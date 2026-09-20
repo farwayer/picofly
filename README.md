@@ -27,12 +27,11 @@ And it got itself a site [picofly.dev](https://picofly.dev)
 
 No, and not planned. You do not need it with *Picofly*.  
 
-More in [Mobx Memoizes Components (You don't need React Compiler)](https://www.mikejohnson.dev/posts/2024/06/mobx-react-compiler) and in [Tips](docs/tips.md#disable-react-compiler).
+More in [Tips](docs/tips.md#disable-react-compiler) and in [Mobx Memoizes Components (You don't need React Compiler)](https://www.mikejohnson.dev/posts/2024/06/mobx-react-compiler).
 
 Worse, with React Compiler on, *Picofly* will most likely not work as it
-should. Compile only the components marked `"use memo"` with
-`compilationMode: 'annotation'`, or put `"use no memo"` on the ones that read
-the store.
+should. Use `compilationMode: 'annotation'`, or put `"use no memo"` on the
+components that read the store.
 
 ## Install
 
@@ -52,7 +51,7 @@ the like stay as they are.
 ### React example
 
 Picofly works with a hook or with selectors. The trade-offs are in
-[Hook vs selectors](docs/hook-vs-selectors.md).
+[Hook vs Selectors](docs/hook-vs-selectors.md).
 
 #### store.js
 ```javascript
@@ -177,6 +176,6 @@ function Video({
 
 - [API and benchmarks](https://picofly.dev)
 - [Why the hell another one?](docs/why.md)
-- [Hook vs selectors](docs/hook-vs-selectors.md)
+- [Hook vs Selectors](docs/hook-vs-selectors.md)
 - [The Good, the Bad, the Ugly architecture](docs/arch.md)
 - [Tips](docs/tips.md)

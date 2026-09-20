@@ -1,6 +1,6 @@
 # Why the hell another one?
 
-*In short: because the others weren't ideal enough for me* 😮‍💨
+*In short: because the others weren't ideal* 😮‍💨
 
 *Picofly* grew out of 12 years of using different state managers, reworking
 architecture and polishing apps to the last detail.
@@ -227,7 +227,7 @@ let videoById = (app, props) => ({
 export default select(videoById)(Video)
 ```
 
-More in [Hook vs selectors](hook-vs-selectors.md).
+More in [Hook vs Selectors](hook-vs-selectors.md).
 
 ## The store locks during render
 

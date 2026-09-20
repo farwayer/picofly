@@ -19,10 +19,9 @@ by Mike Johnson.
 A component on *Picofly* already renders only when a key it read changes, so
 there is little left for the compiler to save.
 
-And with it on, things break. The cache compares by reference, and a store
-object keeps its reference while the data inside changes. A `map` over a store
-array, or a store object handed to a child, shows the old data. Only primitives
-survive.
+With React Compiler on, *Picofly* will most likely not work as it should. The
+cache compares by reference, and a store object keeps its reference while the
+data inside changes.
 
 The clean way is `compilationMode: 'annotation'` in the compiler config. It
 compiles only the components marked `"use memo"`, the store ones stay as
