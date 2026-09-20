@@ -6,9 +6,9 @@ You do not need it with *Picofly*. The compiler goes after the same problem, a
 component re-rendered for nothing, by memoizing everything in every component,
 blindly.
 
-Like any deal with the devil, it has a price. The app bundle grows by checks
-around every computation, callback and element, where they are needed and
-where they are not at all.
+Like any deal with the devil, it has a price: bloating the app bundle with
+checks around every computation, callback and element, where they are needed
+and where they are not at all.
 
 Worse, `Map` and `Set`, the fastest way to keep a collection, are built to be
 mutated, and the compiler forces you to copy them on every change.
