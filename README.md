@@ -25,12 +25,12 @@ And it got itself a site [picofly.dev](https://picofly.dev)
 
 ## React Compiler?
 
-No, and not planned. You do not need it with *Picofly*.  
+No, and not planned. You do not need it with *Picofly*. Worse, with React
+Compiler on, *Picofly* will most likely not work as it should.
 
 More in [Tips](docs/tips.md#disable-react-compiler) and in [Mobx Memoizes Components (You don't need React Compiler)](https://www.mikejohnson.dev/posts/2024/06/mobx-react-compiler).
 
-Worse, with React Compiler on, *Picofly* will most likely not work as it
-should. Use `compilationMode: 'annotation'`, or put `"use no memo"` on the
+Use `compilationMode: 'annotation'`, or put `"use no memo"` on the
 components that read the store.
 
 ## Install
